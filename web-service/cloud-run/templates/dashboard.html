@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deploy - Anava Cloud</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .project-card { border: 1px solid #ddd; padding: 20px; margin: 10px 0; cursor: pointer; }
+        .project-card:hover { background: #f5f5f5; }
+        .btn { background: #4285f4; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:disabled { background: #ccc; }
+        .logs { background: #000; color: #fff; padding: 20px; font-family: monospace; max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>Deploy Infrastructure</h1>
+    <p>Welcome, {{ user.email }}</p>
+    
+    <div id="step1">
+        <h2>Select Project</h2>
+        <div id="projectList">Loading projects...</div>
+        <button onclick="selectProject()" disabled id="selectBtn" class="btn">Next</button>
+    </div>
+    
+    <div id="step2" style="display:none;">
+        <h2>Configure Deployment</h2>
+        <label>Region:</label>
+        <select id="region">
+            <option value="us-central1">US Central</option>
+            <option value="us-east1">US East</option>
+            <option value="europe-west1">Europe West</option>
+        </select>
+        <br><br>
+        <button onclick="startDeployment()" class="btn">Deploy Infrastructure</button>
+    </div>
+    
+    <div id="step3" style="display:none;">
+        <h2>Deployment in Progress</h2>
+        <div id="status">Preparing...</div>
+        <div id="logs" class="logs"></div>
+        <div id="results" style="display:none;">
+            <h3>Deployment Complete!</h3>
+            <div id="outputs"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedProject = null;
+        let deploymentId = null;
+
+        // Load projects
+        fetch('/api/projects')
+            .then(r => r.json())
+            .then(data => {
+                const list = document.getElementById('projectList');
+                if (data.projects) {
+                    list.innerHTML = data.projects.map(p => 
+                        `<div class="project-card" onclick="selectProjectCard('${p.projectId}', '${p.name}')">
+                            <strong>${p.name}</strong><br>${p.projectId}
+                        </div>`
+                    ).join('');
+                } else {
+                    list.innerHTML = `<p>Error: ${data.error}</p>`;
+                }
+            });
+
+        function selectProjectCard(projectId, name) {
+            selectedProject = {projectId, name};
+            document.querySelectorAll('.project-card').forEach(c => c.style.background = '');
+            event.target.style.background = '#e3f2fd';
+            document.getElementById('selectBtn').disabled = false;
+        }
+
+        function selectProject() {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+        }
+
+        function startDeployment() {
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3').style.display = 'block';
+            
+            fetch('/api/deploy', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    projectId: selectedProject.projectId,
+                    region: document.getElementById('region').value
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                deploymentId = data.deploymentId;
+                checkStatus();
+            });
+        }
+
+        function checkStatus() {
+            if (!deploymentId) return;
+            
+            fetch(`/api/deployment/${deploymentId}`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('status').textContent = `Status: ${data.status}`;
+                    
+                    if (data.logs) {
+                        document.getElementById('logs').innerHTML = data.logs.map(log => 
+                            `<div>${log}</div>`
+                        ).join('');
+                    }
+                    
+                    if (data.status === 'completed' && data.outputs) {
+                        document.getElementById('results').style.display = 'block';
+                        document.getElementById('outputs').innerHTML = `
+                            <p><strong>API Gateway URL:</strong> ${data.outputs.apiGatewayUrl}</p>
+                            <p><strong>Firebase Config Secret:</strong> ${data.outputs.firebaseConfigSecret}</p>
+                            <p><strong>API Key Secret:</strong> ${data.outputs.apiKeySecret}</p>
+                            <p><strong>Workload Identity Provider:</strong> ${data.outputs.workloadIdentityProvider}</p>
+                        `;
+                    } else if (data.status === 'running') {
+                        setTimeout(checkStatus, 2000);
+                    } else if (data.status === 'failed') {
+                        document.getElementById('status').textContent = `Failed: ${data.error}`;
+                    }
+                });
+        }
+    </script>
+</body>
+</html>
