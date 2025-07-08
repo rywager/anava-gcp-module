@@ -1,1 +1,0 @@
-# Basic usage example for Anava GCP Module

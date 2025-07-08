@@ -1,1 +1,0 @@
-# Anava GCP Module - Cloud Functions
