@@ -692,6 +692,7 @@ output "workload_identity_provider" {{
                 os.chmod(os.path.join(temp_dir, 'terraform_import_existing.sh'), 0o755)
                 
                 # Run import
+                log("INFO: Running import script...")
                 import_result = subprocess.run(
                     ['./terraform_import_existing.sh', project_id, prefix, '.'],
                     cwd=temp_dir,
@@ -700,10 +701,21 @@ output "workload_identity_provider" {{
                     env=env
                 )
                 
+                # Log import output
+                if import_result.stdout:
+                    for line in import_result.stdout.strip().split('\n'):
+                        if line:
+                            log(f"IMPORT: {line}")
+                
+                if import_result.stderr:
+                    for line in import_result.stderr.strip().split('\n'):
+                        if line:
+                            log(f"IMPORT WARNING: {line}")
+                
                 if import_result.returncode == 0:
-                    log("SUCCESS: Imported existing resources")
+                    log("SUCCESS: Import process completed")
                 else:
-                    log("INFO: Import completed with warnings (this is normal)")
+                    log(f"WARNING: Import completed with exit code {import_result.returncode}")
             
             # Step 5: Plan deployment
             log("STATUS: TERRAFORM_PLAN")

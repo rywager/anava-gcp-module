@@ -72,11 +72,11 @@ if gcloud firebase apps list --project=$PROJECT_ID --filter="displayName:$WEB_AP
   fi
 fi
 
-# Firebase Storage Bucket (default bucket)
-DEFAULT_BUCKET="${PROJECT_ID}.appspot.com"
-if gsutil ls -b gs://$DEFAULT_BUCKET &>/dev/null; then
-  echo "Importing existing Firebase default storage bucket: $DEFAULT_BUCKET"
-  terraform import -input=false "module.anava.google_storage_bucket.firebase_bucket" $DEFAULT_BUCKET || true
+# Firebase Storage Bucket
+FIREBASE_BUCKET="${PROJECT_ID}-${PREFIX}-firebase"
+if gsutil ls -b gs://$FIREBASE_BUCKET &>/dev/null; then
+  echo "Importing existing Firebase storage bucket: $FIREBASE_BUCKET"
+  terraform import -input=false "module.anava.google_storage_bucket.firebase_bucket" $FIREBASE_BUCKET || true
 fi
 
 echo "Import process completed"

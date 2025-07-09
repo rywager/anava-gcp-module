@@ -74,7 +74,7 @@ resource "google_firestore_database" "anava" {
 # Create the actual storage bucket first
 resource "google_storage_bucket" "firebase_bucket" {
   project  = var.project_id
-  name     = "${var.project_id}.appspot.com"
+  name     = "${var.project_id}-${var.solution_prefix}-firebase"
   location = var.storage_location != "" ? var.storage_location : "US"
   
   uniform_bucket_level_access = true
