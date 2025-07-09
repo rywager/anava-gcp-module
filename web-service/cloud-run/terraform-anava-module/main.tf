@@ -91,22 +91,50 @@ resource "google_firestore_database" "anava" {
   depends_on = [google_firebase_project.default]
 }
 
-# Firebase Storage bucket - Try to use existing one or create if needed
+# Create the actual storage bucket first
+resource "google_storage_bucket" "firebase_bucket" {
+  project  = var.project_id
+  name     = "${var.project_id}.appspot.com"
+  location = var.storage_location != "" ? var.storage_location : "US"
+  
+  uniform_bucket_level_access = true
+  force_destroy = false
+  
+  versioning {
+    enabled = true
+  }
+  
+  cors {
+    origin          = ["*"]
+    method          = ["GET", "HEAD", "PUT", "POST", "DELETE"]
+    response_header = ["*"]
+    max_age_seconds = 3600
+  }
+  
+  lifecycle {
+    ignore_changes = [name]
+    create_before_destroy = false
+  }
+  
+  depends_on = [
+    google_project_service.required_apis["storage.googleapis.com"]
+  ]
+}
+
+# Then make the bucket accessible to Firebase
 resource "google_firebase_storage_bucket" "default" {
   provider = google-beta
   project  = var.project_id
-  bucket_id = "${var.project_id}.appspot.com"
+  bucket_id = google_storage_bucket.firebase_bucket.name
 
   lifecycle {
-    ignore_changes = [bucket_id]
-    # Create if missing, but don't fail if it already exists
     create_before_destroy = false
   }
 
   depends_on = [
     google_firebase_project.default,
-    google_project_service.required_apis["firebasestorage.googleapis.com"],
-    google_project_service.required_apis["storage.googleapis.com"]
+    google_storage_bucket.firebase_bucket,
+    google_project_service.required_apis["firebasestorage.googleapis.com"]
   ]
 }
 

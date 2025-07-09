@@ -507,6 +507,7 @@ module "anava" {{
   project_id       = "{job_data['projectId']}"
   region          = "{job_data['region']}"
   solution_prefix = "{job_data['prefix']}"
+  storage_location = "{job_data.get('storage_location', 'US')}"
 }}
 
 output "api_gateway_url" {{
@@ -801,6 +802,7 @@ def start_deployment():
     project_id = data.get('projectId')
     region = data.get('region', 'us-central1')
     prefix = data.get('prefix', 'anava')
+    storage_location = data.get('storage_location', 'US')
     
     if not project_id:
         return jsonify({'error': 'Project ID required'}), 400
@@ -818,6 +820,7 @@ def start_deployment():
         'projectId': project_id,
         'region': region,
         'prefix': prefix,
+        'storage_location': storage_location,
         'user': session['user_info']['email'],
         'status': 'queued',
         'createdAt': datetime.utcnow(),
@@ -830,6 +833,7 @@ def start_deployment():
         'projectId': project_id,
         'region': region,
         'prefix': prefix,
+        'storage_location': storage_location,
         'credentials': session['credentials']
     }
     
