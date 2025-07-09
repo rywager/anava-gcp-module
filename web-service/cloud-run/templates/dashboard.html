@@ -717,6 +717,36 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--primary);
         }
+        
+        .version-badge {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 100;
+        }
+        
+        .version-badge:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .version-badge .version {
+            font-weight: 600;
+        }
+        
+        .version-badge .commit {
+            font-family: 'SF Mono', Monaco, monospace;
+            opacity: 0.7;
+        }
     </style>
 </head>
 <body>
@@ -881,6 +911,10 @@
             </div>
         </div>
     </div>
+    
+    <div class="version-badge" id="version-badge" title="Click for details">
+        <span class="version">Loading...</span>
+    </div>
 
     <script>
         let selectedProject = null;
@@ -892,7 +926,30 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadProjects();
+            loadVersion();
         });
+        
+        async function loadVersion() {
+            try {
+                const response = await fetch('/api/version');
+                const data = await response.json();
+                
+                const badge = document.getElementById('version-badge');
+                badge.innerHTML = `
+                    <span class="version">v${data.version}</span>
+                    <span class="commit">${data.commit}</span>
+                `;
+                badge.title = `Version ${data.version} (${data.commit})\nBuilt: ${data.build_time}`;
+                
+                // Add click handler to show feature details
+                badge.onclick = () => {
+                    alert(`Anava Deploy v${data.version}\n\nFeatures:\n${Object.entries(data.features).map(([k,v]) => `• ${k.replace(/_/g, ' ')}: ${v ? '✓' : '✗'}`).join('\n')}\n\nBuild: ${data.commit}\nTime: ${data.build_time}`);
+                };
+            } catch (error) {
+                console.error('Failed to load version:', error);
+                document.getElementById('version-badge').innerHTML = '<span class="version">v?</span>';
+            }
+        }
 
         async function loadProjects() {
             const loadingEl = document.getElementById('project-loading');

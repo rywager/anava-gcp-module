@@ -11,12 +11,17 @@ echo "📋 Project: $PROJECT_ID"
 # Deploy the main service
 echo ""
 echo "📦 Deploying anava-deploy service..."
+
+# Get current git commit
+COMMIT_SHA=$(git rev-parse --short HEAD)
+echo "📌 Commit: $COMMIT_SHA"
+
 gcloud run deploy anava-deploy \
   --source . \
   --region us-central1 \
   --platform managed \
   --allow-unauthenticated \
-  --set-env-vars="GOOGLE_CLOUD_PROJECT=$PROJECT_ID" \
+  --set-env-vars="GOOGLE_CLOUD_PROJECT=$PROJECT_ID,COMMIT_SHA=$COMMIT_SHA" \
   --service-account="anava-deploy-service@$PROJECT_ID.iam.gserviceaccount.com" \
   --max-instances=10 \
   --min-instances=1 \

@@ -26,6 +26,11 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
+# Version info
+VERSION = "2.1.0"
+COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
+BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+
 # Configuration
 PROJECT_ID = os.environ.get('GOOGLE_CLOUD_PROJECT', 'anava-ai')
 CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
@@ -84,12 +89,29 @@ def health():
     return jsonify({
         'status': 'healthy',
         'service': 'anava-deploy',
+        'version': VERSION,
+        'commit': COMMIT_SHA,
+        'build_time': BUILD_TIME,
         'oauth_configured': bool(CLIENT_ID and CLIENT_SECRET),
         'redirect_uri': REDIRECT_URI,
         'redis_status': redis_status,
         'redis_available': REDIS_AVAILABLE,
         'queue_length': queue_length,
         'timestamp': datetime.utcnow().isoformat()
+    })
+
+@app.route('/api/version')
+def get_version():
+    return jsonify({
+        'version': VERSION,
+        'commit': COMMIT_SHA,
+        'build_time': BUILD_TIME,
+        'features': {
+            'firebase_storage_fix': True,
+            'progress_tracking': True,
+            'enhanced_logging': True,
+            'storage_location_selector': True
+        }
     })
 
 @app.route('/login')
