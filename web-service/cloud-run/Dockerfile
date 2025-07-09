@@ -29,10 +29,11 @@ COPY terraform-anava-module /terraform-cache/anava-gcp-module
 COPY main.py .
 COPY worker.py .
 COPY start_worker.sh .
+COPY terraform_import_existing.sh .
 COPY templates/ templates/
 
 # Make scripts executable
-RUN chmod +x start_worker.sh
+RUN chmod +x start_worker.sh terraform_import_existing.sh
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
