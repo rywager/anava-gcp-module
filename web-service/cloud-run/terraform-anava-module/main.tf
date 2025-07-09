@@ -457,6 +457,10 @@ resource "google_firebase_web_app" "default" {
   project      = var.project_id
   display_name = var.firebase_web_app_name
 
+  lifecycle {
+    ignore_changes = [app_id]
+  }
+
   depends_on = [google_firebase_project.default]
 }
 
