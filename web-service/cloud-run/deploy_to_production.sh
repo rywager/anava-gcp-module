@@ -16,18 +16,23 @@ echo "📦 Deploying anava-deploy service..."
 COMMIT_SHA=$(git rev-parse --short HEAD)
 echo "📌 Commit: $COMMIT_SHA"
 
+# Get Redis host
+REDIS_HOST=$(gcloud redis instances describe anava-deploy-queue --region=us-central1 --format="value(host)")
+echo "📡 Redis Host: $REDIS_HOST"
+
 gcloud run deploy anava-deploy \
   --source . \
   --region us-central1 \
   --platform managed \
   --allow-unauthenticated \
-  --set-env-vars="GOOGLE_CLOUD_PROJECT=$PROJECT_ID,COMMIT_SHA=$COMMIT_SHA" \
+  --set-env-vars="GOOGLE_CLOUD_PROJECT=$PROJECT_ID,COMMIT_SHA=$COMMIT_SHA,REDIS_HOST=$REDIS_HOST,REDIS_PORT=6379" \
   --service-account="anava-deploy-service@$PROJECT_ID.iam.gserviceaccount.com" \
   --max-instances=10 \
   --min-instances=1 \
   --memory=1Gi \
   --cpu=1 \
-  --timeout=3600
+  --timeout=3600 \
+  --vpc-connector="anava-deploy-connector"
 
 echo ""
 echo "✅ Service deployed successfully!"

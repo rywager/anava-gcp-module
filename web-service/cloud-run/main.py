@@ -38,21 +38,36 @@ CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
 REDIRECT_URI = os.environ.get('REDIRECT_URI', 'http://localhost:5000/callback')
 
 # Redis for job tracking - with fallback
-try:
-    redis_client = redis.StrictRedis(
-        host=os.environ.get('REDIS_HOST', 'localhost'),
-        port=int(os.environ.get('REDIS_PORT', 6379)),
-        decode_responses=True,
-        socket_connect_timeout=1,
-        socket_timeout=1
-    )
-    # Test connection
-    redis_client.ping()
-    REDIS_AVAILABLE = True
-except:
-    # Fallback to None if Redis not available
-    redis_client = None
-    REDIS_AVAILABLE = False
+REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
+
+def get_redis_client():
+    """Get Redis client with connection retry"""
+    try:
+        client = redis.StrictRedis(
+            host=REDIS_HOST,
+            port=REDIS_PORT,
+            decode_responses=True,
+            socket_connect_timeout=2,
+            socket_timeout=2,
+            retry_on_timeout=True,
+            retry_on_error=[ConnectionError, TimeoutError],
+            health_check_interval=30
+        )
+        client.ping()
+        return client
+    except Exception as e:
+        print(f"Redis connection failed: {e}")
+        return None
+
+# Initialize Redis
+redis_client = get_redis_client()
+REDIS_AVAILABLE = redis_client is not None
+
+if not REDIS_AVAILABLE:
+    print(f"WARNING: Redis not available at {REDIS_HOST}:{REDIS_PORT}")
+else:
+    print(f"Redis connected at {REDIS_HOST}:{REDIS_PORT}")
 
 # Firestore for deployment records
 db = firestore.Client()
