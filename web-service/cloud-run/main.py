@@ -634,6 +634,11 @@ output "workload_identity_provider" {{
             env = os.environ.copy()
             env['GOOGLE_APPLICATION_CREDENTIALS'] = creds_file
             
+            # Create terraform plugin cache directory if it doesn't exist
+            plugin_cache_dir = '/tmp/terraform-plugins'
+            os.makedirs(plugin_cache_dir, exist_ok=True)
+            env['TF_PLUGIN_CACHE_DIR'] = plugin_cache_dir
+            
             # Step 4: Initialize Terraform
             log("STATUS: TERRAFORM_INIT")
             log("ACTION: Initializing Terraform (this takes 1-2 minutes)...")
