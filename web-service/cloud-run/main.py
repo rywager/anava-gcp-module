@@ -327,6 +327,57 @@ def run_single_deployment(job_data):
                 if step_info:
                     redis_client.hset(f'deployment_steps:{deployment_id}', step_info['id'], json.dumps(step_info))
                     redis_client.expire(f'deployment_steps:{deployment_id}', 86400)
+                
+                # Track step progress for STATUS messages
+                if message.startswith('STATUS:'):
+                    status = message.split('STATUS:')[1].strip()
+                    
+                    # Map status to step IDs that match the dashboard
+                    status_to_step = {
+                        'ENABLING_APIS': 'enabling-apis',
+                        'SETTING_PERMISSIONS': 'permissions',
+                        'PREPARING_TERRAFORM': 'terraform-init',
+                        'TERRAFORM_INIT': 'terraform-init',
+                        'TERRAFORM_PLAN': 'terraform-init',
+                        'IMPORTING_EXISTING': 'terraform-init',
+                        'CREATING_RESOURCES': 'terraform-init',
+                        'CREATING_SERVICE_ACCOUNTS': 'service-accounts',
+                        'CREATING_SECRETS': 'secrets',
+                        'CREATING_STORAGE': 'storage',
+                        'CREATING_FIRESTORE': 'firestore',
+                        'CREATING_CLOUD_FUNCTIONS': 'functions',
+                        'CREATING_API_GATEWAY': 'api-gateway',
+                        'CREATING_WORKLOAD_IDENTITY': 'api-gateway',
+                        'RETRIEVING_OUTPUTS': 'api-gateway',
+                        'DEPLOYMENT_COMPLETE': 'outputs'
+                    }
+                    
+                    if status in status_to_step:
+                        step_id = status_to_step[status]
+                        
+                        # Get current step
+                        current = redis_client.get(f'deployment_current_step:{deployment_id}')
+                        if current and current.decode('utf-8') != step_id:
+                            prev_step = current.decode('utf-8')
+                            # Mark previous step as completed
+                            redis_client.hset(
+                                f'deployment_step_status:{deployment_id}',
+                                prev_step,
+                                json.dumps({'status': 'completed', 'timestamp': datetime.utcnow().isoformat()})
+                            )
+                        
+                        # Set new current step
+                        redis_client.set(f'deployment_current_step:{deployment_id}', step_id)
+                        redis_client.expire(f'deployment_current_step:{deployment_id}', 86400)
+                        
+                        # Mark step as active
+                        redis_client.hset(
+                            f'deployment_step_status:{deployment_id}',
+                            step_id,
+                            json.dumps({'status': 'active', 'timestamp': datetime.utcnow().isoformat()})
+                        )
+                        redis_client.expire(f'deployment_step_status:{deployment_id}', 86400)
+                        
             except:
                 pass  # Fallback to just printing
         print(f"[{deployment_id}] {message}")
@@ -900,6 +951,55 @@ def get_deployment_status(deployment_id):
         deployment_data['logs'] = ['Redis unavailable - check Cloud Run logs']
     
     return jsonify(deployment_data)
+
+@app.route('/api/deployment/<deployment_id>/progress')
+def get_deployment_progress(deployment_id):
+    """Get real-time deployment progress"""
+    if 'user_info' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    # Get basic deployment info
+    deployment_ref = db.collection('deployments').document(deployment_id)
+    deployment = deployment_ref.get()
+    
+    if not deployment.exists:
+        return jsonify({'error': 'Deployment not found'}), 404
+    
+    deployment_data = deployment.to_dict()
+    
+    # Check authorization
+    if deployment_data['user'] != session['user_info']['email']:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Get progress from Redis
+    progress = {
+        'status': deployment_data.get('status', 'unknown'),
+        'current_step': None,
+        'steps': {},
+        'overall_progress': 0
+    }
+    
+    if REDIS_AVAILABLE and redis_client:
+        try:
+            # Get current step
+            current_step = redis_client.get(f'deployment_current_step:{deployment_id}')
+            if current_step:
+                progress['current_step'] = current_step.decode('utf-8')
+            
+            # Get step statuses
+            step_data = redis_client.hgetall(f'deployment_step_status:{deployment_id}')
+            for step_id, status in step_data.items():
+                progress['steps'][step_id.decode('utf-8')] = json.loads(status.decode('utf-8'))
+            
+            # Calculate overall progress
+            total_steps = 9  # Total deployment steps
+            completed_steps = sum(1 for s in progress['steps'].values() if s.get('status') == 'completed')
+            progress['overall_progress'] = int((completed_steps / total_steps) * 100)
+            
+        except Exception as e:
+            print(f"Error getting progress: {e}")
+    
+    return jsonify(progress)
 
 @app.route('/api/worker/process', methods=['POST'])
 def process_worker():

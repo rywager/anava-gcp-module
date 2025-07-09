@@ -580,6 +580,26 @@
             color: var(--success);
             font-weight: 500;
         }
+        
+        .log-status {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .log-progress {
+            color: #60a5fa;
+            font-style: italic;
+        }
+        
+        .log-action {
+            color: #a78bfa;
+        }
+        
+        .log-warning {
+            color: #fbbf24;
+            font-weight: 500;
+        }
 
         .results-container {
             background: rgba(16, 185, 129, 0.1);
@@ -1203,8 +1223,14 @@
             if (!deploymentId) return;
             
             try {
-                const response = await fetch(`/api/deployment/${deploymentId}`);
-                const data = await response.json();
+                // Fetch both status and progress
+                const [statusResponse, progressResponse] = await Promise.all([
+                    fetch(`/api/deployment/${deploymentId}`),
+                    fetch(`/api/deployment/${deploymentId}/progress`)
+                ]);
+                
+                const data = await statusResponse.json();
+                const progressData = progressResponse.ok ? await progressResponse.json() : null;
                 
                 // Update status display
                 const statusMap = {
@@ -1217,15 +1243,39 @@
                 const status = statusMap[data.status] || statusMap['queued'];
                 updateStatus(data.status, status.title, status.desc);
                 
-                // Update logs and checklist
+                // Update progress from progress endpoint if available
+                if (progressData) {
+                    // Update progress bar with real progress
+                    if (progressData.overall_progress !== undefined) {
+                        document.getElementById('progress-bar').style.width = `${progressData.overall_progress}%`;
+                    }
+                    
+                    // Update step statuses from progress data
+                    if (progressData.steps) {
+                        Object.entries(progressData.steps).forEach(([stepId, stepData]) => {
+                            updateStepStatus(stepId, stepData.status);
+                        });
+                    }
+                    
+                    // Highlight current active step
+                    if (progressData.current_step) {
+                        // Clear all active states first
+                        deploymentSteps.forEach(step => {
+                            if (step.id !== progressData.current_step && step.status === 'active') {
+                                updateStepStatus(step.id, 'pending');
+                            }
+                        });
+                        // Set the current step as active
+                        updateStepStatus(progressData.current_step, 'active');
+                    }
+                }
+                
+                // Update logs and checklist (fallback to log parsing if no progress endpoint)
                 if (data.logs && data.logs.length > 0) {
                     updateLogs(data.logs);
-                    parseLogsForChecklist(data.logs);
-                    
-                    // Update progress based on completed steps
-                    const completedSteps = deploymentSteps.filter(s => s.status === 'completed').length;
-                    const progress = Math.min(95, (completedSteps / deploymentSteps.length) * 100);
-                    document.getElementById('progress-bar').style.width = `${progress}%`;
+                    if (!progressData) {
+                        parseLogsForChecklist(data.logs);
+                    }
                 }
                 
                 // Handle completion
@@ -1450,15 +1500,29 @@
                     
                     // Add styling for different log types
                     let messageClass = 'log-message';
+                    let formattedMessage = message;
+                    
                     if (message.includes('ERROR') || message.includes('failed') || message.includes('Error')) {
                         messageClass = 'log-error';
-                    } else if (message.includes('SUCCESS') || message.includes('COMPLETE')) {
+                        formattedMessage = `❌ ${message}`;
+                    } else if (message.includes('SUCCESS') || message.includes('✓') || message.includes('✅')) {
                         messageClass = 'log-success';
+                    } else if (message.includes('STATUS:')) {
+                        messageClass = 'log-status';
+                        formattedMessage = `<strong>${message}</strong>`;
+                    } else if (message.includes('PROGRESS:')) {
+                        messageClass = 'log-progress';
+                        formattedMessage = message.replace('PROGRESS:', '<span style="color: var(--primary)">→</span>');
+                    } else if (message.includes('Creating:') || message.includes('🔄')) {
+                        messageClass = 'log-action';
+                    } else if (message.includes('WARNING:')) {
+                        messageClass = 'log-warning';
+                        formattedMessage = `⚠️  ${message}`;
                     }
                     
                     logDiv.innerHTML = `
                         <span class="log-timestamp">${timestamp}</span>
-                        <span class="${messageClass}">${message}</span>
+                        <span class="${messageClass}">${formattedMessage}</span>
                     `;
                     
                     logsEl.appendChild(logDiv);
