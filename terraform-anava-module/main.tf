@@ -49,6 +49,7 @@ resource "google_project_service" "required_apis" {
     "sts.googleapis.com",
     "aiplatform.googleapis.com",
     "cloudfunctions.googleapis.com",
+    "run.googleapis.com",
     "apigateway.googleapis.com",
     "secretmanager.googleapis.com",
     "firestore.googleapis.com",
@@ -87,6 +88,10 @@ resource "google_firestore_database" "anava" {
   location_id = var.firestore_location
   type        = "FIRESTORE_NATIVE"
 
+  lifecycle {
+    ignore_changes = [name, location_id, type]
+  }
+
   depends_on = [google_firebase_project.default]
 }
 
@@ -95,6 +100,10 @@ resource "google_firebase_storage_bucket" "default" {
   provider = google-beta
   project  = var.project_id
   bucket_id = "${var.project_id}.appspot.com"
+
+  lifecycle {
+    ignore_changes = [bucket_id]
+  }
 
   depends_on = [google_firebase_project.default]
 }
@@ -105,6 +114,10 @@ resource "google_service_account" "device_auth" {
   account_id   = "${var.solution_prefix}-device-auth-sa"
   display_name = "Device Authenticator Service Account"
   description  = "Service account for device authentication Cloud Function"
+
+  lifecycle {
+    ignore_changes = [display_name, description]
+  }
 }
 
 resource "google_service_account" "tvm" {
@@ -112,6 +125,10 @@ resource "google_service_account" "tvm" {
   account_id   = "${var.solution_prefix}-tvm-sa"
   display_name = "Token Vending Machine Service Account"
   description  = "Service account for token vending machine Cloud Function"
+
+  lifecycle {
+    ignore_changes = [display_name, description]
+  }
 }
 
 resource "google_service_account" "vertex_ai" {
@@ -119,6 +136,10 @@ resource "google_service_account" "vertex_ai" {
   account_id   = "${var.solution_prefix}-vertex-ai-sa"
   display_name = "Vertex AI Service Account"
   description  = "Service account for Vertex AI operations"
+
+  lifecycle {
+    ignore_changes = [display_name, description]
+  }
 }
 
 resource "google_service_account" "api_gateway" {
@@ -126,6 +147,10 @@ resource "google_service_account" "api_gateway" {
   account_id   = "${var.solution_prefix}-apigw-invoker-sa"
   display_name = "API Gateway Invoker Service Account"
   description  = "Service account for API Gateway to invoke Cloud Functions"
+
+  lifecycle {
+    ignore_changes = [display_name, description]
+  }
 }
 
 # IAM permissions for service accounts
@@ -155,7 +180,7 @@ resource "google_project_iam_member" "tvm_permissions" {
 resource "google_project_iam_member" "vertex_ai_permissions" {
   for_each = toset([
     "roles/aiplatform.user",
-    "roles/firestore.user",
+    "roles/datastore.user",
     "roles/storage.objectViewer"
   ])
 
@@ -176,6 +201,10 @@ resource "google_iam_workload_identity_pool" "anava_pool" {
   workload_identity_pool_id = "${var.solution_prefix}-wif-pool"
   display_name              = "${var.solution_prefix} Workload Identity Pool"
   description               = "Identity pool for ${var.solution_prefix} Firebase auth federation"
+
+  lifecycle {
+    ignore_changes = [display_name, description]
+  }
 }
 
 # Workload Identity Provider for Firebase
@@ -217,6 +246,10 @@ resource "google_storage_bucket" "function_source" {
 
   uniform_bucket_level_access = true
   force_destroy              = true
+
+  lifecycle {
+    ignore_changes = [location, uniform_bucket_level_access]
+  }
 
   depends_on = [google_project_service.required_apis]
 }
@@ -362,6 +395,10 @@ resource "google_api_gateway_api" "anava_api" {
   project  = var.project_id
   api_id   = "${var.solution_prefix}-api"
   
+  lifecycle {
+    ignore_changes = [api_id]
+  }
+  
   depends_on = [google_project_service.required_apis]
 }
 
@@ -457,6 +494,10 @@ resource "google_secret_manager_secret" "firebase_config" {
     }
   }
 
+  lifecycle {
+    ignore_changes = [secret_id]
+  }
+
   depends_on = [google_project_service.required_apis]
 }
 
@@ -483,6 +524,10 @@ resource "google_secret_manager_secret" "api_key" {
         location = var.region
       }
     }
+  }
+
+  lifecycle {
+    ignore_changes = [secret_id]
   }
 
   depends_on = [google_project_service.required_apis]

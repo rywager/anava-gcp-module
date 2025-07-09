@@ -49,6 +49,7 @@ resource "google_project_service" "required_apis" {
     "sts.googleapis.com",
     "aiplatform.googleapis.com",
     "cloudfunctions.googleapis.com",
+    "run.googleapis.com",
     "apigateway.googleapis.com",
     "secretmanager.googleapis.com",
     "firestore.googleapis.com",
@@ -90,21 +91,35 @@ resource "google_firestore_database" "anava" {
   depends_on = [google_firebase_project.default]
 }
 
-# Firebase Storage bucket
+# Firebase Storage bucket - Try to use existing one or create if needed
 resource "google_firebase_storage_bucket" "default" {
   provider = google-beta
   project  = var.project_id
   bucket_id = "${var.project_id}.appspot.com"
 
-  depends_on = [google_firebase_project.default]
+  lifecycle {
+    ignore_changes = [bucket_id]
+    # Create if missing, but don't fail if it already exists
+    create_before_destroy = false
+  }
+
+  depends_on = [
+    google_firebase_project.default,
+    google_project_service.required_apis["firebasestorage.googleapis.com"],
+    google_project_service.required_apis["storage.googleapis.com"]
+  ]
 }
 
-# Service Accounts - Simple creation approach
+# Service Accounts
 resource "google_service_account" "device_auth" {
   project      = var.project_id
   account_id   = "${var.solution_prefix}-device-auth-sa"
   display_name = "Device Authenticator Service Account"
   description  = "Service account for device authentication Cloud Function"
+
+  lifecycle {
+    ignore_changes = [display_name, description]
+  }
 }
 
 resource "google_service_account" "tvm" {
@@ -155,7 +170,7 @@ resource "google_project_iam_member" "tvm_permissions" {
 resource "google_project_iam_member" "vertex_ai_permissions" {
   for_each = toset([
     "roles/aiplatform.user",
-    "roles/firestore.user",
+    "roles/datastore.user",
     "roles/storage.objectViewer"
   ])
 
