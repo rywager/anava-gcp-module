@@ -533,7 +533,8 @@ def run_single_deployment(job_data):
                             policy_updated = True
                     
                     # Also grant Cloud Build permissions
-                    build_sa = f"{project_id.split('-')[-1]}@cloudbuild.gserviceaccount.com"
+                    # Cloud Build SA format: PROJECT_NUMBER@cloudbuild.gserviceaccount.com
+                    build_sa = f"{project_number}@cloudbuild.gserviceaccount.com"
                     build_member = f"serviceAccount:{build_sa}"
                     
                     # Add Cloud Functions Developer role for Cloud Build
@@ -569,7 +570,11 @@ def run_single_deployment(job_data):
                         else:
                             log(f"WARNING: Failed to update permissions: {response.status_code}")
                             if response.text:
-                                log(f"ERROR: {response.text[:200]}")
+                                try:
+                                    error_data = response.json()
+                                    log(f"ERROR: {json.dumps(error_data, indent=2)}")
+                                except:
+                                    log(f"ERROR: {response.text[:500]}")
                     else:
                         log("INFO: All permissions already configured")
                 else:
