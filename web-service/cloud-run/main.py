@@ -380,47 +380,116 @@ def run_single_deployment(job_data):
         
         # Step 2: Set up permissions
         log("STATUS: SETTING_PERMISSIONS")
-        log("ACTION: Configuring Cloud Build permissions...")
+        log("ACTION: Configuring service accounts and permissions...")
+        
+        # Get project number for service agents
         try:
-            # Get the Cloud Build service account
-            build_sa = f"{project_id.split('-')[-1]}@cloudbuild.gserviceaccount.com"
-            log(f"INFO: Granting permissions to {build_sa}")
-            
-            # Grant Cloud Functions Developer role
-            iam_policy_url = f'https://cloudresourcemanager.googleapis.com/v1/projects/{project_id}:getIamPolicy'
-            response = requests.post(iam_policy_url, headers=headers, json={})
-            
+            project_info_url = f'https://cloudresourcemanager.googleapis.com/v1/projects/{project_id}'
+            response = requests.get(project_info_url, headers=headers)
             if response.status_code == 200:
-                policy = response.json()
-                
-                # Add Cloud Functions Developer role
-                role_binding = {
-                    'role': 'roles/cloudfunctions.developer',
-                    'members': [f'serviceAccount:{build_sa}']
+                project_number = response.json().get('projectNumber')
+                log(f"INFO: Project number: {project_number}")
+            else:
+                log(f"WARNING: Could not get project number: {response.status_code}")
+                project_number = None
+        except Exception as e:
+            log(f"WARNING: Error getting project number: {str(e)[:100]}")
+            project_number = None
+        
+        # Grant permissions to service agents
+        if project_number:
+            # Service agents that need permissions
+            service_agents = [
+                {
+                    'email': f'service-{project_number}@gcf-admin-robot.iam.gserviceaccount.com',
+                    'role': 'roles/storage.admin',
+                    'description': 'Cloud Functions service agent'
+                },
+                {
+                    'email': f'service-{project_number}@gcp-sa-apigateway-mgmt.iam.gserviceaccount.com',
+                    'role': 'roles/apigateway.serviceAgent',
+                    'description': 'API Gateway service agent'
                 }
-                
-                # Check if binding exists
-                binding_exists = False
-                for binding in policy.get('bindings', []):
-                    if binding['role'] == role_binding['role']:
-                        if f'serviceAccount:{build_sa}' not in binding.get('members', []):
-                            binding['members'].append(f'serviceAccount:{build_sa}')
-                        binding_exists = True
-                        break
-                
-                if not binding_exists:
-                    policy['bindings'].append(role_binding)
-                
-                # Update IAM policy
-                set_iam_url = f'https://cloudresourcemanager.googleapis.com/v1/projects/{project_id}:setIamPolicy'
-                response = requests.post(set_iam_url, headers=headers, json={'policy': policy})
+            ]
+            
+            # Get current IAM policy
+            try:
+                iam_policy_url = f'https://cloudresourcemanager.googleapis.com/v1/projects/{project_id}:getIamPolicy'
+                response = requests.post(iam_policy_url, headers=headers, json={})
                 
                 if response.status_code == 200:
-                    log(f"SUCCESS: Granted Cloud Functions Developer role")
+                    policy = response.json()
+                    policy_updated = False
+                    
+                    # Add permissions for each service agent
+                    for agent in service_agents:
+                        log(f"INFO: Granting {agent['role']} to {agent['description']}...")
+                        
+                        # Check if binding exists
+                        binding_exists = False
+                        member = f"serviceAccount:{agent['email']}"
+                        
+                        for binding in policy.get('bindings', []):
+                            if binding['role'] == agent['role']:
+                                if member not in binding.get('members', []):
+                                    binding['members'].append(member)
+                                    policy_updated = True
+                                binding_exists = True
+                                break
+                        
+                        if not binding_exists:
+                            policy['bindings'].append({
+                                'role': agent['role'],
+                                'members': [member]
+                            })
+                            policy_updated = True
+                    
+                    # Also grant Cloud Build permissions
+                    build_sa = f"{project_id.split('-')[-1]}@cloudbuild.gserviceaccount.com"
+                    build_member = f"serviceAccount:{build_sa}"
+                    
+                    # Add Cloud Functions Developer role for Cloud Build
+                    build_role = 'roles/cloudfunctions.developer'
+                    binding_exists = False
+                    
+                    for binding in policy.get('bindings', []):
+                        if binding['role'] == build_role:
+                            if build_member not in binding.get('members', []):
+                                binding['members'].append(build_member)
+                                policy_updated = True
+                            binding_exists = True
+                            break
+                    
+                    if not binding_exists:
+                        policy['bindings'].append({
+                            'role': build_role,
+                            'members': [build_member]
+                        })
+                        policy_updated = True
+                    
+                    # Update IAM policy if needed
+                    if policy_updated:
+                        set_iam_url = f'https://cloudresourcemanager.googleapis.com/v1/projects/{project_id}:setIamPolicy'
+                        response = requests.post(set_iam_url, headers=headers, json={'policy': policy})
+                        
+                        if response.status_code == 200:
+                            log("SUCCESS: All service permissions granted")
+                            # Wait for permissions to propagate
+                            log("INFO: Waiting 30 seconds for permissions to propagate...")
+                            import time
+                            time.sleep(30)
+                        else:
+                            log(f"WARNING: Failed to update permissions: {response.status_code}")
+                            if response.text:
+                                log(f"ERROR: {response.text[:200]}")
+                    else:
+                        log("INFO: All permissions already configured")
                 else:
-                    log(f"WARNING: Failed to grant permissions: {response.status_code}")
-        except Exception as e:
-            log(f"WARNING: Error setting up permissions: {str(e)[:100]}")
+                    log(f"WARNING: Failed to get IAM policy: {response.status_code}")
+            except Exception as e:
+                log(f"WARNING: Error setting up permissions: {str(e)[:100]}")
+        else:
+            log("WARNING: Could not determine project number, skipping service agent permissions")
         
         with tempfile.TemporaryDirectory() as temp_dir:
             # Step 3: Prepare Terraform

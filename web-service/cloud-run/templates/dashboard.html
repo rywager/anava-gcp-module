@@ -1294,6 +1294,13 @@
                             break;
                             
                         case 'TERRAFORM_PLAN':
+                        case 'IMPORTING_EXISTING':
+                            updateStepStatus('terraform-init', 'completed', {
+                                'Result': 'Infrastructure ready'
+                            });
+                            updateStepStatus('service-accounts', 'active');
+                            break;
+                            
                         case 'CREATING_RESOURCES':
                             updateStepStatus('terraform-init', 'completed', {
                                 'Result': 'Infrastructure ready'
@@ -1330,10 +1337,14 @@
                             updateStepStatus('api-gateway', 'active');
                             break;
                             
+                        case 'RETRIEVING_OUTPUTS':
+                            updateStepStatus('api-gateway', 'completed');
+                            break;
+                            
                         case 'DEPLOYMENT_COMPLETE':
-                            // Mark all as completed
+                            // All steps should be complete
                             deploymentSteps.forEach(step => {
-                                if (step.status !== 'failed') {
+                                if (step.status !== 'completed') {
                                     updateStepStatus(step.id, 'completed');
                                 }
                             });
