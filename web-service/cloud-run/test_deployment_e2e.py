@@ -20,7 +20,8 @@ def test_health():
 def test_ui_has_new_steps():
     """Check if UI has the new 9-step process"""
     print("\nChecking UI for new deployment steps...")
-    response = requests.get(f"{BASE_URL}/")
+    # The dashboard is where the deployment UI is, not the index
+    response = requests.get(f"{BASE_URL}/dashboard")
     
     # Check for new step indicators in the HTML
     new_steps = [
@@ -50,7 +51,7 @@ def test_ui_has_new_steps():
 def test_no_cleanup_steps():
     """Verify cleanup steps are removed"""
     print("\nChecking for old cleanup steps...")
-    response = requests.get(f"{BASE_URL}/")
+    response = requests.get(f"{BASE_URL}/dashboard")
     
     old_steps = [
         'Cleaning Existing Resources',

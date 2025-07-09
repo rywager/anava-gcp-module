@@ -512,31 +512,6 @@ output "workload_identity_provider" {{
             
             log("SUCCESS: Terraform initialized")
             
-            # Import existing resources first
-            log("STATUS: IMPORTING_EXISTING")
-            log("ACTION: Checking for existing resources...")
-            
-            # Copy import script
-            import shutil
-            import_script = os.path.join(os.path.dirname(__file__), 'terraform_import_existing.sh')
-            if os.path.exists(import_script):
-                shutil.copy(import_script, temp_dir)
-                os.chmod(os.path.join(temp_dir, 'terraform_import_existing.sh'), 0o755)
-                
-                # Run import
-                import_result = subprocess.run(
-                    ['./terraform_import_existing.sh', project_id, prefix, '.'],
-                    cwd=temp_dir,
-                    capture_output=True,
-                    text=True,
-                    env=env
-                )
-                
-                if import_result.returncode == 0:
-                    log("SUCCESS: Imported existing resources")
-                else:
-                    log("INFO: Import completed with warnings (this is normal)")
-            
             # Step 5: Plan deployment
             log("STATUS: TERRAFORM_PLAN")
             log("ACTION: Planning infrastructure changes...")
@@ -549,27 +524,7 @@ output "workload_identity_provider" {{
             )
             
             if result.returncode != 0:
-                # Try refresh and plan again
-                log("INFO: Refreshing state and retrying plan...")
-                refresh_result = subprocess.run(
-                    ['terraform', 'refresh'],
-                    cwd=temp_dir,
-                    capture_output=True,
-                    text=True,
-                    env=env
-                )
-                
-                # Retry plan
-                result = subprocess.run(
-                    ['terraform', 'plan', '-out=tfplan'],
-                    cwd=temp_dir,
-                    capture_output=True,
-                    text=True,
-                    env=env
-                )
-                
-                if result.returncode != 0:
-                    raise Exception(f"Terraform plan failed: {result.stderr}")
+                raise Exception(f"Terraform plan failed: {result.stderr}")
             
             # Step 6: Apply deployment
             log("STATUS: CREATING_RESOURCES")
