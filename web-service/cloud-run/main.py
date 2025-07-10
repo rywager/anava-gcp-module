@@ -27,7 +27,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.4"  # Complete IAM permissions audit and fix
+VERSION = "2.3.5"  # Fix Cloud Build using Compute Engine SA for newer projects
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -562,9 +562,12 @@ def run_single_deployment(job_data):
                             policy_updated = True
                     
                     # Also grant Cloud Build permissions
-                    # Cloud Build SA format: PROJECT_NUMBER@cloudbuild.gserviceaccount.com
-                    build_sa = f"{project_number}@cloudbuild.gserviceaccount.com"
-                    build_member = f"serviceAccount:{build_sa}"
+                    # For projects created after July 2024, Cloud Build uses Compute Engine SA
+                    # We need to grant permissions to BOTH service accounts to be safe
+                    build_service_accounts = [
+                        f"{project_number}@cloudbuild.gserviceaccount.com",  # Legacy Cloud Build SA
+                        f"{project_number}-compute@developer.gserviceaccount.com"  # New Compute Engine SA
+                    ]
                     
                     # Add multiple roles for Cloud Build
                     build_roles = [
@@ -575,25 +578,29 @@ def run_single_deployment(job_data):
                         'roles/iam.serviceAccountUser'  # Added to fix function deployment
                     ]
                     
-                    for build_role in build_roles:
-                        binding_exists = False
+                    for build_sa in build_service_accounts:
+                        build_member = f"serviceAccount:{build_sa}"
+                        log(f"INFO: Configuring permissions for {build_sa}")
                         
-                        for binding in policy.get('bindings', []):
-                            if binding['role'] == build_role:
-                                if build_member not in binding.get('members', []):
-                                    binding['members'].append(build_member)
-                                    policy_updated = True
-                                    log(f"INFO: Adding {build_role} to Cloud Build SA")
-                                binding_exists = True
-                                break
-                        
-                        if not binding_exists:
-                            policy['bindings'].append({
-                                'role': build_role,
-                                'members': [build_member]
-                            })
-                            policy_updated = True
-                            log(f"INFO: Granting {build_role} to Cloud Build SA")
+                        for build_role in build_roles:
+                            binding_exists = False
+                            
+                            for binding in policy.get('bindings', []):
+                                if binding['role'] == build_role:
+                                    if build_member not in binding.get('members', []):
+                                        binding['members'].append(build_member)
+                                        policy_updated = True
+                                        log(f"INFO: Adding {build_role} to {build_sa}")
+                                    binding_exists = True
+                                    break
+                            
+                            if not binding_exists:
+                                policy['bindings'].append({
+                                    'role': build_role,
+                                    'members': [build_member]
+                                })
+                                policy_updated = True
+                                log(f"INFO: Granting {build_role} to {build_sa}")
                     
                     # Update IAM policy if needed
                     if policy_updated:
