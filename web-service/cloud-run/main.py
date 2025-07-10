@@ -27,7 +27,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.9"  # Fixed dashboard CSS and progress tracking
+VERSION = "2.3.10"  # Fixed dashboard CSS and progress tracking
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -485,7 +485,24 @@ def run_single_deployment(job_data):
                 return f"ERROR: Failed to enable {api}: {str(e)[:100]}"
         
         log(f"INFO: Enabling {len(required_apis)} APIs in parallel...")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        # Add timeout to prevent hanging
+        import signal
+        from contextlib import contextmanager
+        
+        @contextmanager
+        def timeout(seconds):
+            def signal_handler(signum, frame):
+                raise TimeoutError(f"Operation timed out after {seconds} seconds")
+            signal.signal(signal.SIGALRM, signal_handler)
+            signal.alarm(seconds)
+            try:
+                yield
+            finally:
+                signal.alarm(0)
+        
+        try:
+            with timeout(30):  # 30 second timeout for all API enablement
+                with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             futures = {executor.submit(enable_api, api): api for api in required_apis}
             completed = 0
             for future in concurrent.futures.as_completed(futures):
@@ -493,7 +510,10 @@ def run_single_deployment(job_data):
                 result = future.result()
                 log(f"PROGRESS: API {completed}/{len(required_apis)} - {result}")
         
-        log("SUCCESS: All APIs processed")
+            log("SUCCESS: All APIs processed")
+        except TimeoutError:
+            log("WARNING: API enablement timed out after 30 seconds")
+        log("STATUS: SETTING_PERMISSIONS")  # Force status update
         
         # Step 2: Set up permissions
         log("STATUS: SETTING_PERMISSIONS")

@@ -535,6 +535,10 @@ resource "google_firebaserules_release" "firestore" {
   project      = var.project_id
   name         = "cloud.firestore/databases/(default)"
   ruleset_name = google_firebaserules_ruleset.firestore.name
+  
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Firebase Storage security rules
@@ -560,4 +564,8 @@ resource "google_firebaserules_release" "storage" {
   project      = var.project_id
   name         = "firebase.storage/${google_firebase_storage_bucket.default.bucket_id}"
   ruleset_name = google_firebaserules_ruleset.storage.name
+  
+  lifecycle {
+    create_before_destroy = true
+  }
 }

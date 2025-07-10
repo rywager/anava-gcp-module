@@ -1155,12 +1155,16 @@
                 'SETTING_PERMISSIONS': { step: 'permissions', action: 'active', complete: 'enabling-apis' },
                 'PREPARING_TERRAFORM': { step: 'terraform-init', action: 'active', complete: 'permissions' },
                 'TERRAFORM_INIT': { step: 'terraform-init', action: 'active' },
+                'TERRAFORM_PLAN': { step: 'terraform-init', action: 'active' },
+                'IMPORTING_EXISTING': { step: 'terraform-init', action: 'active' },
+                'CREATING_RESOURCES': { step: 'service-accounts', action: 'active', complete: 'terraform-init' },
                 'CREATING_SERVICE_ACCOUNTS': { step: 'service-accounts', action: 'active', complete: 'terraform-init' },
                 'CREATING_SECRETS': { step: 'secrets', action: 'active', complete: 'service-accounts' },
                 'CREATING_STORAGE': { step: 'storage', action: 'active', complete: 'secrets' },
                 'CREATING_FIRESTORE': { step: 'firestore', action: 'active', complete: 'storage' },
                 'CREATING_CLOUD_FUNCTIONS': { step: 'functions', action: 'active', complete: 'firestore' },
                 'CREATING_API_GATEWAY': { step: 'api-gateway', action: 'active', complete: 'functions' },
+                'RETRIEVING_OUTPUTS': { step: 'api-gateway', action: 'active' },
                 'DEPLOYMENT_COMPLETE': { step: 'api-gateway', action: 'complete' }
             };
             
@@ -1190,6 +1194,16 @@
         // Process progress update - FIXED VERSION
         function processProgressMessage(message) {
             console.log('Processing progress:', message);
+            
+            // Handle API enablement progress
+            const apiMatch = message.match(/API (\d+)\/(\d+) - (.+)/);
+            if (apiMatch) {
+                const [_, current, total, status] = apiMatch;
+                updateStepStatus('enabling-apis', 'active', {
+                    'Progress': `${current} of ${total} APIs enabled`
+                });
+                return;
+            }
             
             // Extract resource creation progress
             const resourceMatch = message.match(/Created resource (\d+)(?:\/(\d+))?: (.+)/);
