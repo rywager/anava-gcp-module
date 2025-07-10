@@ -704,6 +704,179 @@
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
         }
+    
+        /* Wizard Steps */
+        .wizard-step {
+            padding: 2rem;
+        }
+
+        .wizard-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .wizard-header h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .wizard-header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .wizard-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Project Selection */
+        .loading-message {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .projects-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .project-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .project-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .project-card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .project-card p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 0.375rem;
+            color: var(--text-secondary);
+            font-size: 0.813rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-dark);
+            border-color: var(--primary);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.813rem;
+        }
+
+        /* Error Message */
+        .error {
+            color: var(--error);
+            text-align: center;
+            padding: 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -713,7 +886,7 @@
                 Anava Infrastructure Deployment
                 <span class="version-badge">
                     <span class="version-dot"></span>
-                    <span id="version">v2.3.7</span>
+                    <span id="version">v2.3.8</span>
                 </span>
             </div>
             <div class="user-info">
@@ -1014,9 +1187,12 @@
         }
 
         // Process progress update
+        // Process progress update - FIXED VERSION
         function processProgressMessage(message) {
+            console.log('Processing progress:', message);
+            
             // Extract resource creation progress
-            const resourceMatch = message.match(/Created resource (\d+)\/(\d+): (.+)/);
+            const resourceMatch = message.match(/Created resource (\d+)(?:\/(\d+))?: (.+)/);
             if (resourceMatch) {
                 const [_, current, total, resourceName] = resourceMatch;
                 
@@ -1033,10 +1209,15 @@
                 // Update resource grid
                 updateResourceGrid();
                 
-                // Update progress percentage
-                const percent = Math.round((parseInt(current) / parseInt(total)) * 100);
-                document.getElementById('progress-percent').textContent = `${percent}%`;
-                document.getElementById('progress-bar').style.width = `${percent}%`;
+                // Update progress percentage - handle cases where total might not be provided
+                if (total) {
+                    const percent = Math.round((parseInt(current) / parseInt(total)) * 100);
+                    document.getElementById('progress-percent').textContent = `${percent}%`;
+                    document.getElementById('progress-bar').style.width = `${percent}%`;
+                } else {
+                    // If no total, just show the count
+                    document.getElementById('progress-percent').textContent = `${current} resources`;
+                }
                 
                 // Find active step and update its details
                 const activeStep = deploymentSteps.find(s => {
@@ -1046,7 +1227,7 @@
                 
                 if (activeStep) {
                     updateStepStatus(activeStep.id, 'active', {
-                        'Progress': `${current} of ${total} resources created`
+                        'Progress': total ? `${current} of ${total} resources created` : `${current} resources created`
                     });
                 }
             }

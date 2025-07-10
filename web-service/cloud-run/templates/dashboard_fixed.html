@@ -65,6 +65,35 @@
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .version-badge {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .version-badge .version-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .user-info {
@@ -75,22 +104,6 @@
             font-size: 0.875rem;
         }
 
-        .logout-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.875rem;
-        }
-
-        .logout-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
         .wizard-container {
             background: var(--bg-card);
             border-radius: 1rem;
@@ -98,247 +111,63 @@
             overflow: hidden;
         }
 
-        .step-indicator {
-            display: flex;
-            background: rgba(0, 0, 0, 0.3);
+        /* Progress Steps */
+        .progress-header {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.1) 100%);
+            padding: 2rem;
             border-bottom: 1px solid var(--border);
         }
 
-        .step {
-            flex: 1;
-            padding: 1.5rem;
-            text-align: center;
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        .step:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 1px;
-            height: 60%;
-            background: var(--border);
-        }
-
-        .step.active {
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .step.completed {
-            background: rgba(16, 185, 129, 0.1);
-        }
-
-        .step-number {
-            display: inline-flex;
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 50%;
-            background: var(--border);
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            transition: all 0.3s;
-        }
-
-        .step.active .step-number {
-            background: var(--primary);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
-        }
-
-        .step.completed .step-number {
-            background: var(--success);
-        }
-
-        .step-label {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .step.active .step-label,
-        .step.completed .step-label {
-            color: var(--text-primary);
-        }
-
-        .wizard-content {
-            padding: 3rem;
-        }
-
-        .step-content {
-            display: none;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .step-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .step-description {
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-            font-size: 1.125rem;
-        }
-
-        .project-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .project-card {
-            background: var(--bg-dark);
-            border: 2px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .project-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .project-card.selected {
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .project-name {
-            font-weight: 600;
-            font-size: 1.125rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .project-id {
-            font-family: 'SF Mono', Monaco, monospace;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .form-group {
             margin-bottom: 1.5rem;
         }
 
-        label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
+        .progress-title {
+            font-size: 1.25rem;
+            font-weight: 600;
             color: var(--text-primary);
         }
 
-        select {
-            width: 100%;
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .button-group {
+        .progress-stats {
             display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-top: 3rem;
+            gap: 2rem;
+            font-size: 0.875rem;
         }
 
-        .btn {
-            padding: 0.75rem 2rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-            font-size: 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+        .progress-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
         }
 
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--border);
+        .progress-stat-label {
             color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .btn-secondary:hover {
-            border-color: var(--primary);
-            color: var(--primary);
+        .progress-stat-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.25rem;
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .deployment-status {
-            text-align: center;
-        }
-
-        .status-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            display: inline-block;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-
-        .progress-container {
+        .progress-bar-container {
             background: var(--bg-dark);
-            border-radius: 1rem;
-            padding: 0.25rem;
-            margin: 2rem 0;
+            height: 8px;
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
         }
 
         .progress-bar {
-            height: 0.5rem;
-            background: var(--primary);
-            border-radius: 0.5rem;
-            transition: width 0.3s ease;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            transition: width 0.5s ease-out;
             position: relative;
             overflow: hidden;
         }
@@ -350,12 +179,7 @@
             left: 0;
             bottom: 0;
             right: 0;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.3),
-                transparent
-            );
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
             animation: shimmer 2s infinite;
         }
 
@@ -364,297 +188,496 @@
             100% { transform: translateX(100%); }
         }
 
-        .deployment-checklist {
-            background: var(--bg-dark);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            border: 1px solid var(--border);
+        /* Deployment Steps */
+        .deployment-steps {
+            padding: 2rem;
         }
 
-        .checklist-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .checklist-item.active {
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        .checklist-item.completed {
-            border-color: var(--success);
-            background: rgba(16, 185, 129, 0.05);
-        }
-
-        .checklist-item.failed {
-            border-color: var(--error);
-            background: rgba(239, 68, 68, 0.05);
-        }
-
-        .checklist-header {
+        .step-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 1rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-left: 2rem;
+            opacity: 0;
+            animation: fadeInUp 0.5s ease-out forwards;
         }
 
-        .checklist-icon {
-            width: 2rem;
-            height: 2rem;
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-item::before {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            top: 2rem;
+            bottom: -1.5rem;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .step-item:last-child::before {
+            display: none;
+        }
+
+        .step-indicator {
+            position: absolute;
+            left: 0;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-            background: var(--border);
-            transition: all 0.3s;
-        }
-
-        .checklist-item.active .checklist-icon {
-            background: var(--primary);
-            animation: pulse 2s infinite;
-        }
-
-        .checklist-item.completed .checklist-icon {
-            background: var(--success);
-        }
-
-        .checklist-item.failed .checklist-icon {
-            background: var(--error);
-        }
-
-        .checklist-title {
-            flex: 1;
+            font-size: 0.875rem;
             font-weight: 600;
-            font-size: 1rem;
-            color: var(--text-primary);
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
         }
 
-        .checklist-status {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .checklist-item.active .checklist-status {
-            color: var(--primary);
-        }
-
-        .checklist-item.completed .checklist-status {
-            color: var(--success);
-        }
-
-        .checklist-item.failed .checklist-status {
-            color: var(--error);
-        }
-
-        .checklist-details {
-            margin-top: 0.75rem;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        .checklist-results {
-            margin-top: 0.75rem;
-            padding: 0.75rem;
-            background: var(--bg-dark);
-            border-radius: 0.5rem;
-            font-family: 'SF Mono', Monaco, monospace;
-            font-size: 0.875rem;
-        }
-
-        .checklist-result-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .checklist-result-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .checklist-result-label {
-            color: var(--text-secondary);
-            margin-right: 1rem;
-        }
-
-        .checklist-result-value {
-            color: var(--text-primary);
-            word-break: break-all;
-            flex: 1;
-            text-align: right;
-        }
-
-        .checklist-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
+        .step-item.active .step-indicator {
             background: var(--primary);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s;
-        }
-
-        .checklist-item.active .checklist-progress {
-            animation: progress 2s ease-in-out infinite;
-        }
-
-        @keyframes progress {
-            0% { transform: scaleX(0); }
-            50% { transform: scaleX(0.7); }
-            100% { transform: scaleX(0); }
-        }
-
-        .logs-container {
-            background: #000;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            height: 200px;
-            overflow-y: auto;
-            font-family: 'SF Mono', Monaco, monospace;
-            font-size: 0.75rem;
-            line-height: 1.5;
-            border: 1px solid var(--border);
-            display: none;
-        }
-
-        .logs-toggle {
-            margin-top: 1rem;
-            text-align: center;
-        }
-
-        .logs-toggle-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-        }
-
-        .logs-toggle-btn:hover {
             border-color: var(--primary);
-            color: var(--primary);
+            color: white;
+            animation: pulse-ring 2s infinite;
         }
 
-        .log-entry {
-            margin-bottom: 0.5rem;
-            padding: 0.25rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            color: #94a3b8;
+        @keyframes pulse-ring {
+            0% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
         }
 
-        .log-entry:last-child {
-            border-bottom: none;
+        .step-item.completed .step-indicator {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
         }
 
-        .log-timestamp {
-            color: #64748b;
-            margin-right: 1rem;
+        .step-item.failed .step-indicator {
+            background: var(--error);
+            border-color: var(--error);
+            color: white;
         }
 
-        .log-message {
-            color: #e2e8f0;
+        .step-content {
+            flex: 1;
         }
 
-        .log-error {
-            color: var(--error);
-            font-weight: 500;
-        }
-
-        .log-success {
-            color: var(--success);
-            font-weight: 500;
-        }
-
-        .results-container {
-            background: rgba(16, 185, 129, 0.1);
-            border: 2px solid var(--success);
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-top: 2rem;
-        }
-
-        .results-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--success);
-            margin-bottom: 1.5rem;
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .result-item {
+        .step-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-details {
             background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.813rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .step-item.active .step-details,
+        .step-item.completed .step-details,
+        .step-item.failed .step-details {
+            display: block;
+        }
+
+        .step-detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.25rem 0;
+        }
+
+        .step-detail-label {
+            color: var(--text-secondary);
+        }
+
+        .step-detail-value {
+            color: var(--text-primary);
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.813rem;
+        }
+
+        /* Resource Counter */
+        .resource-counter {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 0 2rem 2rem;
+            display: none;
+        }
+
+        .resource-counter.visible {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .resource-counter-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            font-size: 1.125rem;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .resource-type {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
             border-radius: 0.5rem;
             padding: 1rem;
-            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .resource-type:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .resource-type-name {
+            color: var(--text-secondary);
+            font-size: 0.813rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .resource-type-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Results Section */
+        .results-container {
+            display: none;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border-top: 1px solid var(--border);
+        }
+
+        .results-container.visible {
+            display: block;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-animation {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            animation: successPop 0.6s ease-out;
+        }
+
+        @keyframes successPop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-bottom: 0.5rem;
+        }
+
+        .success-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--bg-card);
             border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%);
         }
 
         .result-label {
-            font-size: 0.875rem;
             color: var(--text-secondary);
-            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .result-value {
             font-family: 'SF Mono', Monaco, monospace;
-            color: var(--text-primary);
-            word-break: break-all;
             font-size: 0.875rem;
+            color: var(--text-primary);
+            background: var(--bg-dark);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            word-break: break-all;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
         }
 
-        .copy-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 0.25rem 0.75rem;
-            border-radius: 0.25rem;
+        .copy-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
             font-size: 0.75rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             white-space: nowrap;
         }
 
-        .copy-btn:hover {
-            border-color: var(--primary);
+        .copy-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .copy-button.copied {
+            background: var(--success);
+        }
+
+        .quick-start {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .quick-start-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .quick-start-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quick-start-step {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .quick-start-number {
+            background: var(--primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .quick-start-content {
+            flex: 1;
+        }
+
+        .quick-start-content h4 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        .quick-start-content p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .quick-start-content code {
+            background: var(--bg-dark);
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.813rem;
             color: var(--primary);
         }
 
-        .results-container .copy-btn {
-            float: right;
-            border-color: var(--success);
+        .download-config {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .download-button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .download-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Logs Section */
+        .logs-section {
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .logs-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .logs-container {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.813rem;
+        }
+
+        .log-entry {
+            padding: 0.25rem 0;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .log-timestamp {
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .log-message {
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .log-error {
+            color: var(--error);
+        }
+
+        .log-success {
             color: var(--success);
         }
 
-        .results-container .copy-btn:hover {
-            background: var(--success);
-            color: var(--bg-dark);
+        .log-warning {
+            color: var(--warning);
         }
 
+        /* Loading States */
         .loading-spinner {
             display: inline-block;
-            width: 1.25rem;
-            height: 1.25rem;
-            border: 2px solid var(--text-secondary);
-            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
             border-top-color: var(--primary);
+            border-radius: 50%;
             animation: spin 1s linear infinite;
         }
 
@@ -662,175 +685,322 @@
             to { transform: rotate(360deg); }
         }
 
-        .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid var(--error);
-            color: var(--error);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .progress-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .resource-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    
+        /* Wizard Steps */
+        .wizard-step {
+            padding: 2rem;
         }
 
-        .warning-message {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid var(--warning);
-            color: var(--warning);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
+        .wizard-header {
+            text-align: center;
+            margin-bottom: 3rem;
         }
 
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .wizard-header h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
         }
 
-        ::-webkit-scrollbar-track {
+        .wizard-header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .wizard-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Project Selection */
+        .loading-message {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .projects-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .project-card {
             background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
+        .project-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        ::-webkit-scrollbar-thumb:hover {
+        .project-card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .project-card p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 0.375rem;
+            color: var(--text-secondary);
+            font-size: 0.813rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
             background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-dark);
+            border-color: var(--primary);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.813rem;
+        }
+
+        /* Error Message */
+        .error {
+            color: var(--error);
+            text-align: center;
+            padding: 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 0.5rem;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-content">
-            <div class="logo">🚀 Anava Deploy</div>
+            <div class="logo">
+                Anava Infrastructure Deployment
+                <span class="version-badge">
+                    <span class="version-dot"></span>
+                    <span id="version">v2.3.8</span>
+                </span>
+            </div>
             <div class="user-info">
                 <span>{{ user.email }}</span>
-                <button class="logout-btn" onclick="window.location.href='/logout'">Sign Out</button>
+                <a href="/logout" class="logout-btn">Logout</a>
             </div>
         </div>
     </div>
 
     <div class="container">
         <div class="wizard-container">
-            <div class="step-indicator">
-                <div class="step active" id="step-1-indicator">
-                    <div class="step-number">1</div>
-                    <div class="step-label">Select Project</div>
+            <!-- Project Selection (shown initially) -->
+            <div id="project-selection" class="wizard-step">
+                <div class="wizard-header">
+                    <h2>Select a Google Cloud Project</h2>
+                    <p>Choose a project where you want to deploy Anava infrastructure</p>
                 </div>
-                <div class="step" id="step-2-indicator">
-                    <div class="step-number">2</div>
-                    <div class="step-label">Configure</div>
-                </div>
-                <div class="step" id="step-3-indicator">
-                    <div class="step-number">3</div>
-                    <div class="step-label">Deploy</div>
+                <div class="wizard-content">
+                    <div id="projects-loading" class="loading-message">
+                        <div class="loading-spinner"></div>
+                        Loading your projects...
+                    </div>
+                    <div id="projects-list" class="projects-list" style="display: none;"></div>
                 </div>
             </div>
 
-            <div class="wizard-content">
-                <!-- Step 1: Project Selection -->
-                <div class="step-content active" id="step-1">
-                    <h2>Select Your GCP Project</h2>
-                    <p class="step-description">Choose the project where you want to deploy Anava infrastructure</p>
-                    
-                    <div id="project-loading" style="text-align: center; padding: 2rem;">
-                        <div class="loading-spinner"></div>
-                        <p style="margin-top: 1rem; color: var(--text-secondary);">Loading your projects...</p>
-                    </div>
-                    
-                    <div class="project-grid" id="project-grid" style="display: none;"></div>
-                    
-                    <div id="project-error" style="display: none;"></div>
-                    
-                    <div class="button-group">
-                        <button class="btn btn-secondary" onclick="loadProjects()">
-                            ↻ Refresh Projects
-                        </button>
-                        <button class="btn btn-primary" id="next-to-configure" onclick="goToStep(2)" disabled>
-                            Next: Configure →
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Step 2: Configuration -->
-                <div class="step-content" id="step-2">
+            <!-- Configuration Form (hidden initially) -->
+            <div id="configuration-form" class="wizard-step" style="display: none;">
+                <div class="wizard-header">
                     <h2>Configure Deployment</h2>
-                    <p class="step-description">Review settings for your infrastructure deployment</p>
-                    
-                    <div id="validation-results"></div>
-                    
-                    <div class="form-group">
-                        <label for="region">Deployment Region</label>
-                        <select id="region">
-                            <option value="us-central1">US Central (Iowa) - Lowest latency</option>
-                            <option value="us-east1">US East (South Carolina)</option>
-                            <option value="us-west1">US West (Oregon)</option>
-                            <option value="europe-west1">Europe (Belgium)</option>
-                            <option value="europe-west2">Europe (London)</option>
-                            <option value="asia-southeast1">Asia (Singapore)</option>
-                            <option value="asia-northeast1">Asia (Tokyo)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="prefix">Resource Prefix</label>
-                        <input type="text" id="prefix" value="anava" style="
-                            width: 100%;
-                            background: var(--bg-dark);
-                            border: 1px solid var(--border);
-                            color: var(--text-primary);
-                            padding: 0.75rem 1rem;
-                            border-radius: 0.5rem;
-                            font-family: 'SF Mono', Monaco, monospace;
-                        " pattern="^[a-z][a-z0-9-]*$" title="Must start with lowercase letter, contain only lowercase letters, numbers, and hyphens">
-                        <small style="color: var(--text-secondary); margin-top: 0.5rem; display: block;">
-                            All resources will be prefixed with this value. Use different prefixes to avoid conflicts with existing resources.
-                        </small>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button class="btn btn-secondary" onclick="goToStep(1)">
-                            ← Back
-                        </button>
-                        <button class="btn btn-primary" onclick="startDeployment()">
-                            🚀 Start Deployment
-                        </button>
-                    </div>
+                    <p id="selected-project-info"></p>
                 </div>
-
-                <!-- Step 3: Deployment -->
-                <div class="step-content" id="step-3">
-                    <div class="deployment-status">
-                        <div class="status-icon" id="status-icon">⏳</div>
-                        <h2 id="status-title">Initializing Deployment...</h2>
-                        <p class="step-description" id="status-description">
-                            Setting up your Anava infrastructure
-                        </p>
-                        
-                        <div class="progress-container">
-                            <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                <div class="wizard-content">
+                    <form id="deployForm">
+                        <div class="form-group">
+                            <label for="region">Deployment Region</label>
+                            <select id="region" name="region" required>
+                                <option value="us-central1">us-central1 (Iowa)</option>
+                                <option value="us-east1">us-east1 (South Carolina)</option>
+                                <option value="us-west1">us-west1 (Oregon)</option>
+                                <option value="europe-west1">europe-west1 (Belgium)</option>
+                                <option value="asia-northeast1">asia-northeast1 (Tokyo)</option>
+                            </select>
                         </div>
                         
-                        <div class="deployment-checklist" id="deployment-checklist">
-                            <!-- Checklist items will be dynamically added here -->
+                        <div class="form-group">
+                            <label for="prefix">Resource Prefix</label>
+                            <input type="text" id="prefix" name="prefix" value="anava" required 
+                                   pattern="[a-z0-9-]+" 
+                                   title="Lowercase letters, numbers, and hyphens only">
+                            <small>This prefix will be used for all created resources</small>
                         </div>
                         
-                        <div class="logs-toggle">
-                            <button class="logs-toggle-btn" onclick="toggleLogs()">
-                                <span id="logs-toggle-text">Show detailed logs</span>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="backToProjects()">
+                                Back to Projects
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                Deploy Infrastructure
                             </button>
                         </div>
-                        
-                        <div class="logs-container" id="logs-container">
-                            <div id="logs"></div>
-                        </div>
-                        
-                        <div class="results-container" id="results" style="display: none;">
-                            <div class="results-title">
-                                ✅ Deployment Complete!
+                    </form>
+                </div>
+            </div>
+
+            <!-- Deployment Progress (hidden initially) -->
+            <div id="deployment-progress" class="wizard-step" style="display: none;">
+                <div class="progress-header">
+                    <div class="progress-info">
+                        <h2 class="progress-title">Deploying Anava Infrastructure</h2>
+                        <div class="progress-stats">
+                            <div class="progress-stat">
+                                <span class="progress-stat-label">Resources Created</span>
+                                <span class="progress-stat-value" id="resource-count">0</span>
                             </div>
-                            <div id="results-content"></div>
+                            <div class="progress-stat">
+                                <span class="progress-stat-label">Elapsed Time</span>
+                                <span class="progress-stat-value" id="elapsed-time">00:00</span>
+                            </div>
+                            <div class="progress-stat">
+                                <span class="progress-stat-label">Progress</span>
+                                <span class="progress-stat-value" id="progress-percent">0%</span>
+                            </div>
                         </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="deployment-steps" id="deployment-steps">
+                    <!-- Steps will be populated dynamically -->
+                </div>
+
+                <div class="resource-counter" id="resource-counter">
+                    <h3 class="resource-counter-title">Resources Being Created</h3>
+                    <div class="resource-grid" id="resource-grid">
+                        <!-- Resource counts will be populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="results-container" id="results-container">
+                    <!-- Results will be populated on completion -->
+                </div>
+
+                <div class="logs-section">
+                    <div class="logs-header">
+                        <h3 class="logs-title">Deployment Logs</h3>
+                        <button class="btn btn-secondary btn-sm" onclick="toggleLogs()">
+                            <span id="logs-toggle-text">Hide</span> Logs
+                        </button>
+                    </div>
+                    <div class="logs-container" id="logs-container">
+                        <div id="logs"></div>
                     </div>
                 </div>
             </div>
@@ -841,650 +1011,577 @@
         let selectedProject = null;
         let deploymentId = null;
         let statusCheckInterval = null;
-        let lastLogCount = 0;
-        let deploymentSteps = [];
+        let startTime = null;
+        let elapsedInterval = null;
+        let resourceCounts = {};
+        let lastLogIndex = 0;
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadProjects();
-        });
+        // Deployment steps configuration
+        const deploymentSteps = [
+            {
+                id: 'enabling-apis',
+                title: 'Enabling APIs',
+                description: 'Activating required Google Cloud APIs',
+                icon: '🔌'
+            },
+            {
+                id: 'permissions',
+                title: 'Setting Permissions',
+                description: 'Configuring IAM roles and permissions',
+                icon: '🔐'
+            },
+            {
+                id: 'terraform-init',
+                title: 'Initializing Infrastructure',
+                description: 'Preparing Terraform and checking existing resources',
+                icon: '🏗️'
+            },
+            {
+                id: 'service-accounts',
+                title: 'Creating Service Accounts',
+                description: 'Setting up service accounts for each component',
+                icon: '👤'
+            },
+            {
+                id: 'secrets',
+                title: 'Creating Secrets',
+                description: 'Storing API keys and configuration securely',
+                icon: '🔑'
+            },
+            {
+                id: 'storage',
+                title: 'Setting Up Storage',
+                description: 'Creating Cloud Storage buckets for Firebase',
+                icon: '📦'
+            },
+            {
+                id: 'firestore',
+                title: 'Configuring Firestore',
+                description: 'Setting up Firestore database and security rules',
+                icon: '🗄️'
+            },
+            {
+                id: 'functions',
+                title: 'Deploying Cloud Functions',
+                description: 'Building and deploying serverless functions',
+                icon: '⚡'
+            },
+            {
+                id: 'api-gateway',
+                title: 'Creating API Gateway',
+                description: 'Setting up API Gateway and configuring endpoints',
+                icon: '🌐'
+            }
+        ];
 
-        async function loadProjects() {
-            const loadingEl = document.getElementById('project-loading');
-            const gridEl = document.getElementById('project-grid');
-            const errorEl = document.getElementById('project-error');
+        // Initialize the dashboard
+        async function init() {
+            await loadProjects();
+            initializeSteps();
+        }
+
+        // Initialize deployment steps UI
+        function initializeSteps() {
+            const stepsContainer = document.getElementById('deployment-steps');
+            stepsContainer.innerHTML = '';
             
-            loadingEl.style.display = 'block';
-            gridEl.style.display = 'none';
-            errorEl.style.display = 'none';
-            
-            try {
-                const response = await fetch('/api/projects');
-                const data = await response.json();
+            deploymentSteps.forEach((step, index) => {
+                const stepElement = document.createElement('div');
+                stepElement.className = 'step-item';
+                stepElement.id = `step-${step.id}`;
+                stepElement.style.animationDelay = `${index * 0.1}s`;
                 
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to load projects');
-                }
-                
-                if (data.projects && data.projects.length > 0) {
-                    displayProjects(data.projects);
-                } else {
-                    errorEl.innerHTML = `
-                        <div class="warning-message">
-                            No active projects found. Please create a GCP project with billing enabled.
-                        </div>
-                    `;
-                    errorEl.style.display = 'block';
-                }
-            } catch (error) {
-                errorEl.innerHTML = `
-                    <div class="error-message">
-                        Failed to load projects: ${error.message}
+                stepElement.innerHTML = `
+                    <div class="step-indicator">${step.icon}</div>
+                    <div class="step-content">
+                        <h3 class="step-title">
+                            ${step.title}
+                            <span class="loading-spinner" style="display: none;"></span>
+                        </h3>
+                        <p class="step-description">${step.description}</p>
+                        <div class="step-details" id="details-${step.id}"></div>
                     </div>
                 `;
-                errorEl.style.display = 'block';
-            } finally {
-                loadingEl.style.display = 'none';
+                
+                stepsContainer.appendChild(stepElement);
+            });
+        }
+
+        // Update step status
+        function updateStepStatus(stepId, status, details = {}) {
+            const stepElement = document.getElementById(`step-${stepId}`);
+            if (!stepElement) return;
+            
+            // Remove all status classes
+            stepElement.classList.remove('active', 'completed', 'failed');
+            
+            // Add new status class
+            if (status !== 'pending') {
+                stepElement.classList.add(status);
+            }
+            
+            // Update spinner visibility
+            const spinner = stepElement.querySelector('.loading-spinner');
+            if (spinner) {
+                spinner.style.display = status === 'active' ? 'inline-block' : 'none';
+            }
+            
+            // Update icon for completed/failed states
+            const indicator = stepElement.querySelector('.step-indicator');
+            if (status === 'completed') {
+                indicator.textContent = '✓';
+            } else if (status === 'failed') {
+                indicator.textContent = '✗';
+            }
+            
+            // Update details
+            if (Object.keys(details).length > 0) {
+                const detailsEl = document.getElementById(`details-${stepId}`);
+                detailsEl.innerHTML = Object.entries(details)
+                    .map(([label, value]) => `
+                        <div class="step-detail-item">
+                            <span class="step-detail-label">${label}:</span>
+                            <span class="step-detail-value">${value}</span>
+                        </div>
+                    `).join('');
             }
         }
 
-        function displayProjects(projects) {
-            const gridEl = document.getElementById('project-grid');
-            gridEl.innerHTML = projects.map(project => `
-                <div class="project-card" onclick="selectProject('${project.projectId}', '${project.name}', '${project.projectNumber}')">
-                    <div class="project-name">${project.name}</div>
-                    <div class="project-id">${project.projectId}</div>
-                </div>
-            `).join('');
-            gridEl.style.display = 'grid';
-        }
-
-        function selectProject(projectId, name, projectNumber) {
-            selectedProject = { projectId, name, projectNumber };
+        // Process status update from backend
+        function processStatusMessage(message) {
+            const statusMap = {
+                'DEPLOYMENT_STARTED': { step: 'enabling-apis', action: 'start' },
+                'ENABLING_APIS': { step: 'enabling-apis', action: 'active' },
+                'SETTING_PERMISSIONS': { step: 'permissions', action: 'active', complete: 'enabling-apis' },
+                'PREPARING_TERRAFORM': { step: 'terraform-init', action: 'active', complete: 'permissions' },
+                'TERRAFORM_INIT': { step: 'terraform-init', action: 'active' },
+                'CREATING_SERVICE_ACCOUNTS': { step: 'service-accounts', action: 'active', complete: 'terraform-init' },
+                'CREATING_SECRETS': { step: 'secrets', action: 'active', complete: 'service-accounts' },
+                'CREATING_STORAGE': { step: 'storage', action: 'active', complete: 'secrets' },
+                'CREATING_FIRESTORE': { step: 'firestore', action: 'active', complete: 'storage' },
+                'CREATING_CLOUD_FUNCTIONS': { step: 'functions', action: 'active', complete: 'firestore' },
+                'CREATING_API_GATEWAY': { step: 'api-gateway', action: 'active', complete: 'functions' },
+                'DEPLOYMENT_COMPLETE': { step: 'api-gateway', action: 'complete' }
+            };
             
-            // Update UI
-            document.querySelectorAll('.project-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            event.currentTarget.classList.add('selected');
-            
-            // Enable next button
-            document.getElementById('next-to-configure').disabled = false;
-        }
-
-        async function goToStep(stepNumber) {
-            // Update indicators
-            document.querySelectorAll('.step').forEach((step, index) => {
-                step.classList.remove('active', 'completed');
-                if (index < stepNumber - 1) {
-                    step.classList.add('completed');
-                } else if (index === stepNumber - 1) {
-                    step.classList.add('active');
+            const mapping = statusMap[message];
+            if (mapping) {
+                // Complete previous step if specified
+                if (mapping.complete) {
+                    updateStepStatus(mapping.complete, 'completed');
                 }
-            });
-            
-            // Update content
-            document.querySelectorAll('.step-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(`step-${stepNumber}`).classList.add('active');
-            
-            // Validate project if moving to step 2
-            if (stepNumber === 2 && selectedProject) {
-                await validateProject();
+                
+                // Update current step
+                if (mapping.action === 'complete') {
+                    // Complete all remaining steps
+                    deploymentSteps.forEach(step => {
+                        const stepEl = document.getElementById(`step-${step.id}`);
+                        if (!stepEl.classList.contains('completed')) {
+                            updateStepStatus(step.id, 'completed');
+                        }
+                    });
+                } else {
+                    updateStepStatus(mapping.step, 'active');
+                }
             }
         }
 
-        async function validateProject() {
-            const resultsEl = document.getElementById('validation-results');
-            resultsEl.innerHTML = '<div class="loading-spinner"></div> Validating project...';
+        // Process progress update
+        // Process progress update - FIXED VERSION
+        function processProgressMessage(message) {
+            console.log('Processing progress:', message);
             
-            try {
-                const response = await fetch('/api/validate-project', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ projectId: selectedProject.projectId })
+            // Extract resource creation progress
+            const resourceMatch = message.match(/Created resource (\d+)(?:\/(\d+))?: (.+)/);
+            if (resourceMatch) {
+                const [_, current, total, resourceName] = resourceMatch;
+                
+                // Update resource counter
+                document.getElementById('resource-count').textContent = current;
+                
+                // Parse resource type
+                const resourceType = resourceName.split('.')[0];
+                if (!resourceCounts[resourceType]) {
+                    resourceCounts[resourceType] = 0;
+                }
+                resourceCounts[resourceType]++;
+                
+                // Update resource grid
+                updateResourceGrid();
+                
+                // Update progress percentage - handle cases where total might not be provided
+                if (total) {
+                    const percent = Math.round((parseInt(current) / parseInt(total)) * 100);
+                    document.getElementById('progress-percent').textContent = `${percent}%`;
+                    document.getElementById('progress-bar').style.width = `${percent}%`;
+                } else {
+                    // If no total, just show the count
+                    document.getElementById('progress-percent').textContent = `${current} resources`;
+                }
+                
+                // Find active step and update its details
+                const activeStep = deploymentSteps.find(s => {
+                    const el = document.getElementById(`step-${s.id}`);
+                    return el && el.classList.contains('active');
                 });
                 
-                const validation = await response.json();
-                
-                let html = '';
-                
-                if (validation.valid) {
-                    html += `
-                        <div class="warning-message" style="background: rgba(16, 185, 129, 0.1); border-color: var(--success); color: var(--success);">
-                            ✓ Project is ready for deployment
-                        </div>
-                    `;
-                } else if (validation.issues && validation.issues.length > 0) {
-                    html += `
-                        <div class="error-message">
-                            <strong>⚠️ Project has issues that must be resolved:</strong>
-                            <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                                ${validation.issues.map(issue => `<li>${issue}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-                
-                if (validation.warnings && validation.warnings.length > 0) {
-                    validation.warnings.forEach(warning => {
-                        html += `
-                            <div class="warning-message">
-                                ${warning.message}
-                            </div>
-                        `;
+                if (activeStep) {
+                    updateStepStatus(activeStep.id, 'active', {
+                        'Progress': total ? `${current} of ${total} resources created` : `${current} resources created`
                     });
                 }
-                
-                resultsEl.innerHTML = html;
-            } catch (error) {
-                resultsEl.innerHTML = `
-                    <div class="error-message">
-                        Validation failed: ${error.message}
-                    </div>
-                `;
             }
         }
 
-        function toggleLogs() {
-            const logsContainer = document.getElementById('logs-container');
-            const toggleText = document.getElementById('logs-toggle-text');
+        // Update resource grid display
+        function updateResourceGrid() {
+            const resourceGrid = document.getElementById('resource-grid');
+            const resourceCounter = document.getElementById('resource-counter');
             
-            if (logsContainer.style.display === 'none' || logsContainer.style.display === '') {
-                logsContainer.style.display = 'block';
-                toggleText.textContent = 'Hide detailed logs';
-            } else {
-                logsContainer.style.display = 'none';
-                toggleText.textContent = 'Show detailed logs';
-            }
-        }
-
-        function initializeDeploymentChecklist() {
-            deploymentSteps = [
-                {
-                    id: 'enabling-apis',
-                    title: 'Enabling APIs',
-                    description: 'Activating required Google Cloud services',
-                    status: 'pending',
-                    icon: '🔌',
-                    results: {}
-                },
-                {
-                    id: 'permissions',
-                    title: 'Setting Permissions',
-                    description: 'Configuring IAM roles and service accounts',
-                    status: 'pending',
-                    icon: '🔐',
-                    results: {}
-                },
-                {
-                    id: 'terraform-init',
-                    title: 'Initializing Infrastructure',
-                    description: 'Setting up Terraform and downloading providers',
-                    status: 'pending',
-                    icon: '🚀',
-                    results: {}
-                },
-                {
-                    id: 'service-accounts',
-                    title: 'Creating Service Accounts',
-                    description: 'Setting up IAM service accounts for secure access',
-                    status: 'pending',
-                    icon: '👤',
-                    results: {}
-                },
-                {
-                    id: 'secrets',
-                    title: 'Creating Secrets',
-                    description: 'Storing API keys and configuration securely',
-                    status: 'pending',
-                    icon: '🔒',
-                    results: {}
-                },
-                {
-                    id: 'storage',
-                    title: 'Setting Up Storage',
-                    description: 'Creating buckets for functions and data',
-                    status: 'pending',
-                    icon: '💾',
-                    results: {}
-                },
-                {
-                    id: 'firestore',
-                    title: 'Configuring Database',
-                    description: 'Setting up Firestore with security rules',
-                    status: 'pending',
-                    icon: '🗄️',
-                    results: {}
-                },
-                {
-                    id: 'functions',
-                    title: 'Deploying Functions',
-                    description: 'Building and deploying Cloud Functions',
-                    status: 'pending',
-                    icon: '⚡',
-                    results: {}
-                },
-                {
-                    id: 'api-gateway',
-                    title: 'Creating API Gateway',
-                    description: 'Setting up API endpoints and configuration',
-                    status: 'pending',
-                    icon: '🌐',
-                    results: {}
-                }
-            ];
-            
-            renderChecklist();
-        }
-
-        function renderChecklist() {
-            const checklistEl = document.getElementById('deployment-checklist');
-            checklistEl.innerHTML = deploymentSteps.map((step, index) => {
-                const statusClass = step.status === 'active' ? 'active' : 
-                                   step.status === 'completed' ? 'completed' : 
-                                   step.status === 'failed' ? 'failed' : '';
+            if (Object.keys(resourceCounts).length > 0) {
+                resourceCounter.classList.add('visible');
                 
-                const statusText = step.status === 'active' ? 'In Progress' :
-                                  step.status === 'completed' ? 'Completed' :
-                                  step.status === 'failed' ? 'Failed' :
-                                  'Pending';
-                
-                const icon = step.status === 'completed' ? '✅' :
-                            step.status === 'failed' ? '❌' :
-                            step.status === 'active' ? '🔄' :
-                            step.icon;
-                
-                let resultsHtml = '';
-                if (step.results && Object.keys(step.results).length > 0) {
-                    resultsHtml = `
-                        <div class="checklist-results">
-                            ${Object.entries(step.results).map(([key, value]) => {
-                                const isCopyable = key.includes('URL') || key.includes('Secret') || key.includes('Provider');
-                                const truncatedValue = value.length > 50 ? value.substring(0, 47) + '...' : value;
-                                
-                                return `
-                                    <div class="checklist-result-item">
-                                        <span class="checklist-result-label">${key}:</span>
-                                        <span class="checklist-result-value" title="${value}">${truncatedValue}</span>
-                                        ${isCopyable ? `<button class="copy-btn" onclick="copyToClipboard('${value}')" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.75rem;">Copy</button>` : ''}
-                                    </div>
-                                `;
-                            }).join('')}
+                resourceGrid.innerHTML = Object.entries(resourceCounts)
+                    .map(([type, count]) => `
+                        <div class="resource-type">
+                            <div class="resource-type-name">${type}</div>
+                            <div class="resource-type-count">${count}</div>
                         </div>
-                    `;
-                }
-                
-                return `
-                    <div class="checklist-item ${statusClass}" id="step-${step.id}">
-                        <div class="checklist-header">
-                            <div class="checklist-icon">${icon}</div>
-                            <div class="checklist-title">${step.title}</div>
-                            <div class="checklist-status">${statusText}</div>
-                        </div>
-                        <div class="checklist-details">${step.description}</div>
-                        ${resultsHtml}
-                        <div class="checklist-progress"></div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function updateStepStatus(stepId, status, results = {}) {
-            const step = deploymentSteps.find(s => s.id === stepId);
-            if (step) {
-                step.status = status;
-                if (results) {
-                    step.results = { ...step.results, ...results };
-                }
-                renderChecklist();
+                    `).join('');
             }
         }
 
-        async function startDeployment() {
-            goToStep(3);
-            initializeDeploymentChecklist();
-            
-            try {
-                const response = await fetch('/api/deploy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        projectId: selectedProject.projectId,
-                        region: document.getElementById('region').value,
-                        prefix: document.getElementById('prefix').value
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || 'Deployment failed to start');
-                }
-                
-                deploymentId = data.deploymentId;
-                
-                // Start polling for status
-                statusCheckInterval = setInterval(checkDeploymentStatus, 1000);
-                
-            } catch (error) {
-                updateStatus('error', 'Deployment Failed', error.message);
-            }
-        }
-
+        // Check deployment status
         async function checkDeploymentStatus() {
             if (!deploymentId) return;
             
             try {
+                // Fetch main deployment status
                 const response = await fetch(`/api/deployment/${deploymentId}`);
                 const data = await response.json();
                 
-                // Update status display
-                const statusMap = {
-                    'queued': { icon: '⏳', title: 'Deployment Queued', desc: 'Waiting to start...' },
-                    'running': { icon: '🔄', title: 'Deploying Infrastructure', desc: 'This may take 10-15 minutes...' },
-                    'completed': { icon: '✅', title: 'Deployment Complete!', desc: 'Your infrastructure is ready' },
-                    'failed': { icon: '❌', title: 'Deployment Failed', desc: data.error || 'An error occurred' }
-                };
-                
-                const status = statusMap[data.status] || statusMap['queued'];
-                updateStatus(data.status, status.title, status.desc);
-                
-                // Update logs and checklist
-                if (data.logs && data.logs.length > 0) {
-                    updateLogs(data.logs);
-                    parseLogsForChecklist(data.logs);
-                    
-                    // Update progress based on completed steps
-                    const completedSteps = deploymentSteps.filter(s => s.status === 'completed').length;
-                    const progress = Math.min(95, (completedSteps / deploymentSteps.length) * 100);
-                    document.getElementById('progress-bar').style.width = `${progress}%`;
+                // Process logs
+                if (data.logs && data.logs.length > lastLogIndex) {
+                    const newLogs = data.logs.slice(lastLogIndex);
+                    newLogs.forEach(log => {
+                        addLogEntry(log);
+                        
+                        // Parse status and progress messages
+                        if (log.includes('STATUS:')) {
+                            const status = log.split('STATUS:')[1].trim();
+                            processStatusMessage(status);
+                        } else if (log.includes('PROGRESS:')) {
+                            const progress = log.split('PROGRESS:')[1].trim();
+                            processProgressMessage(progress);
+                        }
+                    });
+                    lastLogIndex = data.logs.length;
                 }
                 
                 // Handle completion
                 if (data.status === 'completed') {
                     clearInterval(statusCheckInterval);
-                    document.getElementById('progress-bar').style.width = '100%';
+                    clearInterval(elapsedInterval);
                     
                     if (data.outputs) {
-                        // Add outputs to the last completed step
-                        const lastStep = deploymentSteps[deploymentSteps.length - 1];
-                        updateStepStatus(lastStep.id, 'completed', {
-                            'API Gateway URL': data.outputs.apiGatewayUrl,
-                            'Firebase Config Secret': data.outputs.firebaseConfigSecret,
-                            'API Key Secret': data.outputs.apiKeySecret,
-                            'Workload Identity Provider': data.outputs.workloadIdentityProvider
-                        });
-                        
-                        showResults(data.outputs);
+                        showSuccessResults(data.outputs);
                     }
-                }
-                
-                // Handle failure
-                if (data.status === 'failed') {
+                } else if (data.status === 'failed') {
                     clearInterval(statusCheckInterval);
-                    document.getElementById('progress-bar').style.width = '100%';
-                    document.getElementById('progress-bar').style.background = 'var(--error)';
+                    clearInterval(elapsedInterval);
                     
-                    // Show error details in a prominent error box
-                    if (data.error) {
-                        const errorHtml = `
-                            <div class="error-message" style="margin-top: 2rem; font-size: 1rem;">
-                                <strong>❌ Deployment Error:</strong><br>
-                                <pre style="margin-top: 0.5rem; white-space: pre-wrap; font-family: 'SF Mono', Monaco, monospace; font-size: 0.875rem;">${data.error}</pre>
-                            </div>
-                        `;
-                        const resultsEl = document.getElementById('results');
-                        resultsEl.innerHTML = errorHtml;
-                        resultsEl.style.display = 'block';
-                    }
+                    showErrorResults(data.error || 'Deployment failed');
                 }
                 
             } catch (error) {
-                console.error('Status check error:', error);
-                // Don't clear interval on transient errors
+                console.error('Error checking status:', error);
             }
         }
 
-        function updateStatus(type, title, description) {
-            document.getElementById('status-icon').textContent = 
-                type === 'error' || type === 'failed' ? '❌' :
-                type === 'completed' ? '✅' :
-                type === 'running' ? '🔄' : '⏳';
+        // Add log entry
+        function addLogEntry(log) {
+            const logsContainer = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
             
-            document.getElementById('status-title').textContent = title;
-            document.getElementById('status-description').textContent = description;
-        }
-
-        function parseLogsForChecklist(logs) {
-            // Only process new logs
-            const newLogs = logs.slice(lastLogCount);
+            const [timestamp, ...messageParts] = log.split(' - ');
+            const message = messageParts.join(' - ');
             
-            newLogs.forEach(log => {
-                const message = log.split(' - ')[1] || log;
-                
-                // Parse STATUS messages
-                if (message.includes('STATUS:')) {
-                    const status = message.split('STATUS:')[1].trim();
-                    
-                    switch(status) {
-                        case 'DEPLOYMENT_STARTED':
-                            // Start first step
-                            updateStepStatus('enabling-apis', 'active');
-                            break;
-                            
-                        case 'ENABLING_APIS':
-                            updateStepStatus('enabling-apis', 'active');
-                            break;
-                            
-                        case 'SETTING_PERMISSIONS':
-                            updateStepStatus('enabling-apis', 'completed', {
-                                'Result': 'All APIs enabled'
-                            });
-                            updateStepStatus('permissions', 'active');
-                            break;
-                            
-                        case 'PREPARING_TERRAFORM':
-                        case 'TERRAFORM_INIT':
-                            updateStepStatus('permissions', 'completed', {
-                                'Result': 'Permissions configured'
-                            });
-                            updateStepStatus('terraform-init', 'active');
-                            break;
-                            
-                        case 'TERRAFORM_PLAN':
-                        case 'CREATING_RESOURCES':
-                            updateStepStatus('terraform-init', 'completed', {
-                                'Result': 'Infrastructure ready'
-                            });
-                            // Start showing resource creation
-                            break;
-                            
-                        case 'CREATING_SERVICE_ACCOUNTS':
-                            updateStepStatus('service-accounts', 'active');
-                            break;
-                            
-                        case 'CREATING_SECRETS':
-                            updateStepStatus('service-accounts', 'completed');
-                            updateStepStatus('secrets', 'active');
-                            break;
-                            
-                        case 'CREATING_STORAGE':
-                            updateStepStatus('secrets', 'completed');
-                            updateStepStatus('storage', 'active');
-                            break;
-                            
-                        case 'CREATING_FIRESTORE':
-                            updateStepStatus('storage', 'completed');
-                            updateStepStatus('firestore', 'active');
-                            break;
-                            
-                        case 'CREATING_CLOUD_FUNCTIONS':
-                            updateStepStatus('firestore', 'completed');
-                            updateStepStatus('functions', 'active');
-                            break;
-                            
-                        case 'CREATING_API_GATEWAY':
-                            updateStepStatus('functions', 'completed');
-                            updateStepStatus('api-gateway', 'active');
-                            break;
-                            
-                        case 'DEPLOYMENT_COMPLETE':
-                            // Mark all as completed
-                            deploymentSteps.forEach(step => {
-                                if (step.status !== 'failed') {
-                                    updateStepStatus(step.id, 'completed');
-                                }
-                            });
-                            break;
-                    }
-                }
-                
-                // Parse PROGRESS messages
-                if (message.includes('PROGRESS:')) {
-                    const progress = message.split('PROGRESS:')[1].trim();
-                    
-                    // Update current active step with progress
-                    const activeStep = deploymentSteps.find(s => s.status === 'active');
-                    if (activeStep) {
-                        if (progress.includes('Created resource')) {
-                            const match = progress.match(/(\d+)\/(\d+)/);
-                            if (match) {
-                                updateStepStatus(activeStep.id, 'active', {
-                                    'Progress': `${match[1]} of ${match[2]} resources`
-                                });
-                            }
-                        }
-                    }
-                }
-                
-                // Parse SUCCESS messages
-                if (message.includes('SUCCESS:')) {
-                    const success = message.split('SUCCESS:')[1].trim();
-                    const activeStep = deploymentSteps.find(s => s.status === 'active');
-                    if (activeStep) {
-                        updateStepStatus(activeStep.id, 'active', {
-                            'Status': success
-                        });
-                    }
-                }
-                
-                // Parse ERROR messages
-                if (message.includes('ERROR:')) {
-                    const error = message.split('ERROR:')[1].trim();
-                    const activeStep = deploymentSteps.find(s => s.status === 'active');
-                    if (activeStep) {
-                        updateStepStatus(activeStep.id, 'failed', {
-                            'Error': error
-                        });
-                    }
-                }
-                
-                // Parse RESULT messages (final outputs)
-                if (message.includes('RESULT:')) {
-                    const result = message.split('RESULT:')[1].trim();
-                    if (result.includes('API Gateway URL:')) {
-                        const url = result.split('API Gateway URL:')[1].trim();
-                        updateStepStatus('api-gateway', 'completed', {
-                            'API Gateway URL': url
-                        });
-                    }
-                }
-            });
-        }
-
-        function updateLogs(logs) {
-            const logsEl = document.getElementById('logs');
-            const containerEl = document.getElementById('logs-container');
-            
-            // Only update if we have new logs
-            if (logs.length > lastLogCount) {
-                const newLogs = logs.slice(lastLogCount);
-                
-                newLogs.forEach(log => {
-                    const logDiv = document.createElement('div');
-                    logDiv.className = 'log-entry';
-                    
-                    // Parse timestamp and message
-                    const parts = log.split(' - ', 2);
-                    const timestamp = parts[0] || '';
-                    const message = parts[1] || log;
-                    
-                    // Add styling for different log types
-                    let messageClass = 'log-message';
-                    if (message.includes('ERROR') || message.includes('failed') || message.includes('Error')) {
-                        messageClass = 'log-error';
-                    } else if (message.includes('SUCCESS') || message.includes('COMPLETE')) {
-                        messageClass = 'log-success';
-                    }
-                    
-                    logDiv.innerHTML = `
-                        <span class="log-timestamp">${timestamp}</span>
-                        <span class="${messageClass}">${message}</span>
-                    `;
-                    
-                    logsEl.appendChild(logDiv);
-                });
-                
-                lastLogCount = logs.length;
-                
-                // Auto-scroll to bottom
-                containerEl.scrollTop = containerEl.scrollHeight;
+            let messageClass = 'log-message';
+            if (message.includes('ERROR') || message.includes('failed')) {
+                messageClass = 'log-error';
+            } else if (message.includes('SUCCESS') || message.includes('✓')) {
+                messageClass = 'log-success';
+            } else if (message.includes('WARNING')) {
+                messageClass = 'log-warning';
             }
-        }
-
-        function showResults(outputs) {
-            const resultsEl = document.getElementById('results');
-            const contentEl = document.getElementById('results-content');
             
-            contentEl.innerHTML = `
-                <div class="result-item">
-                    <button class="copy-btn" onclick="copyToClipboard('${outputs.apiGatewayUrl}')">Copy</button>
-                    <div class="result-label">API Gateway URL</div>
-                    <div class="result-value">${outputs.apiGatewayUrl}</div>
-                </div>
-                
-                <div class="result-item">
-                    <button class="copy-btn" onclick="copyToClipboard('${outputs.firebaseConfigSecret}')">Copy</button>
-                    <div class="result-label">Firebase Configuration Secret</div>
-                    <div class="result-value">${outputs.firebaseConfigSecret}</div>
-                </div>
-                
-                <div class="result-item">
-                    <button class="copy-btn" onclick="copyToClipboard('${outputs.apiKeySecret}')">Copy</button>
-                    <div class="result-label">API Key Secret</div>
-                    <div class="result-value">${outputs.apiKeySecret}</div>
-                </div>
-                
-                <div class="result-item">
-                    <button class="copy-btn" onclick="copyToClipboard('${outputs.workloadIdentityProvider}')">Copy</button>
-                    <div class="result-label">Workload Identity Provider</div>
-                    <div class="result-value">${outputs.workloadIdentityProvider}</div>
-                </div>
-                
-                <div style="margin-top: 2rem; padding: 1.5rem; background: var(--bg-dark); border-radius: 0.5rem;">
-                    <h3 style="margin-bottom: 1rem; color: var(--primary);">Next Steps</h3>
-                    <ol style="margin-left: 1.5rem; line-height: 2;">
-                        <li>Copy the API Gateway URL to your ACAP configuration</li>
-                        <li>Retrieve your API key: <code style="background: var(--bg-card); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">gcloud secrets versions access latest --secret="${outputs.apiKeySecret}"</code></li>
-                        <li>Configure your devices with the API endpoint</li>
-                        <li>Monitor usage in the <a href="https://console.cloud.google.com/project/${selectedProject.projectId}" target="_blank" style="color: var(--primary);">GCP Console</a></li>
-                    </ol>
-                </div>
+            logEntry.innerHTML = `
+                <span class="log-timestamp">${timestamp}</span>
+                <span class="${messageClass}">${message}</span>
             `;
             
-            resultsEl.style.display = 'block';
+            logsContainer.appendChild(logEntry);
+            
+            // Auto-scroll to bottom
+            const container = document.getElementById('logs-container');
+            container.scrollTop = container.scrollHeight;
         }
 
-        function copyToClipboard(text) {
+        // Show success results
+        function showSuccessResults(outputs) {
+            const resultsContainer = document.getElementById('results-container');
+            resultsContainer.classList.add('visible');
+            
+            resultsContainer.innerHTML = `
+                <div class="success-animation">
+                    <svg class="success-icon" viewBox="0 0 52 52">
+                        <circle cx="26" cy="26" r="25" fill="none" stroke="#10b981" stroke-width="2"/>
+                        <path fill="none" stroke="#10b981" stroke-width="3" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                    <h2 class="success-title">Deployment Successful!</h2>
+                    <p class="success-subtitle">Your Anava infrastructure is ready to use</p>
+                </div>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3 class="result-label">API Gateway URL</h3>
+                        <div class="result-value">
+                            <span>${outputs.apiGatewayUrl || 'Not available'}</span>
+                            <button class="copy-button" onclick="copyToClipboard('${outputs.apiGatewayUrl}', this)">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="result-description">Use this URL to access your API endpoints</p>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3 class="result-label">Firebase Config Secret</h3>
+                        <div class="result-value">
+                            <span>${outputs.firebaseConfigSecret || 'Not available'}</span>
+                            <button class="copy-button" onclick="copyToClipboard('${outputs.firebaseConfigSecret}', this)">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="result-description">Secret Manager path for Firebase configuration</p>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3 class="result-label">API Key Secret</h3>
+                        <div class="result-value">
+                            <span>${outputs.apiKeySecret || 'Not available'}</span>
+                            <button class="copy-button" onclick="copyToClipboard('${outputs.apiKeySecret}', this)">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="result-description">Secret Manager path for API key</p>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3 class="result-label">Workload Identity Provider</h3>
+                        <div class="result-value">
+                            <span>${outputs.workloadIdentityProvider || 'Not available'}</span>
+                            <button class="copy-button" onclick="copyToClipboard('${outputs.workloadIdentityProvider}', this)">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="result-description">Provider for GitHub Actions authentication</p>
+                    </div>
+                </div>
+                
+                <div class="quick-start">
+                    <h3 class="quick-start-title">🚀 Quick Start Guide</h3>
+                    <div class="quick-start-steps">
+                        <div class="quick-start-step">
+                            <div class="quick-start-number">1</div>
+                            <div class="quick-start-content">
+                                <h4>Test your API</h4>
+                                <p>Make a test request to verify your deployment:</p>
+                                <code>curl ${outputs.apiGatewayUrl}/health</code>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-start-step">
+                            <div class="quick-start-number">2</div>
+                            <div class="quick-start-content">
+                                <h4>Configure GitHub Actions</h4>
+                                <p>Add the Workload Identity Provider to your repository secrets</p>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-start-step">
+                            <div class="quick-start-number">3</div>
+                            <div class="quick-start-content">
+                                <h4>Access your secrets</h4>
+                                <p>Use <code>gcloud secrets versions access latest</code> to retrieve configuration</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="download-config">
+                    <button class="download-button" onclick="downloadConfiguration()">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 14L6 10M10 14L14 10M10 14V3M3 17H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Download Configuration
+                    </button>
+                </div>
+            `;
+        }
+
+        // Show error results
+        function showErrorResults(error) {
+            const resultsContainer = document.getElementById('results-container');
+            resultsContainer.classList.add('visible');
+            
+            resultsContainer.innerHTML = `
+                <div class="error-message">
+                    <h2 style="color: var(--error); margin-bottom: 1rem;">❌ Deployment Failed</h2>
+                    <pre style="background: var(--bg-dark); padding: 1rem; border-radius: 0.5rem; overflow-x: auto;">${error}</pre>
+                </div>
+            `;
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text, button) {
             navigator.clipboard.writeText(text).then(() => {
-                event.target.textContent = 'Copied!';
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                
                 setTimeout(() => {
-                    event.target.textContent = 'Copy';
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
                 }, 2000);
             });
         }
+
+        // Download configuration
+        function downloadConfiguration() {
+            // Implementation would download a JSON file with all outputs
+            alert('Configuration download will be implemented');
+        }
+
+        // Toggle logs visibility
+        function toggleLogs() {
+            const logsContainer = document.getElementById('logs-container');
+            const toggleText = document.getElementById('logs-toggle-text');
+            
+            if (logsContainer.style.display === 'none') {
+                logsContainer.style.display = 'block';
+                toggleText.textContent = 'Hide';
+            } else {
+                logsContainer.style.display = 'none';
+                toggleText.textContent = 'Show';
+            }
+        }
+
+        // Update elapsed time
+        function updateElapsedTime() {
+            if (!startTime) return;
+            
+            const elapsed = Date.now() - startTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            
+            document.getElementById('elapsed-time').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Load projects
+        async function loadProjects() {
+            try {
+                const response = await fetch('/api/projects');
+                const data = await response.json();
+                
+                document.getElementById('projects-loading').style.display = 'none';
+                const projectsList = document.getElementById('projects-list');
+                projectsList.style.display = 'block';
+                
+                if (data.projects && data.projects.length > 0) {
+                    projectsList.innerHTML = data.projects.map(project => `
+                        <div class="project-card" onclick="selectProject('${project.projectId}', '${project.name}')">
+                            <h3>${project.name}</h3>
+                            <p>${project.projectId}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    projectsList.innerHTML = '<p>No projects found. Make sure you have access to Google Cloud projects.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                document.getElementById('projects-loading').innerHTML = 
+                    '<p class="error">Failed to load projects. Please try again.</p>';
+            }
+        }
+
+        // Select project
+        function selectProject(projectId, projectName) {
+            selectedProject = { id: projectId, name: projectName };
+            
+            document.getElementById('project-selection').style.display = 'none';
+            document.getElementById('configuration-form').style.display = 'block';
+            document.getElementById('selected-project-info').textContent = 
+                `Deploying to: ${projectName} (${projectId})`;
+        }
+
+        // Back to projects
+        function backToProjects() {
+            selectedProject = null;
+            document.getElementById('configuration-form').style.display = 'none';
+            document.getElementById('project-selection').style.display = 'block';
+        }
+
+        // Handle form submission
+        document.getElementById('deployForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const deploymentData = {
+                projectId: selectedProject.id,
+                region: formData.get('region'),
+                prefix: formData.get('prefix')
+            };
+            
+            try {
+                const response = await fetch('/api/deploy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(deploymentData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.deploymentId) {
+                    deploymentId = result.deploymentId;
+                    
+                    // Switch to progress view
+                    document.getElementById('configuration-form').style.display = 'none';
+                    document.getElementById('deployment-progress').style.display = 'block';
+                    
+                    // Initialize progress tracking
+                    startTime = Date.now();
+                    lastLogIndex = 0;
+                    resourceCounts = {};
+                    
+                    // Start monitoring
+                    statusCheckInterval = setInterval(checkDeploymentStatus, 2000);
+                    elapsedInterval = setInterval(updateElapsedTime, 1000);
+                    
+                    // Initial status check
+                    checkDeploymentStatus();
+                } else {
+                    alert('Failed to start deployment: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Deployment error:', error);
+                alert('Failed to start deployment: ' + error.message);
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>

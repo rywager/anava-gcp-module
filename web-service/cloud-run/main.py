@@ -27,7 +27,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.8"  # Skip imports entirely - let Terraform handle existing resources
+VERSION = "2.3.9"  # Fixed dashboard CSS and progress tracking
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -767,6 +767,9 @@ output "workload_identity_provider" {{
             log("STATUS: CREATING_RESOURCES")
             log("INFO: This will create approximately 45 Google Cloud resources")
             log("INFO: Resources include: Service Accounts, Secrets, Storage Buckets, Firestore, Cloud Functions, API Gateway")
+            
+            # Update step to service accounts to show we're starting resource creation
+            log("STATUS: CREATING_SERVICE_ACCOUNTS")
             
             # Import retry handler
             import sys
