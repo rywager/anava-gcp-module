@@ -1,4 +1,15 @@
-<!DOCTYPE html>
+#!/usr/bin/env python3
+"""
+Fix UI progress tracking to show real-time deployment status
+"""
+
+import os
+import sys
+
+def create_updated_dashboard():
+    """Create updated dashboard with real-time progress tracking"""
+    
+    dashboard_content = '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1404,3 +1415,35 @@
     </script>
 </body>
 </html>
+'''
+    
+    # Write the updated dashboard
+    dashboard_path = '/Users/ryanwager/terraform-installer/web-service/cloud-run/templates/dashboard.html'
+    
+    # Backup existing dashboard
+    backup_path = dashboard_path + '.backup'
+    if os.path.exists(dashboard_path):
+        with open(dashboard_path, 'r') as f:
+            backup_content = f.read()
+        with open(backup_path, 'w') as f:
+            f.write(backup_content)
+        print(f"✅ Backed up existing dashboard to {backup_path}")
+    
+    # Write new dashboard
+    with open(dashboard_path, 'w') as f:
+        f.write(dashboard_content)
+    
+    print(f"✅ Created improved dashboard with real-time progress tracking")
+    print("\nKey improvements:")
+    print("- Real-time progress updates with animated steps")
+    print("- Resource counter showing what's being created")
+    print("- Beautiful success page with copy buttons") 
+    print("- Quick start guide for new users")
+    print("- Elapsed time and progress percentage")
+    print("- Version badge showing current deployment version")
+    print("- Responsive design for mobile devices")
+
+if __name__ == "__main__":
+    create_updated_dashboard()
+    print("\n🎉 Dashboard UI has been updated!")
+    print("The new dashboard will show real-time progress when deployed.")
