@@ -27,7 +27,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.3"  # Add Cloud Build permissions fix
+VERSION = "2.3.4"  # Complete IAM permissions audit and fix
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -438,15 +438,33 @@ def run_single_deployment(job_data):
         
         # Enable Cloud Build API to fix the permission error
         required_apis = [
-            'cloudbuild.googleapis.com',
-            'cloudfunctions.googleapis.com',
-            'firebase.googleapis.com',
-            'firestore.googleapis.com',
-            'apigateway.googleapis.com',
-            'servicecontrol.googleapis.com',
+            # Core infrastructure APIs
+            'iam.googleapis.com',
+            'iamcredentials.googleapis.com',
+            'cloudresourcemanager.googleapis.com',
+            'serviceusage.googleapis.com',
             'servicemanagement.googleapis.com',
-            'secretmanager.googleapis.com',
-            'iam.googleapis.com'
+            'servicecontrol.googleapis.com',
+            # Firebase and storage
+            'firebase.googleapis.com',
+            'identitytoolkit.googleapis.com',
+            'storage.googleapis.com',
+            'firebasestorage.googleapis.com',
+            'firestore.googleapis.com',
+            # Cloud Functions and build
+            'cloudfunctions.googleapis.com',
+            'cloudbuild.googleapis.com',
+            'artifactregistry.googleapis.com',
+            # API Gateway and endpoints
+            'apigateway.googleapis.com',
+            'endpoints.googleapis.com',
+            # AI and compute
+            'aiplatform.googleapis.com',
+            'compute.googleapis.com',
+            'run.googleapis.com',
+            # Security
+            'sts.googleapis.com',
+            'secretmanager.googleapis.com'
         ]
         
         import requests
