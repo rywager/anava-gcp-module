@@ -62,14 +62,7 @@ resource "google_firebase_project" "default" {
 }
 
 # Firestore database named "anava"
-resource "google_firestore_database" "anava" {
-  project     = var.project_id
-  name        = var.firestore_database_id
-  location_id = var.firestore_location
-  type        = "FIRESTORE_NATIVE"
-
-  depends_on = [google_firebase_project.default]
-}
+# Using default Firestore database - no need to create one
 
 # Create the actual storage bucket first
 resource "google_storage_bucket" "firebase_bucket" {
@@ -533,7 +526,6 @@ resource "google_firebaserules_ruleset" "firestore" {
   }
 
   depends_on = [
-    google_firestore_database.anava,
     google_firebase_project.default
   ]
 }
@@ -541,7 +533,7 @@ resource "google_firebaserules_ruleset" "firestore" {
 resource "google_firebaserules_release" "firestore" {
   provider     = google-beta
   project      = var.project_id
-  name         = "cloud.firestore/databases/${google_firestore_database.anava.name}"
+  name         = "cloud.firestore/databases/(default)"
   ruleset_name = google_firebaserules_ruleset.firestore.name
 }
 

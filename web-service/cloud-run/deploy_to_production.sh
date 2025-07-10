@@ -20,6 +20,10 @@ echo "📌 Commit: $COMMIT_SHA"
 REDIS_HOST=$(gcloud redis instances describe anava-deploy-queue --region=us-central1 --format="value(host)")
 echo "📡 Redis Host: $REDIS_HOST"
 
+# First get the current service URL if it exists
+CURRENT_URL=$(gcloud run services describe anava-deploy --region=us-central1 --format='value(status.url)' 2>/dev/null || echo "")
+
+# Deploy the service
 gcloud run deploy anava-deploy \
   --source . \
   --region us-central1 \
@@ -34,12 +38,21 @@ gcloud run deploy anava-deploy \
   --timeout=3600 \
   --vpc-connector="anava-deploy-connector"
 
+# Get the new service URL
+NEW_SERVICE_URL=$(gcloud run services describe anava-deploy --region=us-central1 --format='value(status.url)')
+
+# Update redirect URI if URL changed
+if [ "$CURRENT_URL" != "$NEW_SERVICE_URL" ]; then
+  echo "🔄 Service URL changed, updating redirect URI..."
+  gcloud run services update anava-deploy \
+    --update-env-vars="REDIRECT_URI=$NEW_SERVICE_URL/callback" \
+    --region=us-central1
+fi
+
 echo ""
 echo "✅ Service deployed successfully!"
 
-# Get the service URL
-SERVICE_URL=$(gcloud run services describe anava-deploy --region=us-central1 --format='value(status.url)')
-echo "🌐 Service URL: $SERVICE_URL"
+echo "🌐 Service URL: $NEW_SERVICE_URL"
 
 # Update the terraform module cache (if needed)
 echo ""
@@ -53,7 +66,7 @@ echo ""
 echo "📊 Deployment Summary:"
 echo "- Service: anava-deploy"
 echo "- Region: us-central1"
-echo "- URL: $SERVICE_URL"
-echo "- Features: Firebase storage location selector"
+echo "- URL: $NEW_SERVICE_URL"
+echo "- Features: Firebase storage location selector, retry logic, manual intervention handling"
 echo ""
-echo "🧪 Test the deployment at: $SERVICE_URL"
+echo "🧪 Test the deployment at: $NEW_SERVICE_URL"

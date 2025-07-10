@@ -44,10 +44,6 @@ output "firebase_storage_bucket" {
   value       = google_firebase_storage_bucket.default.name
 }
 
-output "firestore_database_id" {
-  description = "Firestore database ID"
-  value       = google_firestore_database.anava.name
-}
 
 output "firebase_web_app_id" {
   description = "Firebase Web App ID"

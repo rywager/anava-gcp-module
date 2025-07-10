@@ -900,6 +900,13 @@
                             <div id="logs"></div>
                         </div>
                         
+                        <div class="results-container" id="resources-container" style="display: none; margin-bottom: 2rem;">
+                            <div class="results-title">
+                                📦 Resources Created
+                            </div>
+                            <div id="resources-content" style="max-height: 400px; overflow-y: auto;"></div>
+                        </div>
+                        
                         <div class="results-container" id="results" style="display: none;">
                             <div class="results-title">
                                 ✅ Deployment Complete!
@@ -1280,14 +1287,21 @@
             if (!deploymentId) return;
             
             try {
-                // Fetch both status and progress
-                const [statusResponse, progressResponse] = await Promise.all([
+                // Fetch status, progress, and resources
+                const [statusResponse, progressResponse, resourcesResponse] = await Promise.all([
                     fetch(`/api/deployment/${deploymentId}`),
-                    fetch(`/api/deployment/${deploymentId}/progress`)
+                    fetch(`/api/deployment/${deploymentId}/progress`),
+                    fetch(`/api/deployment/${deploymentId}/resources`)
                 ]);
                 
                 const data = await statusResponse.json();
                 const progressData = progressResponse.ok ? await progressResponse.json() : null;
+                const resourcesData = resourcesResponse.ok ? await resourcesResponse.json() : null;
+                
+                // Display resources if available
+                if (resourcesData && resourcesData.created_resources.length > 0) {
+                    displayResources(resourcesData);
+                }
                 
                 // Update status display
                 const statusMap = {
@@ -1340,6 +1354,11 @@
                     clearInterval(statusCheckInterval);
                     document.getElementById('progress-bar').style.width = '100%';
                     
+                    // Check for manual interventions
+                    if (data.manual_interventions && data.manual_interventions.length > 0) {
+                        showManualInterventions(data.manual_interventions);
+                    }
+                    
                     if (data.outputs) {
                         // Add outputs to the last completed step
                         const lastStep = deploymentSteps[deploymentSteps.length - 1];
@@ -1359,6 +1378,15 @@
                     clearInterval(statusCheckInterval);
                     document.getElementById('progress-bar').style.width = '100%';
                     document.getElementById('progress-bar').style.background = 'var(--error)';
+                    
+                    // Still fetch and show resources that were created before failure
+                    fetch(`/api/deployment/${deploymentId}/resources`)
+                        .then(res => res.json())
+                        .then(resourcesData => {
+                            if (resourcesData && resourcesData.created_resources.length > 0) {
+                                displayResources(resourcesData);
+                            }
+                        });
                     
                     // Show error details in a prominent error box
                     if (data.error) {
@@ -1384,6 +1412,7 @@
             document.getElementById('status-icon').textContent = 
                 type === 'error' || type === 'failed' ? '❌' :
                 type === 'completed' ? '✅' :
+                type === 'warning' ? '⚠️' :
                 type === 'running' ? '🔄' : '⏳';
             
             document.getElementById('status-title').textContent = title;
@@ -1481,6 +1510,11 @@
                                     updateStepStatus(step.id, 'completed');
                                 }
                             });
+                            break;
+                            
+                        case 'MANUAL_INTERVENTION_REQUIRED':
+                            // Update status to show manual intervention is needed
+                            updateStatus('warning', 'Manual Action Required', 'Some resources need manual configuration');
                             break;
                     }
                 }
@@ -1592,6 +1626,41 @@
             }
         }
 
+        function showManualInterventions(interventions) {
+            const resultsEl = document.getElementById('results');
+            
+            let html = `
+                <div class="warning-message" style="margin-bottom: 2rem; font-size: 1rem;">
+                    <strong>⚠️ Manual Actions Required</strong><br>
+                    Some resources require manual intervention to complete deployment.
+                </div>
+            `;
+            
+            interventions.forEach((intervention, index) => {
+                html += `
+                    <div class="result-item" style="background: rgba(245, 158, 11, 0.1); border-color: var(--warning);">
+                        <div class="result-label" style="color: var(--warning); font-weight: 600; margin-bottom: 0.5rem;">
+                            ${index + 1}. ${intervention.resource} - ${intervention.action}
+                        </div>
+                        <div style="margin-left: 1rem;">
+                            ${intervention.steps.map(step => `<div style="margin-bottom: 0.25rem;">• ${step}</div>`).join('')}
+                        </div>
+                        ${intervention.error_msg ? `<div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary); font-family: 'SF Mono', Monaco, monospace;">Error: ${intervention.error_msg}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-dark); border-radius: 0.5rem;">
+                    <strong>After completing these manual steps:</strong><br>
+                    You can re-run the deployment to complete any remaining resources.
+                </div>
+            `;
+            
+            resultsEl.innerHTML = html;
+            resultsEl.style.display = 'block';
+        }
+        
         function showResults(outputs) {
             const resultsEl = document.getElementById('results');
             const contentEl = document.getElementById('results-content');
@@ -1635,6 +1704,53 @@
             resultsEl.style.display = 'block';
         }
 
+        function displayResources(resourcesData) {
+            const container = document.getElementById('resources-container');
+            const content = document.getElementById('resources-content');
+            
+            let html = '';
+            
+            // Summary
+            html += `
+                <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-dark); border-radius: 0.5rem;">
+                    <strong>Summary:</strong> ${resourcesData.total_created} resources created, ${resourcesData.total_failed} failed
+                </div>
+            `;
+            
+            // Resources by type
+            if (resourcesData.summary_by_type) {
+                html += '<div style="margin-bottom: 1rem;">';
+                for (const [type, resources] of Object.entries(resourcesData.summary_by_type)) {
+                    html += `
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="color: var(--primary); margin-bottom: 0.5rem;">${type} (${resources.length})</h4>
+                            <ul style="margin: 0; padding-left: 1.5rem;">
+                                ${resources.map(r => `<li style="font-family: 'SF Mono', Monaco, monospace; font-size: 0.875rem;">${r}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+            
+            // All resources list
+            if (resourcesData.created_resources.length > 0) {
+                html += `
+                    <details>
+                        <summary style="cursor: pointer; color: var(--primary); margin-bottom: 0.5rem;">All Resources (${resourcesData.created_resources.length})</summary>
+                        <ol style="margin: 0.5rem 0; padding-left: 2rem;">
+                            ${resourcesData.created_resources.map(r => 
+                                `<li style="font-family: 'SF Mono', Monaco, monospace; font-size: 0.875rem; margin-bottom: 0.25rem;">${r.name}</li>`
+                            ).join('')}
+                        </ol>
+                    </details>
+                `;
+            }
+            
+            content.innerHTML = html;
+            container.style.display = 'block';
+        }
+        
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 event.target.textContent = 'Copied!';

@@ -1,12 +1,19 @@
 FROM python:3.11-slim
 
-# Install system dependencies including git
+# Install system dependencies including git and gcloud CLI
 RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
     lsb-release \
     git \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Google Cloud SDK
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - && \
+    apt-get update && apt-get install -y google-cloud-sdk && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Terraform
 RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add - && \
@@ -28,6 +35,7 @@ COPY terraform-anava-module /terraform-cache/anava-gcp-module
 # Copy application files
 COPY main.py .
 COPY worker.py .
+COPY terraform_retry_handler.py .
 COPY start_worker.sh .
 COPY terraform_import_existing.sh .
 COPY templates/ templates/

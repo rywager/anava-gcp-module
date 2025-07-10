@@ -27,7 +27,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.1.0"
+VERSION = "2.3.2"  # Remove imports completely to avoid hanging
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -450,21 +450,32 @@ def run_single_deployment(job_data):
         ]
         
         import requests
+        import concurrent.futures
         headers = {'Authorization': f'Bearer {credentials.token}', 'Content-Type': 'application/json'}
         
-        for i, api in enumerate(required_apis, 1):
+        def enable_api(api):
             try:
-                log(f"PROGRESS: Enabling API {i}/{len(required_apis)}: {api}")
                 enable_url = f'https://serviceusage.googleapis.com/v1/projects/{project_id}/services/{api}:enable'
                 response = requests.post(enable_url, headers=headers, json={})
                 if response.status_code in [200, 201]:
-                    log(f"SUCCESS: Enabled {api}")
+                    return f"SUCCESS: Enabled {api}"
                 elif response.status_code == 409:
-                    log(f"INFO: {api} already enabled")
+                    return f"INFO: {api} already enabled"
                 else:
-                    log(f"WARNING: Failed to enable {api}: {response.status_code}")
+                    return f"WARNING: Failed to enable {api}: {response.status_code}"
             except Exception as e:
-                log(f"ERROR: Failed to enable {api}: {str(e)[:100]}")
+                return f"ERROR: Failed to enable {api}: {str(e)[:100]}"
+        
+        log(f"INFO: Enabling {len(required_apis)} APIs in parallel...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(enable_api, api): api for api in required_apis}
+            completed = 0
+            for future in concurrent.futures.as_completed(futures):
+                completed += 1
+                result = future.result()
+                log(f"PROGRESS: API {completed}/{len(required_apis)} - {result}")
+        
+        log("SUCCESS: All APIs processed")
         
         # Step 2: Set up permissions
         log("STATUS: SETTING_PERMISSIONS")
@@ -537,24 +548,33 @@ def run_single_deployment(job_data):
                     build_sa = f"{project_number}@cloudbuild.gserviceaccount.com"
                     build_member = f"serviceAccount:{build_sa}"
                     
-                    # Add Cloud Functions Developer role for Cloud Build
-                    build_role = 'roles/cloudfunctions.developer'
-                    binding_exists = False
+                    # Add multiple roles for Cloud Build
+                    build_roles = [
+                        'roles/cloudfunctions.developer',
+                        'roles/artifactregistry.writer',
+                        'roles/storage.objectAdmin',
+                        'roles/logging.logWriter'
+                    ]
                     
-                    for binding in policy.get('bindings', []):
-                        if binding['role'] == build_role:
-                            if build_member not in binding.get('members', []):
-                                binding['members'].append(build_member)
-                                policy_updated = True
-                            binding_exists = True
-                            break
-                    
-                    if not binding_exists:
-                        policy['bindings'].append({
-                            'role': build_role,
-                            'members': [build_member]
-                        })
-                        policy_updated = True
+                    for build_role in build_roles:
+                        binding_exists = False
+                        
+                        for binding in policy.get('bindings', []):
+                            if binding['role'] == build_role:
+                                if build_member not in binding.get('members', []):
+                                    binding['members'].append(build_member)
+                                    policy_updated = True
+                                    log(f"INFO: Adding {build_role} to Cloud Build SA")
+                                binding_exists = True
+                                break
+                        
+                        if not binding_exists:
+                            policy['bindings'].append({
+                                'role': build_role,
+                                'members': [build_member]
+                            })
+                            policy_updated = True
+                            log(f"INFO: Granting {build_role} to Cloud Build SA")
                     
                     # Update IAM policy if needed
                     if policy_updated:
@@ -680,42 +700,9 @@ output "workload_identity_provider" {{
             
             log("SUCCESS: Terraform initialized")
             
-            # Import existing resources first
-            log("STATUS: IMPORTING_EXISTING")
-            log("ACTION: Checking for existing resources...")
-            
-            # Copy import script
-            import shutil
-            import_script = os.path.join(os.path.dirname(__file__), 'terraform_import_existing.sh')
-            if os.path.exists(import_script):
-                shutil.copy(import_script, temp_dir)
-                os.chmod(os.path.join(temp_dir, 'terraform_import_existing.sh'), 0o755)
-                
-                # Run import
-                log("INFO: Running import script...")
-                import_result = subprocess.run(
-                    ['./terraform_import_existing.sh', project_id, prefix, '.'],
-                    cwd=temp_dir,
-                    capture_output=True,
-                    text=True,
-                    env=env
-                )
-                
-                # Log import output
-                if import_result.stdout:
-                    for line in import_result.stdout.strip().split('\n'):
-                        if line:
-                            log(f"IMPORT: {line}")
-                
-                if import_result.stderr:
-                    for line in import_result.stderr.strip().split('\n'):
-                        if line:
-                            log(f"IMPORT WARNING: {line}")
-                
-                if import_result.returncode == 0:
-                    log("SUCCESS: Import process completed")
-                else:
-                    log(f"WARNING: Import completed with exit code {import_result.returncode}")
+            # Skip imports entirely - they're causing hanging issues
+            # The retry handler will deal with "already exists" errors
+            log("INFO: Skipping import phase to avoid hanging")
             
             # Step 5: Plan deployment
             log("STATUS: TERRAFORM_PLAN")
@@ -751,104 +738,45 @@ output "workload_identity_provider" {{
                 if result.returncode != 0:
                     raise Exception(f"Terraform plan failed: {result.stderr}")
             
-            # Step 6: Apply deployment
+            # Step 6: Apply deployment with retry and partial success
             log("STATUS: CREATING_RESOURCES")
             log("INFO: This will create approximately 45 Google Cloud resources")
             log("INFO: Resources include: Service Accounts, Secrets, Storage Buckets, Firestore, Cloud Functions, API Gateway")
             
-            import time
-            import threading
+            # Import retry handler
+            import sys
+            sys.path.append(os.path.dirname(__file__))
+            from terraform_retry_handler import TerraformRetryHandler
             
-            process = subprocess.Popen(
-                ['terraform', 'apply', '-auto-approve', 'tfplan'],
-                cwd=temp_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                env=env
-            )
+            retry_handler = TerraformRetryHandler(log)
             
-            output_lines = []
-            resources_created = 0
-            total_resources = 45
-            apply_timeout = 2400  # 40 minutes
-            start_time = time.time()
+            # Apply with retry logic
+            success, output = retry_handler.apply_with_retry(temp_dir, env, max_retries=3)
             
-            current_step = None
+            # Get deployment summary
+            summary = retry_handler.get_deployment_summary()
             
-            for line in process.stdout:
-                line = line.strip()
-                if line and not line.startswith('Refreshing state'):
-                    # Count resources being created
-                    if 'Creation complete' in line or 'Created' in line:
-                        resources_created += 1
-                        resource_name = 'unknown'
-                        
-                        # Extract resource name
-                        if 'resource' in line:
-                            parts = line.split('"')
-                            if len(parts) >= 2:
-                                resource_name = parts[1]
-                        elif '.' in line:
-                            resource_name = line.split('.')[-1].split(':')[0]
-                        
-                        log(f"PROGRESS: Created resource {resources_created}/{total_resources}: {resource_name}")
-                        
-                        # Update step based on resource type
-                        if 'service_account' in resource_name.lower():
-                            if current_step != 'SERVICE_ACCOUNTS':
-                                current_step = 'SERVICE_ACCOUNTS'
-                                log("STATUS: CREATING_SERVICE_ACCOUNTS")
-                        elif 'secret' in resource_name.lower():
-                            if current_step != 'SECRETS':
-                                current_step = 'SECRETS'
-                                log("STATUS: CREATING_SECRETS")
-                        elif 'storage' in resource_name.lower() or 'bucket' in resource_name.lower():
-                            if current_step != 'STORAGE':
-                                current_step = 'STORAGE'
-                                log("STATUS: CREATING_STORAGE")
-                        elif 'firestore' in resource_name.lower():
-                            if current_step != 'FIRESTORE':
-                                current_step = 'FIRESTORE'
-                                log("STATUS: CREATING_FIRESTORE")
-                        elif 'function' in resource_name.lower():
-                            if current_step != 'FUNCTIONS':
-                                current_step = 'FUNCTIONS'
-                                log("STATUS: CREATING_CLOUD_FUNCTIONS")
-                                log("INFO: Cloud Functions take 3-5 minutes to deploy")
-                        elif 'apigateway' in resource_name.lower() or 'api_gateway' in resource_name.lower():
-                            if current_step != 'API_GATEWAY':
-                                current_step = 'API_GATEWAY'
-                                log("STATUS: CREATING_API_GATEWAY")
-                        elif 'workload' in resource_name.lower():
-                            if current_step != 'WORKLOAD_IDENTITY':
-                                current_step = 'WORKLOAD_IDENTITY'
-                                log("STATUS: CREATING_WORKLOAD_IDENTITY")
-                                
-                    elif 'Creating...' in line:
-                        resource_name = line.split('.')[-1].split(':')[0] if '.' in line else 'resource'
-                        log(f"INFO: Creating {resource_name}...")
-                    elif 'Error:' in line:
-                        log(f"ERROR: {line}")
-                    elif 'Still creating' in line:
-                        # Extract wait time
-                        if '[' in line and 's elapsed]' in line:
-                            elapsed = line.split('[')[1].split('s elapsed]')[0]
-                            resource = line.split('...')[0].strip()
-                            log(f"WAITING: {resource} ({elapsed}s elapsed)")
-                    
-                    output_lines.append(line)
+            # If there are manual interventions needed, save them for later
+            if summary['manual_interventions']:
+                log("STATUS: MANUAL_INTERVENTION_REQUIRED")
+                log("INFO: Some resources require manual intervention to complete:")
                 
-                # Check timeout
-                if time.time() - start_time > apply_timeout:
-                    log(f"ERROR: Terraform apply exceeded {apply_timeout/60} minute timeout")
-                    process.terminate()
-                    break
+                # Save manual interventions to deployment record
+                manual_steps = []
+                for intervention in summary['manual_interventions']:
+                    log(f"MANUAL_ACTION: {intervention['resource']} - {intervention['action']}")
+                    for step in intervention['steps']:
+                        log(f"  {step}")
+                    manual_steps.append(intervention)
+                
+                deployment_ref.update({
+                    'manual_interventions': manual_steps,
+                    'partialSuccess': True
+                })
             
-            process.wait()
-            
-            if process.returncode != 0:
-                raise Exception("Terraform apply failed")
+            # If deployment failed completely, handle gracefully
+            if not success and not summary['manual_interventions']:
+                raise Exception("Terraform apply failed with unrecoverable errors")
             
             # Step 7: Get outputs
             log("STATUS: RETRIEVING_OUTPUTS")
@@ -990,6 +918,10 @@ def get_deployment_status(deployment_id):
     if deployment_data['user'] != session['user_info']['email']:
         return jsonify({'error': 'Unauthorized'}), 403
     
+    # Include manual interventions if they exist
+    if 'manual_interventions' in deployment_data:
+        deployment_data['manual_interventions'] = deployment_data['manual_interventions']
+    
     if REDIS_AVAILABLE and redis_client:
         try:
             logs = redis_client.lrange(f'deployment_logs:{deployment_id}', 0, -1)
@@ -1043,12 +975,12 @@ def get_deployment_progress(deployment_id):
             # Get current step
             current_step = redis_client.get(f'deployment_current_step:{deployment_id}')
             if current_step:
-                progress['current_step'] = current_step.decode('utf-8')
+                progress['current_step'] = current_step
             
             # Get step statuses
             step_data = redis_client.hgetall(f'deployment_step_status:{deployment_id}')
             for step_id, status in step_data.items():
-                progress['steps'][step_id.decode('utf-8')] = json.loads(status.decode('utf-8'))
+                progress['steps'][step_id] = json.loads(status)
             
             # Calculate overall progress
             total_steps = 9  # Total deployment steps
@@ -1059,6 +991,70 @@ def get_deployment_progress(deployment_id):
             print(f"Error getting progress: {e}")
     
     return jsonify(progress)
+
+@app.route('/api/deployment/<deployment_id>/resources')
+def get_deployment_resources(deployment_id):
+    """Get detailed resource information for a deployment"""
+    if 'user_info' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    # Get deployment from Firestore
+    deployment_ref = db.collection('deployments').document(deployment_id)
+    deployment = deployment_ref.get()
+    
+    if not deployment.exists:
+        return jsonify({'error': 'Deployment not found'}), 404
+    
+    deployment_data = deployment.to_dict()
+    
+    if deployment_data['user'] != session['user_info']['email']:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    resources = {
+        'deployment_id': deployment_id,
+        'status': deployment_data.get('status'),
+        'created_resources': [],
+        'failed_resources': [],
+        'manual_interventions': deployment_data.get('manual_interventions', [])
+    }
+    
+    # Parse logs to extract resource information
+    if REDIS_AVAILABLE and redis_client:
+        try:
+            logs = redis_client.lrange(f'deployment_logs:{deployment_id}', 0, -1)
+            for log in logs:
+                if 'PROGRESS: Created resource' in log:
+                    # Extract resource info from log
+                    parts = log.split('PROGRESS: Created resource')[1].strip()
+                    if ':' in parts:
+                        num, name = parts.split(':', 1)
+                        resources['created_resources'].append({
+                            'number': int(num.strip()),
+                            'name': name.strip()
+                        })
+                elif 'ERROR:' in log and 'resource' in log.lower():
+                    resources['failed_resources'].append(log.split('ERROR:')[1].strip())
+        except Exception as e:
+            resources['error'] = f"Failed to parse logs: {str(e)}"
+    
+    # Get resource summary by type
+    resource_types = {}
+    for res in resources['created_resources']:
+        # Parse resource type from name
+        if '.' in res['name']:
+            res_type = res['name'].split('.')[0]
+        else:
+            res_type = 'other'
+        
+        if res_type not in resource_types:
+            resource_types[res_type] = []
+        resource_types[res_type].append(res['name'])
+    
+    resources['summary_by_type'] = resource_types
+    resources['total_created'] = len(resources['created_resources'])
+    resources['total_failed'] = len(resources['failed_resources'])
+    
+    return jsonify(resources)
 
 @app.route('/api/worker/process', methods=['POST'])
 def process_worker():
@@ -1090,4 +1086,4 @@ def process_worker():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000)# Cache bust: Wed Jul  9 20:55:08 CDT 2025
