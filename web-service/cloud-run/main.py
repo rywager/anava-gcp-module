@@ -27,7 +27,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.5"  # Fix Cloud Build using Compute Engine SA for newer projects
+VERSION = "2.3.6"  # Re-enable imports with timeout to handle existing resources
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -726,9 +726,64 @@ output "workload_identity_provider" {{
             
             log("SUCCESS: Terraform initialized")
             
-            # Skip imports entirely - they're causing hanging issues
-            # The retry handler will deal with "already exists" errors
-            log("INFO: Skipping import phase to avoid hanging")
+            # Import existing resources to prevent "already exists" errors
+            log("STATUS: IMPORTING_EXISTING")
+            log("ACTION: Checking for existing resources...")
+            
+            # Import with timeout to prevent hanging
+            import_script = f'''#!/bin/bash
+set -e
+PROJECT_ID="{project_id}"
+PREFIX="{prefix}"
+
+# Import with 5 second timeout per resource
+import_with_timeout() {{
+    local cmd="$1"
+    timeout 5 terraform import -input=false $cmd 2>/dev/null || true
+}}
+
+# Service accounts
+import_with_timeout "module.anava.google_service_account.device_auth projects/$PROJECT_ID/serviceAccounts/$PREFIX-device-auth-sa@$PROJECT_ID.iam.gserviceaccount.com"
+import_with_timeout "module.anava.google_service_account.tvm projects/$PROJECT_ID/serviceAccounts/$PREFIX-tvm-sa@$PROJECT_ID.iam.gserviceaccount.com"
+import_with_timeout "module.anava.google_service_account.vertex_ai projects/$PROJECT_ID/serviceAccounts/$PREFIX-vertex-ai-sa@$PROJECT_ID.iam.gserviceaccount.com"
+import_with_timeout "module.anava.google_service_account.api_gateway projects/$PROJECT_ID/serviceAccounts/$PREFIX-apigw-invoker-sa@$PROJECT_ID.iam.gserviceaccount.com"
+
+# Storage buckets
+import_with_timeout "module.anava.google_storage_bucket.function_source $PROJECT_ID-$PREFIX-function-source"
+import_with_timeout "module.anava.google_storage_bucket.firebase_bucket $PROJECT_ID-$PREFIX-firebase"
+
+# Secrets
+import_with_timeout "module.anava.google_secret_manager_secret.firebase_config projects/$PROJECT_ID/secrets/$PREFIX-firebase-config"
+import_with_timeout "module.anava.google_secret_manager_secret.api_key projects/$PROJECT_ID/secrets/$PREFIX-api-key"
+
+# Workload Identity Pool
+import_with_timeout "module.anava.google_iam_workload_identity_pool.anava_pool projects/$PROJECT_ID/locations/global/workloadIdentityPools/$PREFIX-wif-pool"
+
+# API Gateway
+import_with_timeout "module.anava.google_api_gateway_api.anava_api projects/$PROJECT_ID/locations/global/apis/$PREFIX-api"
+
+# Firebase
+import_with_timeout "module.anava.google_firebase_project.default projects/$PROJECT_ID"
+
+echo "Import phase completed"
+'''
+            
+            import_script_path = os.path.join(temp_dir, 'import.sh')
+            with open(import_script_path, 'w') as f:
+                f.write(import_script)
+            os.chmod(import_script_path, 0o755)
+            
+            # Run import with overall timeout
+            import_result = subprocess.run(
+                ['bash', import_script_path],
+                cwd=temp_dir,
+                capture_output=True,
+                text=True,
+                env=env,
+                timeout=60  # 1 minute total timeout
+            )
+            
+            log("INFO: Import phase completed")
             
             # Step 5: Plan deployment
             log("STATUS: TERRAFORM_PLAN")
