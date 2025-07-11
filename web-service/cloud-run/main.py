@@ -28,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.25"  # FIXED: Replace secret value retrieval with helpful links to prevent timeout
+VERSION = "2.3.29"  # Added ACAP configuration API endpoint and region to outputs
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -959,66 +959,25 @@ output "workload_identity_provider" {{
                 'workloadIdentityProvider': get_output_value(outputs, 'workload_identity_provider'),
                 'vertexServiceAccount': get_output_value(outputs, 'vertex_ai_service_account_email'),
                 'firebaseStorageBucket': get_output_value(outputs, 'firebase_storage_bucket'),
-                'firebaseWebAppId': get_output_value(outputs, 'firebase_web_app_id')
+                'firebaseWebAppId': get_output_value(outputs, 'firebase_web_app_id'),
+                'region': region  # Add region to outputs
             }
             
-            # If we didn't get Firebase config from Terraform, try to get it directly
+            # Skip Firebase config retrieval - it hangs, users can get it from the link
             if not output_data.get('firebaseConfig') or output_data['firebaseConfig'] == {}:
-                log("INFO: Firebase config not in Terraform state, querying directly...")
-                try:
-                    # Try to get Firebase web app config
-                    list_apps_cmd = [
-                        'gcloud', 'firebase', 'apps:list', 
-                        '--project', project_id,
-                        '--format=json'
-                    ]
-                    apps_result = subprocess.run(list_apps_cmd, capture_output=True, text=True, env=env)
-                    
-                    if apps_result.returncode == 0 and apps_result.stdout:
-                        apps = json.loads(apps_result.stdout)
-                        if apps and len(apps) > 0:
-                            # Get the first web app
-                            web_app = next((app for app in apps if app.get('platform') == 'WEB'), apps[0])
-                            app_id = web_app.get('appId', '')
-                            
-                            # Get the web app config
-                            if app_id:
-                                config_cmd = [
-                                    'gcloud', 'firebase', 'apps:sdkconfig', 'WEB', app_id,
-                                    '--project', project_id
-                                ]
-                                config_result = subprocess.run(config_cmd, capture_output=True, text=True, env=env)
-                                
-                                if config_result.returncode == 0 and config_result.stdout:
-                                    # Parse the JavaScript config
-                                    import re
-                                    config_match = re.search(r'firebase\.initializeApp\(({[^}]+})\)', config_result.stdout)
-                                    if config_match:
-                                        config_str = config_match.group(1)
-                                        # Convert JS object to JSON
-                                        config_str = re.sub(r'(\w+):', r'"\1":', config_str)
-                                        config_str = config_str.replace("'", '"')
-                                        firebase_config = json.loads(config_str)
-                                        
-                                        output_data['firebaseConfig'] = firebase_config
-                                        output_data['firebaseWebAppId'] = app_id
-                                        output_data['firebaseStorageBucket'] = firebase_config.get('storageBucket', '')
-                                        log(f"SUCCESS: Retrieved Firebase config for app {app_id}")
-                
-                except Exception as e:
-                    log(f"WARNING: Could not retrieve Firebase config directly: {str(e)[:200]}")
+                log("INFO: Firebase config not in Terraform state, will provide link to Firebase console")
             
-            # If API Gateway URL not found, try to discover it
+            # If API Gateway URL not found, try to discover it with timeout
             if output_data.get('apiGatewayUrl') == 'Not found':
                 log("INFO: API Gateway URL not in Terraform state, discovering...")
                 try:
-                    # List API Gateways
+                    # List API Gateways with timeout
                     list_cmd = [
                         'gcloud', 'api-gateway', 'gateways', 'list',
                         '--filter', f'displayName:{prefix}*',
                         '--format=json', f'--project={project_id}'
                     ]
-                    result = subprocess.run(list_cmd, capture_output=True, text=True, env=env)
+                    result = subprocess.run(list_cmd, capture_output=True, text=True, env=env, timeout=30)
                     
                     if result.returncode == 0 and result.stdout:
                         gateways = json.loads(result.stdout)
@@ -1027,13 +986,13 @@ output "workload_identity_provider" {{
                             gateway_name = gateway.get('name', '').split('/')[-1]
                             location = gateway.get('name', '').split('/')[3]
                             
-                            # Get the gateway details to find the URL
+                            # Get the gateway details to find the URL with timeout
                             describe_cmd = [
                                 'gcloud', 'api-gateway', 'gateways', 'describe', gateway_name,
                                 f'--location={location}', f'--project={project_id}',
                                 '--format=json'
                             ]
-                            desc_result = subprocess.run(describe_cmd, capture_output=True, text=True, env=env)
+                            desc_result = subprocess.run(describe_cmd, capture_output=True, text=True, env=env, timeout=30)
                             
                             if desc_result.returncode == 0 and desc_result.stdout:
                                 gateway_details = json.loads(desc_result.stdout)
@@ -1041,6 +1000,8 @@ output "workload_identity_provider" {{
                                 if default_hostname:
                                     output_data['apiGatewayUrl'] = f"https://{default_hostname}"
                                     log(f"SUCCESS: Discovered API Gateway URL: {output_data['apiGatewayUrl']}")
+                except subprocess.TimeoutExpired:
+                    log("WARNING: API Gateway discovery timed out after 30 seconds")
                 except Exception as e:
                     log(f"WARNING: Could not discover API Gateway URL: {str(e)[:200]}")
             
@@ -1048,6 +1009,9 @@ output "workload_identity_provider" {{
             log("INFO: Creating resource links for easy access...")
             
             # Add helpful links for users to access their configuration
+            # Ensure output_data is a dictionary (fix for bug)
+            if not isinstance(output_data, dict):
+                output_data = {}
             output_data.update({
                 'apiKeySecretLink': f"https://console.cloud.google.com/security/secret-manager/secret/{prefix}-api-key?project={project_id}",
                 'firebaseConfigLink': f"https://console.cloud.google.com/security/secret-manager/secret/{prefix}-firebase-config?project={project_id}",
@@ -1091,8 +1055,8 @@ output "workload_identity_provider" {{
             log(f"RESULT: Firebase Web App Link: {output_data['firebaseWebAppLink']}")
             log("INFO: Click the links above to access your configuration values")
             
-            # Log Firebase config if available
-            if output_data.get('firebaseConfig'):
+            # Log Firebase config if available and is a dict
+            if output_data.get('firebaseConfig') and isinstance(output_data.get('firebaseConfig'), dict):
                 fc = output_data['firebaseConfig']
                 log(f"RESULT: Firebase Project ID: {fc.get('projectId', 'Not found')}")
                 log(f"RESULT: Firebase Auth Domain: {fc.get('authDomain', 'Not found')}")
@@ -1349,6 +1313,59 @@ def get_deployment_resources(deployment_id):
     resources['total_failed'] = len(resources['failed_resources'])
     
     return jsonify(resources)
+
+@app.route('/api/deployment/<deployment_id>/acap-config')
+def get_acap_configuration(deployment_id):
+    """Get ACAP-formatted configuration for a deployment"""
+    if 'user_info' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    # Get deployment from Firestore
+    deployment_ref = db.collection('deployments').document(deployment_id)
+    deployment = deployment_ref.get()
+    
+    if not deployment.exists:
+        return jsonify({'error': 'Deployment not found'}), 404
+    
+    deployment_data = deployment.to_dict()
+    
+    if deployment_data['user'] != session['user_info']['email']:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    if deployment_data.get('status') != 'completed':
+        return jsonify({'error': 'Deployment not yet completed'}), 400
+    
+    outputs = deployment_data.get('outputs', {})
+    project_id = deployment_data.get('projectId')
+    region = outputs.get('region', deployment_data.get('region', 'us-central1'))
+    
+    # Create ACAP-compatible configuration
+    acap_config = {
+        'firebase': {
+            'webApiKey': outputs.get('firebaseConfig', {}).get('apiKey') or outputs.get('apiKey') or '',
+            'authDomain': outputs.get('firebaseConfig', {}).get('authDomain') or f"{project_id}.firebaseapp.com",
+            'projectId': project_id,
+            'storageBucket': outputs.get('firebaseConfig', {}).get('storageBucket') or outputs.get('firebaseStorageBucket') or f"{project_id}.firebasestorage.app",
+            'messagingSenderId': outputs.get('firebaseConfig', {}).get('messagingSenderId') or '',
+            'appId': outputs.get('firebaseConfig', {}).get('appId') or outputs.get('firebaseWebAppId') or '',
+            'databaseURL': outputs.get('firebaseConfig', {}).get('databaseURL') or f"https://{project_id}.firebaseio.com"
+        },
+        'googleAI': {
+            'apiKey': outputs.get('apiKey') or '',
+            'apiGatewayUrl': outputs.get('apiGatewayUrl') or '',
+            'apiGatewayKey': outputs.get('apiKey') or '',
+            'gcpProjectId': project_id,
+            'gcpRegion': region,
+            'gcsBucketName': outputs.get('firebaseStorageBucket') or f"{project_id}.firebasestorage.app"
+        },
+        'deployment': {
+            'version': VERSION,
+            'timestamp': deployment_data.get('completedAt', deployment_data.get('createdAt')).isoformat() if deployment_data.get('completedAt') or deployment_data.get('createdAt') else None,
+            'deploymentId': deployment_id
+        }
+    }
+    
+    return jsonify(acap_config)
 
 @app.route('/api/worker/process', methods=['POST'])
 def process_worker():

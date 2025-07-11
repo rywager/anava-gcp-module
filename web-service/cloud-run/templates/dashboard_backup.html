@@ -895,217 +895,7 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
             border-radius: 0.5rem;
         }
-        /* Additional styles for settings-aligned display */
-        .alert-box {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .alert-box p {
-            margin: 0 0 0.5rem 0;
-            color: #92400e;
-        }
-        
-        .alert-box p:last-child {
-            margin-bottom: 0;
-        }
-        
-        .action-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            padding: 0.75rem 1.25rem;
-            border: 2px solid var(--primary);
-            border-radius: 0.5rem;
-            transition: all 0.2s ease;
-            margin-bottom: 0.5rem;
-        }
-        
-        .action-link:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-1px);
-        }
-        
-        .instruction-step {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            align-items: flex-start;
-        }
-        
-        .step-num {
-            background: var(--primary);
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.875rem;
-            flex-shrink: 0;
-        }
-        
-        .step-content strong {
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-        
-        .step-content p {
-            margin: 0;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-        
-        .setup-instructions {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-        }
-        
-        .setup-tasks {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-        }
-        
-        .task-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-        }
-        
-        .task-item input[type="checkbox"] {
-            margin-top: 0.25rem;
-            cursor: pointer;
-        }
-        
-        .task-item label {
-            flex: 1;
-            cursor: pointer;
-        }
-        
-        .task-item strong {
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-        
-        .task-link {
-            display: inline-block;
-            margin-left: 0.5rem;
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 0.875rem;
-        }
-        
-        .task-link:hover {
-            text-decoration: underline;
-        }
-        
-        .task-detail {
-            display: block;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-        
-        .task-detail code {
-            background: var(--bg-dark);
-            padding: 0.125rem 0.25rem;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-        }
-        
-        .quick-links {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 0.75rem;
-        }
-        
-        .quick-link {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            text-decoration: none;
-            color: var(--text-primary);
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-        
-        .quick-link:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .quick-link-icon {
-            font-size: 1.5rem;
-        }
-        
-        .quick-link span:not(.quick-link-icon) {
-            font-size: 0.813rem;
-            font-weight: 500;
-        }
-        
-        .resource-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 0.375rem;
-            background: var(--bg-card);
-            transition: all 0.2s ease;
-        }
-        
-        .resource-link:hover {
-            background: var(--bg-hover);
-            border-color: var(--primary);
-            transform: translateY(-1px);
-        }
-        
-        .resource-link svg {
-            transition: transform 0.2s ease;
-        }
-        
-        .resource-link:hover svg {
-            transform: translate(2px, -2px);
-        }
-        
-        /* Updated result-value to handle long strings */
-        .result-value {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            min-height: 2.5rem;
-        }
-        
-        .result-value span {
-            flex: 1;
-            word-break: break-all;
-            line-height: 1.4;
-        }    </style>
+    </style>
 </head>
 <body>
     <div class="header">
@@ -1711,7 +1501,6 @@
         }
 
         // Show success results
-        // Show success results - aligned with ACAP settings screen
         function showSuccessResults(outputs) {
             // Store outputs for download
             deploymentOutputs = outputs;
@@ -1719,316 +1508,53 @@
             const resultsContainer = document.getElementById('results-container');
             resultsContainer.classList.add('visible');
             
-            // Extract values we need
-            const projectId = outputs.firebaseConfig?.projectId || 
-                             outputs.apiKeySecretLink?.match(/project=([^&]+)/)?.[1] ||
-                             outputs.apiGatewayUrl?.match(/projects\/([^\/]+)/)?.[1] ||
-                             'your-project-id';
-            
-            const region = outputs.region || 'us-central1';
-            
-            // Build the results display aligned with settings screen
-            let mainContent = `
-                <div class="result-section">
-                    <h3 class="section-title">📋 Configuration Values for Your ACAP Settings</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                        Copy these values into your ACAP Settings screen (System Configuration)
-                    </p>
-                </div>
-            `;
-            
-            // Firebase Configuration Section
-            mainContent += `
-                <div class="result-section">
-                    <h3 class="section-title" style="background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                        🔥 Firebase Configuration
-                    </h3>
-                    <div class="results-grid">
-            `;
-            
-            // Check if we have Firebase config or need to show links
-            if (outputs.firebaseConfig && typeof outputs.firebaseConfig === 'object') {
-                // We have the actual Firebase config
-                mainContent += `
-                    <div class="result-card">
-                        <h3 class="result-label">Web API Key</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${outputs.firebaseConfig.apiKey || 'Not available'}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${outputs.firebaseConfig.apiKey || ''}', this)">Copy</button>
-                        </div>
-                    </div>
-                    
-                    <div class="result-card">
-                        <h3 class="result-label">Auth Domain</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${outputs.firebaseConfig.authDomain || `${projectId}.firebaseapp.com`}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${outputs.firebaseConfig.authDomain || `${projectId}.firebaseapp.com`}', this)">Copy</button>
-                        </div>
-                    </div>
-                    
-                    <div class="result-card">
-                        <h3 class="result-label">Project ID</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${projectId}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${projectId}', this)">Copy</button>
-                        </div>
-                    </div>
-                    
-                    <div class="result-card">
-                        <h3 class="result-label">Storage Bucket</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${outputs.firebaseConfig.storageBucket || outputs.firebaseStorageBucket || `${projectId}.firebasestorage.app`}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${outputs.firebaseConfig.storageBucket || outputs.firebaseStorageBucket || `${projectId}.firebasestorage.app`}', this)">Copy</button>
-                        </div>
-                    </div>
-                    
-                    <div class="result-card">
-                        <h3 class="result-label">Messaging Sender ID</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${outputs.firebaseConfig.messagingSenderId || 'See Firebase Console'}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${outputs.firebaseConfig.messagingSenderId || ''}', this)">Copy</button>
-                        </div>
-                    </div>
-                    
-                    <div class="result-card">
-                        <h3 class="result-label">App ID</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${outputs.firebaseConfig.appId || outputs.firebaseWebAppId || 'See Firebase Console'}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${outputs.firebaseConfig.appId || outputs.firebaseWebAppId || ''}', this)">Copy</button>
-                        </div>
-                    </div>
-                `;
-            } else if (outputs.firebaseConfigLink) {
-                // Show link to get Firebase config
-                mainContent += `
-                    <div class="result-card" style="grid-column: 1 / -1;">
-                        <div class="alert-box">
-                            <p>📌 <strong>Firebase configuration is stored in Secret Manager</strong></p>
-                            <a href="${outputs.firebaseConfigLink}" target="_blank" class="action-link">
-                                Get Firebase Config from Secret Manager →
-                            </a>
-                            <p style="margin-top: 0.5rem; font-size: 0.875rem;">
-                                Click the link above, view the secret value, and copy the JSON configuration
-                            </p>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Also check if we have individual Firebase values from Terraform
-            if (!outputs.firebaseConfig && outputs.apiKey) {
-                mainContent += `
-                    <div class="result-card">
-                        <h3 class="result-label">Web API Key</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${outputs.apiKey}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${outputs.apiKey}', this)">Copy</button>
-                        </div>
-                        <p class="result-description" style="color: #ef4444; font-size: 0.875rem;">
-                            ⚠️ This is your device API key - also use as Firebase Web API Key
-                        </p>
-                    </div>
-                `;
-            }
-            
-            mainContent += `
-                    </div>
-                </div>
-            `;
-            
-            // Google AI Configuration Section
-            mainContent += `
-                <div class="result-section">
-                    <h3 class="section-title" style="background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                        🤖 Google AI Configuration
-                    </h3>
-                    <div class="results-grid">
-            `;
-            
-            // API Key (Direct API section)
-            if (outputs.apiKey && outputs.apiKey !== 'Not found') {
-                mainContent += `
-                    <div class="result-card">
-                        <h3 class="result-label">API Key (Direct API)</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${outputs.apiKey}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${outputs.apiKey}', this)">Copy</button>
-                        </div>
-                        <p class="result-description" style="color: #ef4444; font-size: 0.875rem;">
-                            ⚠️ Note: In production, retrieve this from Secret Manager for security
-                        </p>
-                    </div>
-                `;
-            } else if (outputs.apiKeySecretLink) {
-                mainContent += `
-                    <div class="result-card">
-                        <h3 class="result-label">API Key (Direct API)</h3>
-                        <div class="result-value">
-                            <a href="${outputs.apiKeySecretLink}" target="_blank" class="resource-link">
-                                Get API Key from Secret Manager →
-                            </a>
-                        </div>
-                        <p class="result-description">Click to view and copy your API key</p>
-                    </div>
-                `;
-            }
-            
-            // Vertex AI (Enterprise) section
-            mainContent += `
-                    <div class="result-card">
-                        <h3 class="result-label">API Gateway URL</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${outputs.apiGatewayUrl || 'Not found'}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${outputs.apiGatewayUrl || ''}', this)">Copy</button>
-                        </div>
-                    </div>
-                    
-                    <div class="result-card">
-                        <h3 class="result-label">API Gateway Key</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${outputs.apiKey || 'Same as API Key above'}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${outputs.apiKey || ''}', this)">Copy</button>
-                        </div>
-                    </div>
-                    
-                    <div class="result-card">
-                        <h3 class="result-label">GCP Project ID</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${projectId}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${projectId}', this)">Copy</button>
-                        </div>
-                    </div>
-                    
-                    <div class="result-card">
-                        <h3 class="result-label">GCP Region</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${region}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${region}', this)">Copy</button>
-                        </div>
-                    </div>
-                    
-                    <div class="result-card">
-                        <h3 class="result-label">GCS Bucket Name</h3>
-                        <div class="result-value">
-                            <span style="font-family: monospace;">${outputs.firebaseStorageBucket || `${projectId}.firebasestorage.app`}</span>
-                            <button class="copy-button" onclick="copyToClipboard('${outputs.firebaseStorageBucket || `${projectId}.firebasestorage.app`}', this)">Copy</button>
-                        </div>
-                    </div>
-                `;
-            
-            mainContent += `
-                    </div>
-                </div>
-            `;
-            
-            // Quick Setup Guide
-            mainContent += `
-                <div class="result-section">
-                    <h3 class="section-title">🚀 Quick Setup Guide</h3>
-                    <div class="setup-instructions">
-                        <div class="instruction-step">
-                            <span class="step-num">1</span>
-                            <div class="step-content">
-                                <strong>Copy Values Above</strong>
-                                <p>Use the copy buttons to get each configuration value</p>
-                            </div>
-                        </div>
-                        
-                        <div class="instruction-step">
-                            <span class="step-num">2</span>
-                            <div class="step-content">
-                                <strong>Open ACAP Settings</strong>
-                                <p>Go to System Configuration in your ACAP web interface</p>
-                            </div>
-                        </div>
-                        
-                        <div class="instruction-step">
-                            <span class="step-num">3</span>
-                            <div class="step-content">
-                                <strong>Paste Values</strong>
-                                <p>Paste each value into the corresponding field and save</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Firebase Setup Tasks
-            mainContent += `
-                <div class="result-section">
-                    <h3 class="section-title">⚙️ Required Setup Tasks</h3>
-                    <div class="setup-tasks">
-                        <div class="task-item">
-                            <input type="checkbox" id="task-auth" />
-                            <label for="task-auth">
-                                <strong>Enable Firebase Authentication</strong>
-                                <a href="https://console.firebase.google.com/project/${projectId}/authentication/providers" 
-                                   target="_blank" class="task-link">Open Firebase Auth →</a>
-                                <span class="task-detail">Enable Email/Password authentication</span>
-                            </label>
-                        </div>
-                        
-                        <div class="task-item">
-                            <input type="checkbox" id="task-users" />
-                            <label for="task-users">
-                                <strong>Create User Accounts</strong>
-                                <a href="https://console.firebase.google.com/project/${projectId}/authentication/users" 
-                                   target="_blank" class="task-link">Add Users →</a>
-                                <span class="task-detail">Create accounts for team members</span>
-                            </label>
-                        </div>
-                        
-                        <div class="task-item">
-                            <input type="checkbox" id="task-test" />
-                            <label for="task-test">
-                                <strong>Test API Connection</strong>
-                                <span class="task-detail">Use curl to test: <code>curl -H "x-api-key: YOUR_KEY" ${outputs.apiGatewayUrl || 'YOUR_GATEWAY_URL'}/health</code></span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Resource Links
-            if (outputs.resourceLinks || outputs.apiKeySecretLink) {
-                mainContent += `
+            // Build Firebase config section if available
+            let firebaseConfigSection = '';
+            if (outputs.firebaseConfig) {
+                const fc = outputs.firebaseConfig;
+                firebaseConfigSection = `
                     <div class="result-section">
-                        <h3 class="section-title">🔗 Quick Links</h3>
-                        <div class="quick-links">
-                            ${outputs.apiKeySecretLink ? `
-                            <a href="${outputs.apiKeySecretLink}" target="_blank" class="quick-link">
-                                <span class="quick-link-icon">🔑</span>
-                                <span>API Key Secret</span>
-                            </a>
-                            ` : ''}
-                            ${outputs.firebaseConfigLink ? `
-                            <a href="${outputs.firebaseConfigLink}" target="_blank" class="quick-link">
-                                <span class="quick-link-icon">🔥</span>
-                                <span>Firebase Config</span>
-                            </a>
-                            ` : ''}
-                            ${outputs.resourceLinks?.secretManager ? `
-                            <a href="${outputs.resourceLinks.secretManager}" target="_blank" class="quick-link">
-                                <span class="quick-link-icon">🔐</span>
-                                <span>Secret Manager</span>
-                            </a>
-                            ` : ''}
-                            ${outputs.resourceLinks?.apiGateway ? `
-                            <a href="${outputs.resourceLinks.apiGateway}" target="_blank" class="quick-link">
-                                <span class="quick-link-icon">🌐</span>
-                                <span>API Gateway</span>
-                            </a>
-                            ` : ''}
-                            ${outputs.resourceLinks?.cloudFunctions ? `
-                            <a href="${outputs.resourceLinks.cloudFunctions}" target="_blank" class="quick-link">
-                                <span class="quick-link-icon">⚡</span>
-                                <span>Cloud Functions</span>
-                            </a>
-                            ` : ''}
-                            <a href="https://console.cloud.google.com/home/dashboard?project=${projectId}" target="_blank" class="quick-link">
-                                <span class="quick-link-icon">📊</span>
-                                <span>Project Dashboard</span>
-                            </a>
+                        <h3 class="section-title">🔥 Firebase Configuration</h3>
+                        <div class="results-grid">
+                            <div class="result-card">
+                                <h3 class="result-label">Web API Key</h3>
+                                <div class="result-value">
+                                    <span>${fc.apiKey || outputs.apiKey || 'Check Secret Manager'}</span>
+                                    <button class="copy-button" onclick="copyToClipboard('${fc.apiKey || outputs.apiKey || ''}', this)">Copy</button>
+                                </div>
+                            </div>
+                            
+                            <div class="result-card">
+                                <h3 class="result-label">Auth Domain</h3>
+                                <div class="result-value">
+                                    <span>${fc.authDomain || 'Not available'}</span>
+                                    <button class="copy-button" onclick="copyToClipboard('${fc.authDomain || ''}', this)">Copy</button>
+                                </div>
+                            </div>
+                            
+                            <div class="result-card">
+                                <h3 class="result-label">Project ID</h3>
+                                <div class="result-value">
+                                    <span>${fc.projectId || 'Not available'}</span>
+                                    <button class="copy-button" onclick="copyToClipboard('${fc.projectId || ''}', this)">Copy</button>
+                                </div>
+                            </div>
+                            
+                            <div class="result-card">
+                                <h3 class="result-label">Storage Bucket</h3>
+                                <div class="result-value">
+                                    <span>${fc.storageBucket || outputs.firebaseStorageBucket || 'Not available'}</span>
+                                    <button class="copy-button" onclick="copyToClipboard('${fc.storageBucket || outputs.firebaseStorageBucket || ''}', this)">Copy</button>
+                                </div>
+                            </div>
+                            
+                            <div class="result-card">
+                                <h3 class="result-label">App ID</h3>
+                                <div class="result-value">
+                                    <span>${fc.appId || outputs.firebaseWebAppId || 'Not available'}</span>
+                                    <button class="copy-button" onclick="copyToClipboard('${fc.appId || outputs.firebaseWebAppId || ''}', this)">Copy</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -2041,29 +1567,109 @@
                         <path fill="none" stroke="#10b981" stroke-width="3" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
                     </svg>
                     <h2 class="success-title">Deployment Successful!</h2>
-                    <p class="success-subtitle">Copy the values below into your ACAP Settings screen</p>
+                    <p class="success-subtitle">Your Anava infrastructure is ready to use</p>
                 </div>
                 
-                ${mainContent}
+                ${firebaseConfigSection}
+                
+                <div class="result-section">
+                    <h3 class="section-title">🚀 API Gateway Configuration</h3>
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <h3 class="result-label">API Gateway URL</h3>
+                            <div class="result-value">
+                                <span>${outputs.apiGatewayUrl || 'Not available'}</span>
+                                <button class="copy-button" onclick="copyToClipboard('${outputs.apiGatewayUrl}', this)">Copy</button>
+                            </div>
+                            <p class="result-description">Use this URL to access your API endpoints</p>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3 class="result-label">API Key</h3>
+                            <div class="result-value">
+                                <span>${outputs.apiKey || 'Check Secret Manager'}</span>
+                                <button class="copy-button" onclick="copyToClipboard('${outputs.apiKey || ''}', this)">Copy</button>
+                            </div>
+                            <p class="result-description">Use this key to authenticate API requests</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="result-section">
+                    <h3 class="section-title">🔐 Secret Manager References</h3>
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <h3 class="result-label">Firebase Config Secret</h3>
+                            <div class="result-value">
+                                <span style="font-size: 0.875rem;">${outputs.firebaseConfigSecret || 'Not available'}</span>
+                                <button class="copy-button" onclick="copyToClipboard('gcloud secrets versions access latest --secret=${outputs.firebaseConfigSecret ? outputs.firebaseConfigSecret.split('/').pop() : ''}', this)">Copy Command</button>
+                            </div>
+                            <p class="result-description">Run the copied command to retrieve Firebase config</p>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3 class="result-label">API Key Secret</h3>
+                            <div class="result-value">
+                                <span style="font-size: 0.875rem;">${outputs.apiKeySecret || 'Not available'}</span>
+                                <button class="copy-button" onclick="copyToClipboard('gcloud secrets versions access latest --secret=${outputs.apiKeySecret ? outputs.apiKeySecret.split('/').pop() : ''}', this)">Copy Command</button>
+                            </div>
+                            <p class="result-description">Run the copied command to retrieve API key</p>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h3 class="result-label">Workload Identity Provider</h3>
+                            <div class="result-value">
+                                <span style="font-size: 0.875rem;">${outputs.workloadIdentityProvider || 'Not available'}</span>
+                                <button class="copy-button" onclick="copyToClipboard('${outputs.workloadIdentityProvider}', this)">Copy</button>
+                            </div>
+                            <p class="result-description">For GitHub Actions authentication</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-start">
+                    <h3 class="quick-start-title">🚀 Quick Start Guide</h3>
+                    <div class="quick-start-steps">
+                        <div class="quick-start-step">
+                            <div class="quick-start-number">1</div>
+                            <div class="quick-start-content">
+                                <h4>Test your API</h4>
+                                <p>Make a test request to verify your deployment:</p>
+                                <code>curl -H "x-api-key: ${outputs.apiKey || 'YOUR_API_KEY'}" ${outputs.apiGatewayUrl}/device-auth</code>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-start-step">
+                            <div class="quick-start-number">2</div>
+                            <div class="quick-start-content">
+                                <h4>Configure GitHub Actions</h4>
+                                <p>Add the Workload Identity Provider to your repository secrets</p>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-start-step">
+                            <div class="quick-start-number">3</div>
+                            <div class="quick-start-content">
+                                <h4>Download your configuration</h4>
+                                <p>Click the "Download Configuration" button below to get a JSON file with all your deployment details</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="download-config">
                     <button class="download-button" onclick="downloadConfiguration()">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <path d="M10 14L6 10M10 14L14 10M10 14V3M3 17H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Download All Configuration
+                        Download Configuration
                     </button>
-                    <p style="text-align: center; margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
-                        Save this file for future reference
-                    </p>
                 </div>
             `;
-            
-            // Update all steps to completed
-            deploymentSteps.forEach(step => {
-                updateStepStatus(step.id, 'completed');
-            });
-        }        function showErrorResults(error) {
+        }
+
+        // Show error results
+        function showErrorResults(error) {
             const resultsContainer = document.getElementById('results-container');
             resultsContainer.classList.add('visible');
             
@@ -2093,101 +1699,57 @@
         let deploymentOutputs = null;
         
         // Download configuration
-        // Updated downloadConfiguration function with all values and links
         function downloadConfiguration() {
             if (!deploymentOutputs) {
                 alert('No configuration available to download');
                 return;
             }
             
-            // Extract project ID from various sources
-            const projectId = deploymentOutputs.firebaseConfig?.projectId || 
-                             deploymentOutputs.apiKeySecretLink?.match(/project=([^&]+)/)?.[1] ||
-                             deploymentOutputs.apiGatewayUrl?.match(/projects\/([^\/]+)/)?.[1] ||
-                             selectedProject?.id ||
-                             'unknown';
-            
             // Create a comprehensive config object
             const config = {
                 deployment: {
                     timestamp: new Date().toISOString(),
-                    projectId: projectId,
-                    region: deploymentOutputs.region || 'us-central1',
-                    deploymentVersion: '2.3.29'
+                    projectId: deploymentOutputs.firebaseConfig?.projectId || selectedProject?.id || 'unknown',
+                    region: deploymentOutputs.region || 'us-central1'
                 },
-                
-                // Values for ACAP Settings Screen
-                acapConfiguration: {
-                    // Firebase Configuration Section
-                    firebase: {
-                        webApiKey: deploymentOutputs.firebaseConfig?.apiKey || deploymentOutputs.apiKey || 'Get from Secret Manager',
-                        authDomain: deploymentOutputs.firebaseConfig?.authDomain || `${projectId}.firebaseapp.com`,
-                        projectId: projectId,
-                        storageBucket: deploymentOutputs.firebaseConfig?.storageBucket || deploymentOutputs.firebaseStorageBucket || `${projectId}.firebasestorage.app`,
-                        messagingSenderId: deploymentOutputs.firebaseConfig?.messagingSenderId || 'Get from Firebase Console',
-                        appId: deploymentOutputs.firebaseConfig?.appId || deploymentOutputs.firebaseWebAppId || 'Get from Firebase Console',
-                        databaseURL: deploymentOutputs.firebaseConfig?.databaseURL || `https://${projectId}.firebaseio.com`
-                    },
-                    
-                    // Google AI Configuration Section
-                    googleAI: {
-                        // Direct API
-                        apiKey: deploymentOutputs.apiKey || 'Get from Secret Manager',
-                        
-                        // Vertex AI (Enterprise)
-                        apiGatewayUrl: deploymentOutputs.apiGatewayUrl || 'Not found',
-                        apiGatewayKey: deploymentOutputs.apiKey || 'Same as API Key',
-                        gcpProjectId: projectId,
-                        gcpRegion: deploymentOutputs.region || 'us-central1',
-                        gcsBucketName: deploymentOutputs.firebaseStorageBucket || `${projectId}.firebasestorage.app`
-                    }
+                firebase: {
+                    apiKey: deploymentOutputs.firebaseConfig?.apiKey || deploymentOutputs.apiKey || '',
+                    authDomain: deploymentOutputs.firebaseConfig?.authDomain || '',
+                    projectId: deploymentOutputs.firebaseConfig?.projectId || '',
+                    storageBucket: deploymentOutputs.firebaseConfig?.storageBucket || deploymentOutputs.firebaseStorageBucket || '',
+                    messagingSenderId: deploymentOutputs.firebaseConfig?.messagingSenderId || '',
+                    appId: deploymentOutputs.firebaseConfig?.appId || deploymentOutputs.firebaseWebAppId || '',
+                    databaseURL: deploymentOutputs.firebaseConfig?.databaseURL || `https://${deploymentOutputs.firebaseConfig?.projectId || ''}.firebaseio.com`
                 },
-                
-                // Secret Manager Links
-                secretManagerLinks: {
-                    apiKey: deploymentOutputs.apiKeySecretLink || null,
-                    firebaseConfig: deploymentOutputs.firebaseConfigLink || null,
-                    commands: {
-                        getApiKey: `gcloud secrets versions access latest --secret=${projectId}-api-key --project=${projectId}`,
-                        getFirebaseConfig: `gcloud secrets versions access latest --secret=${projectId}-firebase-config --project=${projectId}`
-                    }
+                apiGateway: {
+                    url: deploymentOutputs.apiGatewayUrl || '',
+                    apiKey: deploymentOutputs.apiKey || ''
                 },
-                
-                // Console Links for Setup
-                setupLinks: {
-                    firebaseConsole: deploymentOutputs.firebaseWebAppLink || `https://console.firebase.google.com/project/${projectId}/settings/general/`,
-                    enableAuth: `https://console.firebase.google.com/project/${projectId}/authentication/providers`,
-                    createUsers: `https://console.firebase.google.com/project/${projectId}/authentication/users`,
-                    secretManager: deploymentOutputs.resourceLinks?.secretManager || `https://console.cloud.google.com/security/secret-manager?project=${projectId}`,
-                    apiGateway: deploymentOutputs.resourceLinks?.apiGateway || `https://console.cloud.google.com/api-gateway?project=${projectId}`,
-                    cloudFunctions: deploymentOutputs.resourceLinks?.cloudFunctions || `https://console.cloud.google.com/functions?project=${projectId}`,
-                    projectDashboard: `https://console.cloud.google.com/home/dashboard?project=${projectId}`
+                secrets: {
+                    firebaseConfig: deploymentOutputs.firebaseConfigSecret || '',
+                    apiKey: deploymentOutputs.apiKeySecret || ''
                 },
-                
-                // Setup Instructions
-                setupInstructions: {
-                    step1: "Copy the values from 'acapConfiguration' section into your ACAP Settings screen",
-                    step2: "Go to Firebase Console and enable Email/Password authentication",
-                    step3: "Create user accounts in Firebase for your team members",
-                    step4: "Test the API connection with: curl -H \"x-api-key: YOUR_KEY\" YOUR_GATEWAY_URL/health",
-                    step5: "Update your NextJS UI to use Firebase authentication"
+                serviceAccounts: {
+                    vertexAI: deploymentOutputs.vertexServiceAccount || ''
                 },
-                
-                // Include raw outputs for debugging
-                _rawOutputs: deploymentOutputs
+                workloadIdentity: {
+                    provider: deploymentOutputs.workloadIdentityProvider || ''
+                }
             };
             
             // Create and download the file
-            const dataStr = JSON.stringify(config, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `anava-deployment-${projectId}-${new Date().getTime()}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-        }        // Toggle logs visibility
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `anava-config-${config.deployment.projectId}-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Toggle logs visibility
         function toggleLogs() {
             const logsContainer = document.getElementById('logs-container');
             const toggleText = document.getElementById('logs-toggle-text');
