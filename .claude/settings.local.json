@@ -22,7 +22,9 @@
       "mcp__serena__get_symbols_overview",
       "Bash(grep:*)",
       "Bash(gcloud secrets versions access:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(gcloud run logs read:*)",
+      "Bash(gcloud run services logs read:*)"
     ],
     "deny": []
   }

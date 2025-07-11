@@ -47,32 +47,37 @@ For device configuration, users need these values displayed in the UI:
 }
 ```
 
-## Required Fixes
+## Required Fixes (UPDATED - Practical Approach)
 
-### 1. Fix Output Discovery to Get Actual Values
-In `deployment_fixes.py` or the output discovery function:
+### 1. Show Links to Resources Instead of Values
+**USER FEEDBACK**: "if there's even a way to link the user to the outputs, that's fine. like a link to where secrets are, where the gateways are... i just want it to work"
+
+Instead of displaying secret values, show helpful links:
 
 ```python
-# Instead of returning secret names:
-outputs['apiKey'] = f"projects/{project_id}/secrets/{prefix}-api-key"
-
-# Get the actual secret value:
-secret_client = secretmanager.SecretManagerServiceClient()
-secret_name = f"projects/{project_id}/secrets/{prefix}-api-key/versions/latest"
-response = secret_client.access_secret_version(name=secret_name)
-outputs['apiKey'] = response.payload.data.decode('UTF-8')
-
-# Same for Firebase config:
-firebase_secret = f"projects/{project_id}/secrets/{prefix}-firebase-config/versions/latest"
-response = secret_client.access_secret_version(name=firebase_secret)
-outputs['firebaseConfig'] = json.loads(response.payload.data.decode('UTF-8'))
+# Return useful links and info instead of trying to retrieve secret values
+outputs = {
+    'apiGatewayUrl': discovered_gateway_url,  # This works - show the actual URL
+    'apiKeySecretLink': f"https://console.cloud.google.com/security/secret-manager/secret/{prefix}-api-key?project={project_id}",
+    'firebaseConfigLink': f"https://console.cloud.google.com/security/secret-manager/secret/{prefix}-firebase-config?project={project_id}",
+    'firebaseWebAppLink': f"https://console.firebase.google.com/project/{project_id}/settings/general/",
+    'resources': {
+        'secretManager': f"https://console.cloud.google.com/security/secret-manager?project={project_id}",
+        'apiGateway': f"https://console.cloud.google.com/api-gateway?project={project_id}",
+        'cloudFunctions': f"https://console.cloud.google.com/functions?project={project_id}"
+    }
+}
 ```
 
-### 2. Update UI to Display Values
-The dashboard needs to show the actual configuration values, not just paths or "Not found".
+### 2. Update UI to Show Links and Status
+The dashboard should show:
+- ✅ API Gateway URL (actual URL)
+- 🔗 API Key (link to Secret Manager)
+- 🔗 Firebase Config (link to Secret Manager)
+- 🔗 Firebase Web App (link to Firebase Console)
 
-### 3. Fix Error Display Logic
-The UI shouldn't show "stopped at error" when the deployment actually succeeded. Check the status determination logic.
+### 3. Fix Deployment Timeout at Output Retrieval
+The deployment hangs at "RETRIEVING_OUTPUTS" - add timeout and fallback logic.
 
 ## Version History
 - **v2.3.10**: Initial issues - deployment failures, no progress shown
@@ -81,21 +86,22 @@ The UI shouldn't show "stopped at error" when the deployment actually succeeded.
 - **v2.3.23**: Fixed redirect URI
 - **v2.3.24**: Smart selective cleanup + output discovery + in-memory logs (CURRENT)
 
-## Next Steps Priority
+## Next Steps Priority (UPDATED)
 
-1. **URGENT - Fix Secret Value Retrieval**
-   - Modify output discovery to get actual values from Secret Manager
-   - Ensure Firebase config is properly retrieved and displayed
-   - Test with existing deployment
+1. **URGENT - Fix Output Display with Links**
+   - Modify output discovery to return helpful links instead of trying to retrieve secret values
+   - Show API Gateway URL directly (this works)
+   - Show links to Secret Manager for API key and Firebase config
+   - Show link to Firebase Console for web app credentials
 
-2. **Fix UI Error Display**
-   - Investigate why UI shows error when deployment succeeds
-   - Update status determination logic
+2. **Fix Deployment Timeout**
+   - Add timeout to output retrieval step (currently hangs at "RETRIEVING_OUTPUTS")
+   - Add fallback logic when output discovery takes too long
 
 3. **Test End-to-End**
    - Deploy the fixes
-   - Verify all values display correctly in UI
-   - Ensure users can copy/paste configuration for their devices
+   - Verify all links work correctly
+   - Ensure users can navigate to get the configuration they need
 
 ## Technical Context
 
@@ -115,21 +121,37 @@ The UI shouldn't show "stopped at error" when the deployment actually succeeded.
 - OAuth2 with Google
 - Redirect URI: https://anava-deploy-392865621461.us-central1.run.app/callback
 
-## Success Criteria
+## Success Criteria (UPDATED)
 Users must be able to:
-1. See the actual API key value (not a secret path)
-2. See the complete Firebase configuration
-3. Copy these values to configure their devices
+1. See the API Gateway URL directly in the UI
+2. Click links to get to Secret Manager for API key and Firebase config
+3. Click link to Firebase Console for web app credentials  
 4. Know when deployment truly succeeded vs failed
+5. Have a clear path to get all the configuration needed for their devices
 
 ## User Feedback Summary
 - "If i can't see the pieces i need to be able to configure the device to use the system, this does nothing for us"
 - "Service accounts are probably fine to just leave"
 - "I see nothing on the screen where logs used to be" (fixed with in-memory logs)
 
-## Contact & Testing
-- Test deployment URL: https://anava-deploy-392865621461.us-central1.run.app
-- Test project: test0620-463518
-- Deployment prefix used in tests: anava3
+## Current Test Status (Live Monitoring)
+- **Test deployment ID**: 9d220436-64cb-4f3a-a8bf-5792b3306453
+- **Status**: ✅ Infrastructure deployed successfully (58 resources created)
+- **Issue**: Deployment hangs at "RETRIEVING_OUTPUTS" step
+- **Test deployment URL**: https://anava-deploy-392865621461.us-central1.run.app
+- **Test project**: test0620-463518
+- **Deployment prefix**: anava3
 
-The core functionality works - infrastructure deploys successfully. The remaining issue is displaying the actual configuration values users need to see in the UI.
+## What We Learned from Current Test
+1. ✅ **Infrastructure deployment works perfectly** - All 58 resources created successfully
+2. ✅ **Selective cleanup works** - No permission errors
+3. ✅ **API Gateway created** - Should have working URL
+4. ⚠️ **Output retrieval hangs** - Needs timeout and fallback logic
+5. 💡 **Solution**: Show links to resources instead of trying to retrieve secret values
+
+## Quick Fix for Next Version (2.3.25)
+Instead of complex secret retrieval, display:
+- API Gateway URL (direct)
+- Link to Secret Manager for API key  
+- Link to Firebase Console for web app config
+- Status: "Deployment Complete - Click links below to get configuration"
