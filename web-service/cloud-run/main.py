@@ -28,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.24"  # SMART FIX: Selective cleanup + output discovery for existing resources
+VERSION = "2.3.25"  # FIXED: Replace secret value retrieval with helpful links to prevent timeout
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -1044,29 +1044,28 @@ output "workload_identity_provider" {{
                 except Exception as e:
                     log(f"WARNING: Could not discover API Gateway URL: {str(e)[:200]}")
             
-            # If API Key not found, try to discover it from secrets
-            if output_data.get('apiKey') == 'Not found':
-                log("INFO: API Key not in Terraform state, checking secrets...")
-                try:
-                    # Try to read the API key from Secret Manager
-                    secret_name = f"{prefix}-api-key"
-                    read_cmd = [
-                        'gcloud', 'secrets', 'versions', 'access', 'latest',
-                        '--secret', secret_name, f'--project={project_id}'
-                    ]
-                    result = subprocess.run(read_cmd, capture_output=True, text=True, env=env)
-                    
-                    if result.returncode == 0 and result.stdout:
-                        output_data['apiKey'] = result.stdout.strip()
-                        log("SUCCESS: Retrieved API Key from Secret Manager")
-                except Exception as e:
-                    log(f"INFO: Could not retrieve API Key from secrets: {str(e)[:100]}")
+            # Instead of retrieving secret values, provide helpful links
+            log("INFO: Creating resource links for easy access...")
             
-            # Fill in missing secret names
-            if 'Not found' in output_data['firebaseConfigSecret']:
+            # Add helpful links for users to access their configuration
+            output_data.update({
+                'apiKeySecretLink': f"https://console.cloud.google.com/security/secret-manager/secret/{prefix}-api-key?project={project_id}",
+                'firebaseConfigLink': f"https://console.cloud.google.com/security/secret-manager/secret/{prefix}-firebase-config?project={project_id}",
+                'firebaseWebAppLink': f"https://console.firebase.google.com/project/{project_id}/settings/general/",
+                'resourceLinks': {
+                    'secretManager': f"https://console.cloud.google.com/security/secret-manager?project={project_id}",
+                    'apiGateway': f"https://console.cloud.google.com/api-gateway?project={project_id}",
+                    'cloudFunctions': f"https://console.cloud.google.com/functions?project={project_id}"
+                }
+            })
+            
+            # Fill in missing secret names (for backwards compatibility)
+            if 'Not found' in output_data.get('firebaseConfigSecret', 'Not found'):
                 output_data['firebaseConfigSecret'] = f"projects/{project_id}/secrets/{prefix}-firebase-config"
-            if 'Not found' in output_data['apiKeySecret']:
+            if 'Not found' in output_data.get('apiKeySecret', 'Not found'):
                 output_data['apiKeySecret'] = f"projects/{project_id}/secrets/{prefix}-api-key"
+            
+            log("SUCCESS: All resource links created")
             
             if REDIS_AVAILABLE and redis_client:
                 try:
@@ -1087,9 +1086,10 @@ output "workload_identity_provider" {{
             log("STATUS: DEPLOYMENT_COMPLETE")
             log("SUCCESS: All resources created successfully!")
             log(f"RESULT: API Gateway URL: {output_data['apiGatewayUrl']}")
-            log(f"RESULT: API Key: {output_data.get('apiKey', 'Check Secret Manager')}")
-            log(f"RESULT: Firebase Config Secret: {output_data['firebaseConfigSecret']}")
-            log(f"RESULT: API Key Secret: {output_data['apiKeySecret']}")
+            log(f"RESULT: API Key Link: {output_data['apiKeySecretLink']}")
+            log(f"RESULT: Firebase Config Link: {output_data['firebaseConfigLink']}")
+            log(f"RESULT: Firebase Web App Link: {output_data['firebaseWebAppLink']}")
+            log("INFO: Click the links above to access your configuration values")
             
             # Log Firebase config if available
             if output_data.get('firebaseConfig'):

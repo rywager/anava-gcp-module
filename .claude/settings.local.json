@@ -24,7 +24,11 @@
       "Bash(gcloud secrets versions access:*)",
       "Bash(touch:*)",
       "Bash(gcloud run logs read:*)",
-      "Bash(gcloud run services logs read:*)"
+      "Bash(gcloud run services logs read:*)",
+      "Bash(docker build:*)",
+      "Bash(docker push:*)",
+      "Bash(gcloud config get-value:*)",
+      "Bash(docker tag:*)"
     ],
     "deny": []
   }
