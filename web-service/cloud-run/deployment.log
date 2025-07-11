@@ -1,0 +1,5 @@
+Building using Dockerfile and deploying container to Cloud Run service [[1manava-deploy[m] in project [[1manava-ai[m] region [[1mus-central1[m]
+Building and deploying...
+Uploading sources.......Creating temporary archive of 57 file(s) totalling 548.7 KiB before compression.
+Uploading zipfile of [.] to [gs://run-sources-anava-ai-us-central1/services/anava-deploy/1752168453.215081-b5f91a076d014c2bbc1bd228da37b9b5.zip]
+..done

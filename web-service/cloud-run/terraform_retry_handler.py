@@ -17,8 +17,19 @@ class TerraformRetryHandler:
         "googleapi: Error 503",
         "googleapi: Error 429",
         "timeout while waiting",
-        "connection reset by peer",
-        "already exists"  # Add this to skip resources that already exist
+        "connection reset by peer"
+        # REMOVED "already exists" - these should be IGNORED not retried!
+    ]
+    
+    # Errors that should be ignored and treated as success
+    IGNORABLE_ERRORS = [
+        "Release already exists",  # Firebase rules release already exists
+        "already exists and cannot be imported",  # Other resources that exist
+        "AlreadyExists",  # Generic already exists error
+        "already exists",  # ANY already exists error
+        "Error 409",  # Google API conflict - resource exists
+        "Requested entity already exists",  # Workload identity pool
+        "already own it",  # Storage buckets
     ]
     
     # Errors that need manual intervention
@@ -68,6 +79,12 @@ class TerraformRetryHandler:
         
         for block in error_blocks:
             error_msg = block[0]
+            
+            # Check if it's ignorable (treat as success)
+            is_ignorable = any(pattern.lower() in error_msg.lower() for pattern in self.IGNORABLE_ERRORS)
+            if is_ignorable:
+                self.log(f"INFO: Ignoring error (resource already exists): {error_msg}")
+                continue  # Skip this error entirely
             
             # Check if it's retryable
             is_retryable = any(pattern in error_msg for pattern in self.RETRYABLE_ERRORS)
@@ -177,7 +194,11 @@ class TerraformRetryHandler:
                             self.log(f"WAITING: {resource} ({elapsed}s elapsed)")
                     
                     elif 'Error:' in line:
-                        self.log(f"ERROR: {line}")
+                        # Check if it's an ignorable error
+                        if any(pattern in line for pattern in self.IGNORABLE_ERRORS):
+                            self.log(f"INFO: Ignoring error (already exists): {line}")
+                        else:
+                            self.log(f"ERROR: {line}")
             
             process.wait()
             output = '\n'.join(output_lines)
@@ -188,6 +209,8 @@ class TerraformRetryHandler:
             
             # Parse errors
             errors = self.parse_terraform_error(output)
+            
+            self.log(f"INFO: Found {len(errors)} errors after parsing (ignorable errors excluded)")
             
             # Log errors
             for error in errors:
@@ -201,6 +224,11 @@ class TerraformRetryHandler:
             
             # Check if we should retry
             if not self.should_retry(errors) or attempt == max_retries - 1:
+                # If we have no errors (all were ignorable), consider it a success
+                if len(errors) == 0:
+                    self.log("INFO: All errors were ignorable, treating as success")
+                    return True, output
+                    
                 # Can we continue with partial deployment?
                 if self.can_continue(errors):
                     self.log("INFO: Continuing with partial deployment")

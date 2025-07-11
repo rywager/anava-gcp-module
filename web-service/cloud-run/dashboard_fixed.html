@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anava Deployment Dashboard</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <style>
+        /* Base styles remain the same */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .deployment-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .status-running { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #28a745;
+            transition: width 0.3s ease;
+        }
+        
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        
+        .step-card {
+            padding: 16px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .step-card.active {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+        
+        .step-card.completed {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .logs-container {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .log-entry {
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+        }
+        
+        .log-timestamp { color: #75715e; }
+        .log-status { color: #66d9ef; font-weight: bold; }
+        .log-success { color: #a6e22e; }
+        .log-error { color: #f92672; }
+        .log-warning { color: #fd971f; }
+        .log-info { color: #e6db74; }
+        
+        .outputs-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: #f0f8ff;
+            border-radius: 8px;
+        }
+        
+        .output-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .output-item:last-child {
+            border-bottom: none;
+        }
+        
+        .copy-button {
+            padding: 4px 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .copy-button:hover {
+            background: #0056b3;
+        }
+        
+        .no-logs {
+            color: #75715e;
+            font-style: italic;
+            text-align: center;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Anava Deployment Dashboard</h1>
+            <p>Project: <strong>{{ project_id }}</strong></p>
+            <p>Region: <strong>{{ region }}</strong></p>
+            <p>Service Version: <strong>v2.3.24-fixed</strong></p>
+        </div>
+        
+        <div id="deployments"></div>
+    </div>
+
+    <script>
+        // Initialize Firebase (will be configured server-side)
+        const firebaseConfig = {{ firebase_config | tojson }};
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        let deploymentListeners = new Map();
+        
+        // Define deployment steps
+        const DEPLOYMENT_STEPS = [
+            { id: 'enabling-apis', name: 'Enable APIs', order: 1 },
+            { id: 'cleaning', name: 'Clean Resources', order: 2 },
+            { id: 'permissions', name: 'Set Permissions', order: 3 },
+            { id: 'terraform-init', name: 'Initialize Terraform', order: 4 },
+            { id: 'creating-resources', name: 'Create Resources', order: 5 },
+            { id: 'service-accounts', name: 'Service Accounts', order: 6 },
+            { id: 'secrets', name: 'Secrets', order: 7 },
+            { id: 'storage', name: 'Storage', order: 8 },
+            { id: 'firestore', name: 'Firestore', order: 9 },
+            { id: 'functions', name: 'Cloud Functions', order: 10 },
+            { id: 'api-gateway', name: 'API Gateway', order: 11 },
+            { id: 'outputs', name: 'Get Outputs', order: 12 },
+            { id: 'complete', name: 'Complete', order: 13 }
+        ];
+        
+        function formatLog(logEntry) {
+            const { timestamp, message } = logEntry;
+            const timeStr = timestamp.toDate ? 
+                timestamp.toDate().toLocaleTimeString() : 
+                new Date(timestamp).toLocaleTimeString();
+            
+            let messageClass = '';
+            if (message.startsWith('STATUS:')) messageClass = 'log-status';
+            else if (message.startsWith('SUCCESS:')) messageClass = 'log-success';
+            else if (message.startsWith('ERROR:')) messageClass = 'log-error';
+            else if (message.startsWith('WARNING:')) messageClass = 'log-warning';
+            else if (message.startsWith('INFO:')) messageClass = 'log-info';
+            
+            return `<div class="log-entry">
+                <span class="log-timestamp">${timeStr}</span> - 
+                <span class="${messageClass}">${escapeHtml(message)}</span>
+            </div>`;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function renderDeployment(deployment) {
+            const steps = deployment.steps || {};
+            const currentStep = deployment.currentStep || '';
+            const outputs = deployment.outputs || {};
+            
+            // Calculate progress
+            let completedSteps = 0;
+            for (const step of DEPLOYMENT_STEPS) {
+                if (steps[step.id] && steps[step.id].status === 'completed') {
+                    completedSteps++;
+                }
+            }
+            const progress = Math.round((completedSteps / DEPLOYMENT_STEPS.length) * 100);
+            
+            return `
+                <div class="deployment-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>Deployment ${deployment.id}</h3>
+                        <span class="status-badge status-${deployment.status}">${deployment.status}</span>
+                    </div>
+                    
+                    <p style="margin-top: 8px; color: #666;">
+                        Started: ${new Date(deployment.startedAt.seconds * 1000).toLocaleString()}
+                    </p>
+                    
+                    <div class="progress-container">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Progress</span>
+                            <span>${progress}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="steps-grid">
+                        ${DEPLOYMENT_STEPS.map(step => {
+                            const stepData = steps[step.id] || {};
+                            let stepClass = '';
+                            if (step.id === currentStep) stepClass = 'active';
+                            else if (stepData.status === 'completed') stepClass = 'completed';
+                            
+                            return `
+                                <div class="step-card ${stepClass}">
+                                    <strong>${step.name}</strong>
+                                    <div style="margin-top: 4px; font-size: 12px; color: #666;">
+                                        ${stepData.status || 'pending'}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    ${deployment.status === 'completed' ? `
+                        <div class="outputs-section">
+                            <h4>Deployment Outputs</h4>
+                            <div class="output-item">
+                                <span><strong>API Gateway URL:</strong></span>
+                                <span>${outputs.apiGatewayUrl || 'Not found'}</span>
+                            </div>
+                            <div class="output-item">
+                                <span><strong>API Key:</strong></span>
+                                <span>${outputs.apiKey || 'Check Secret Manager'}</span>
+                            </div>
+                            <div class="output-item">
+                                <span><strong>Firebase Config:</strong></span>
+                                <span>${outputs.firebaseConfig ? 'Available' : 'Check Secret Manager'}</span>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="logs-container" id="logs-${deployment.id}">
+                        <div class="no-logs">Loading logs...</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function subscribeToDeployment(deploymentId) {
+            // Unsubscribe from previous listener if exists
+            if (deploymentListeners.has(deploymentId)) {
+                deploymentListeners.get(deploymentId)();
+            }
+            
+            // Subscribe to deployment updates
+            const deploymentRef = db.collection('deployments').doc(deploymentId);
+            const unsubscribe = deploymentRef.onSnapshot(doc => {
+                if (doc.exists) {
+                    const deployment = { id: doc.id, ...doc.data() };
+                    updateDeploymentUI(deployment);
+                }
+            });
+            
+            deploymentListeners.set(deploymentId, unsubscribe);
+            
+            // Subscribe to logs
+            subscribeToLogs(deploymentId);
+        }
+        
+        function subscribeToLogs(deploymentId) {
+            const logsRef = db.collection('deployments').doc(deploymentId).collection('logs');
+            const logsContainer = document.getElementById(`logs-${deploymentId}`);
+            
+            logsRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+                const logs = [];
+                snapshot.forEach(doc => {
+                    logs.push(doc.data());
+                });
+                
+                if (logs.length > 0) {
+                    logsContainer.innerHTML = logs.map(formatLog).join('');
+                    logsContainer.scrollTop = logsContainer.scrollHeight;
+                } else {
+                    logsContainer.innerHTML = '<div class="no-logs">No logs available yet...</div>';
+                }
+            });
+        }
+        
+        function updateDeploymentUI(deployment) {
+            const container = document.getElementById('deployments');
+            const existingCard = document.getElementById(`deployment-${deployment.id}`);
+            
+            const cardHtml = `<div id="deployment-${deployment.id}">${renderDeployment(deployment)}</div>`;
+            
+            if (existingCard) {
+                existingCard.outerHTML = cardHtml;
+            } else {
+                container.insertAdjacentHTML('afterbegin', cardHtml);
+            }
+            
+            // Re-subscribe to logs after UI update
+            subscribeToLogs(deployment.id);
+        }
+        
+        // Load initial deployments
+        async function loadDeployments() {
+            const querySnapshot = await db.collection('deployments')
+                .orderBy('startedAt', 'desc')
+                .limit(5)
+                .get();
+            
+            querySnapshot.forEach(doc => {
+                const deployment = { id: doc.id, ...doc.data() };
+                updateDeploymentUI(deployment);
+                subscribeToDeployment(deployment.id);
+            });
+        }
+        
+        // Subscribe to new deployments
+        db.collection('deployments')
+            .orderBy('startedAt', 'desc')
+            .limit(1)
+            .onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const deployment = { id: change.doc.id, ...change.doc.data() };
+                        updateDeploymentUI(deployment);
+                        subscribeToDeployment(deployment.id);
+                    }
+                });
+            });
+        
+        // Initial load
+        loadDeployments();
+    </script>
+</body>
+</html>

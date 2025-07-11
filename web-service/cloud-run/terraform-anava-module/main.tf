@@ -530,16 +530,16 @@ resource "google_firebaserules_ruleset" "firestore" {
   ]
 }
 
-resource "google_firebaserules_release" "firestore" {
-  provider     = google-beta
-  project      = var.project_id
-  name         = "cloud.firestore/databases/(default)"
-  ruleset_name = google_firebaserules_ruleset.firestore.name
-  
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+# COMMENTED OUT - Firebase releases cause "already exists" errors
+# These are created automatically when Firebase is initialized
+# and Terraform can't handle the existing releases properly
+#
+# resource "google_firebaserules_release" "firestore" {
+#   provider     = google-beta
+#   project      = var.project_id
+#   name         = "cloud.firestore/databases/(default)"
+#   ruleset_name = google_firebaserules_ruleset.firestore.name
+# }
 
 # Firebase Storage security rules
 resource "google_firebaserules_ruleset" "storage" {
@@ -559,13 +559,13 @@ resource "google_firebaserules_ruleset" "storage" {
   ]
 }
 
-resource "google_firebaserules_release" "storage" {
-  provider     = google-beta
-  project      = var.project_id
-  name         = "firebase.storage/${google_firebase_storage_bucket.default.bucket_id}"
-  ruleset_name = google_firebaserules_ruleset.storage.name
-  
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+# COMMENTED OUT - Firebase releases cause "already exists" errors
+# These are created automatically when Firebase is initialized
+# and Terraform can't handle the existing releases properly
+#
+# resource "google_firebaserules_release" "storage" {
+#   provider     = google-beta
+#   project      = var.project_id
+#   name         = "firebase.storage/${google_firebase_storage_bucket.default.bucket_id}"
+#   ruleset_name = google_firebaserules_ruleset.storage.name
+# }

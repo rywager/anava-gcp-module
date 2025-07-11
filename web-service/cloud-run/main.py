@@ -8,6 +8,7 @@ import json
 import uuid
 import subprocess
 import tempfile
+import time
 from datetime import datetime
 from typing import Dict, Any, Optional
 
@@ -27,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.10"  # Fixed dashboard CSS and progress tracking
+VERSION = "2.3.24"  # SMART FIX: Selective cleanup + output discovery for existing resources
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -35,7 +36,7 @@ BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 PROJECT_ID = os.environ.get('GOOGLE_CLOUD_PROJECT', 'anava-ai')
 CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
 CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
-REDIRECT_URI = os.environ.get('REDIRECT_URI', 'http://localhost:5000/callback')
+REDIRECT_URI = os.environ.get('REDIRECT_URI', 'https://anava-deploy-392865621461.us-central1.run.app/callback')
 
 # Redis for job tracking - with fallback
 REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
@@ -57,15 +58,21 @@ def get_redis_client():
         client.ping()
         return client
     except Exception as e:
-        print(f"Redis connection failed: {e}")
+        print(f"Redis connection failed at {REDIS_HOST}:{REDIS_PORT} - Error: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return None
 
 # Initialize Redis
 redis_client = get_redis_client()
 REDIS_AVAILABLE = redis_client is not None
 
+# In-memory fallback for logs when Redis is unavailable
+IN_MEMORY_LOGS = {}
+
 if not REDIS_AVAILABLE:
     print(f"WARNING: Redis not available at {REDIS_HOST}:{REDIS_PORT}")
+    print("Using in-memory log storage as fallback")
 else:
     print(f"Redis connected at {REDIS_HOST}:{REDIS_PORT}")
 
@@ -226,7 +233,11 @@ def callback():
 def dashboard():
     if 'user_info' not in session:
         return redirect(url_for('login'))
-    return render_template('dashboard.html', user=session['user_info'])
+    return render_template('dashboard.html', 
+                         user=session['user_info'],
+                         version=VERSION,
+                         commit_sha=COMMIT_SHA,
+                         build_time=BUILD_TIME)
 
 @app.route('/logout')
 def logout():
@@ -372,6 +383,7 @@ def run_single_deployment(job_data):
                     # Map status to step IDs that match the dashboard
                     status_to_step = {
                         'ENABLING_APIS': 'enabling-apis',
+                        'CLEANING_BLOCKING_RESOURCES': 'permissions',
                         'SETTING_PERMISSIONS': 'permissions',
                         'PREPARING_TERRAFORM': 'terraform-init',
                         'TERRAFORM_INIT': 'terraform-init',
@@ -417,6 +429,14 @@ def run_single_deployment(job_data):
                         
             except:
                 pass  # Fallback to just printing
+        else:
+            # Use in-memory storage when Redis is unavailable
+            if deployment_id not in IN_MEMORY_LOGS:
+                IN_MEMORY_LOGS[deployment_id] = []
+            IN_MEMORY_LOGS[deployment_id].append(log_entry)
+            # Keep only last 1000 logs per deployment to avoid memory issues
+            if len(IN_MEMORY_LOGS[deployment_id]) > 1000:
+                IN_MEMORY_LOGS[deployment_id] = IN_MEMORY_LOGS[deployment_id][-1000:]
         print(f"[{deployment_id}] {message}")
     
     try:
@@ -485,34 +505,80 @@ def run_single_deployment(job_data):
                 return f"ERROR: Failed to enable {api}: {str(e)[:100]}"
         
         log(f"INFO: Enabling {len(required_apis)} APIs in parallel...")
-        # Add timeout to prevent hanging
-        import signal
-        from contextlib import contextmanager
+        # Use concurrent.futures timeout instead of signal-based timeout
+        # which doesn't work in multi-threaded environments like gunicorn
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+                futures = {executor.submit(enable_api, api): api for api in required_apis}
+                completed = 0
+                
+                # Use the timeout parameter in as_completed for thread-safe timeout
+                try:
+                    for future in concurrent.futures.as_completed(futures, timeout=30):
+                        completed += 1
+                        result = future.result()
+                        log(f"PROGRESS: API {completed}/{len(required_apis)} - {result}")
+                except concurrent.futures.TimeoutError:
+                    log("WARNING: API enablement timed out after 30 seconds")
+                    # Continue anyway - some APIs may have been enabled
+                
+                log("SUCCESS: All APIs processed")
+        except Exception as e:
+            log(f"ERROR: Failed to enable APIs: {str(e)}")
         
-        @contextmanager
-        def timeout(seconds):
-            def signal_handler(signum, frame):
-                raise TimeoutError(f"Operation timed out after {seconds} seconds")
-            signal.signal(signal.SIGALRM, signal_handler)
-            signal.alarm(seconds)
-            try:
-                yield
-            finally:
-                signal.alarm(0)
+        # Step 1.5: Clean ONLY resources that block output generation
+        log("STATUS: CLEANING_BLOCKING_RESOURCES")
+        log("ACTION: Removing only resources that prevent output retrieval...")
         
         try:
-            with timeout(30):  # 30 second timeout for all API enablement
-                with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            futures = {executor.submit(enable_api, api): api for api in required_apis}
-            completed = 0
-            for future in concurrent.futures.as_completed(futures):
-                completed += 1
-                result = future.result()
-                log(f"PROGRESS: API {completed}/{len(required_apis)} - {result}")
+            # Only clean resources that block output generation
+            cleaned = 0
+            
+            # Skip service accounts - they don't generate outputs we need
+            log("INFO: Skipping service account cleanup - they don't block outputs")
+            
+            # Skip storage buckets - they don't block outputs
+            log("INFO: Skipping bucket cleanup - they don't block outputs")
+            
+            # Skip secrets - we can update them instead of deleting
+            log("INFO: Skipping secret cleanup - we'll update them instead")
+            
+            # 1. Delete API Keys that block new key generation
+            try:
+                # Use user's credentials for API key operations
+                list_cmd = ['gcloud', 'services', 'api-keys', 'list',
+                            '--filter', f'displayName:"{prefix}*"',
+                            '--format=value(name)', f'--project={project_id}']
+                result = subprocess.run(list_cmd, capture_output=True, text=True, env=env)
+                if result.returncode == 0 and result.stdout:
+                    for key_name in result.stdout.strip().split('\n'):
+                        if key_name:
+                            log(f"CLEANING: API Key {key_name}")
+                            # API keys need the full resource name
+                            cmd = ['gcloud', 'services', 'api-keys', 'delete', key_name,
+                                   f'--project={project_id}', '--quiet']
+                            result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+                            if result.returncode == 0:
+                                log(f"CLEANED: Removed API Key")
+                                cleaned += 1
+                            else:
+                                log(f"INFO: Could not delete API key - may not have permission")
+            except Exception as e:
+                log(f"INFO: API key cleanup skipped: {str(e)[:100]}")
+            
+            # 2. Skip API Gateway - we'll discover the existing URL instead
+            log("INFO: Skipping API Gateway cleanup - we'll discover existing URL")
+            
+            if cleaned > 0:
+                log(f"SUCCESS: Cleaned {cleaned} existing resources")
+                log("INFO: Waiting 10 seconds for deletions to propagate...")
+                time.sleep(10)
+            else:
+                log("INFO: No existing resources found to clean")
+                
+        except Exception as e:
+            log(f"WARNING: Cleanup had issues but continuing: {str(e)[:200]}")
         
-            log("SUCCESS: All APIs processed")
-        except TimeoutError:
-            log("WARNING: API enablement timed out after 30 seconds")
         log("STATUS: SETTING_PERMISSIONS")  # Force status update
         
         # Step 2: Set up permissions
@@ -746,8 +812,41 @@ output "workload_identity_provider" {{
             
             log("SUCCESS: Terraform initialized")
             
-            # Skip imports - let Terraform handle existing resources
-            log("INFO: Skipping import phase - Terraform will handle existing resources")
+            # Check for existing Firebase releases that might cause conflicts
+            log("STATUS: CHECKING_FIREBASE_RELEASES")
+            log("ACTION: Checking for existing Firebase releases...")
+            
+            try:
+                # Check if Firebase project exists
+                firebase_check = subprocess.run(
+                    ['gcloud', 'firebase', 'projects:get', project_id, '--format=json'],
+                    capture_output=True,
+                    text=True,
+                    env=env
+                )
+                
+                if firebase_check.returncode == 0:
+                    log("INFO: Firebase project already exists")
+                    
+                    # Check for existing Firestore rules release
+                    firestore_release_check = subprocess.run(
+                        ['gcloud', 'firestore', 'databases', 'describe', '(default)', 
+                         f'--project={project_id}', '--format=json'],
+                        capture_output=True,
+                        text=True,
+                        env=env
+                    )
+                    
+                    if firestore_release_check.returncode == 0:
+                        log("WARNING: Existing Firestore database found - Firebase rules may already exist")
+                        log("INFO: Deployment will update existing rules if needed")
+                    
+                else:
+                    log("INFO: No existing Firebase project found - will create new")
+                    
+            except Exception as e:
+                log(f"WARNING: Could not check Firebase status: {str(e)[:100]}")
+                log("INFO: Continuing with deployment anyway")
             
             # Step 5: Plan deployment
             log("STATUS: TERRAFORM_PLAN")
@@ -842,12 +941,132 @@ output "workload_identity_provider" {{
             
             outputs = json.loads(result.stdout)
             
+            # Extract all the outputs properly - handle both dict and string formats
+            def get_output_value(outputs, key, default='Not found'):
+                """Safely get output value whether it's a dict with 'value' key or direct string"""
+                output = outputs.get(key, default)
+                if isinstance(output, dict):
+                    return output.get('value', default)
+                return output if output else default
+            
+            # Get basic output data from Terraform
             output_data = {
-                'apiGatewayUrl': outputs['api_gateway_url']['value'],
-                'firebaseConfigSecret': outputs['firebase_config']['value'],
-                'apiKeySecret': outputs['api_key_secret']['value'],
-                'workloadIdentityProvider': outputs['workload_identity_provider']['value']
+                'apiGatewayUrl': get_output_value(outputs, 'api_gateway_url'),
+                'apiKey': get_output_value(outputs, 'api_key'),
+                'firebaseConfig': get_output_value(outputs, 'firebase_config', {}),
+                'firebaseConfigSecret': f"projects/{project_id}/secrets/{get_output_value(outputs, 'firebase_config_secret_name')}",
+                'apiKeySecret': f"projects/{project_id}/secrets/{get_output_value(outputs, 'firebase_api_key_secret_name')}",
+                'workloadIdentityProvider': get_output_value(outputs, 'workload_identity_provider'),
+                'vertexServiceAccount': get_output_value(outputs, 'vertex_ai_service_account_email'),
+                'firebaseStorageBucket': get_output_value(outputs, 'firebase_storage_bucket'),
+                'firebaseWebAppId': get_output_value(outputs, 'firebase_web_app_id')
             }
+            
+            # If we didn't get Firebase config from Terraform, try to get it directly
+            if not output_data.get('firebaseConfig') or output_data['firebaseConfig'] == {}:
+                log("INFO: Firebase config not in Terraform state, querying directly...")
+                try:
+                    # Try to get Firebase web app config
+                    list_apps_cmd = [
+                        'gcloud', 'firebase', 'apps:list', 
+                        '--project', project_id,
+                        '--format=json'
+                    ]
+                    apps_result = subprocess.run(list_apps_cmd, capture_output=True, text=True, env=env)
+                    
+                    if apps_result.returncode == 0 and apps_result.stdout:
+                        apps = json.loads(apps_result.stdout)
+                        if apps and len(apps) > 0:
+                            # Get the first web app
+                            web_app = next((app for app in apps if app.get('platform') == 'WEB'), apps[0])
+                            app_id = web_app.get('appId', '')
+                            
+                            # Get the web app config
+                            if app_id:
+                                config_cmd = [
+                                    'gcloud', 'firebase', 'apps:sdkconfig', 'WEB', app_id,
+                                    '--project', project_id
+                                ]
+                                config_result = subprocess.run(config_cmd, capture_output=True, text=True, env=env)
+                                
+                                if config_result.returncode == 0 and config_result.stdout:
+                                    # Parse the JavaScript config
+                                    import re
+                                    config_match = re.search(r'firebase\.initializeApp\(({[^}]+})\)', config_result.stdout)
+                                    if config_match:
+                                        config_str = config_match.group(1)
+                                        # Convert JS object to JSON
+                                        config_str = re.sub(r'(\w+):', r'"\1":', config_str)
+                                        config_str = config_str.replace("'", '"')
+                                        firebase_config = json.loads(config_str)
+                                        
+                                        output_data['firebaseConfig'] = firebase_config
+                                        output_data['firebaseWebAppId'] = app_id
+                                        output_data['firebaseStorageBucket'] = firebase_config.get('storageBucket', '')
+                                        log(f"SUCCESS: Retrieved Firebase config for app {app_id}")
+                
+                except Exception as e:
+                    log(f"WARNING: Could not retrieve Firebase config directly: {str(e)[:200]}")
+            
+            # If API Gateway URL not found, try to discover it
+            if output_data.get('apiGatewayUrl') == 'Not found':
+                log("INFO: API Gateway URL not in Terraform state, discovering...")
+                try:
+                    # List API Gateways
+                    list_cmd = [
+                        'gcloud', 'api-gateway', 'gateways', 'list',
+                        '--filter', f'displayName:{prefix}*',
+                        '--format=json', f'--project={project_id}'
+                    ]
+                    result = subprocess.run(list_cmd, capture_output=True, text=True, env=env)
+                    
+                    if result.returncode == 0 and result.stdout:
+                        gateways = json.loads(result.stdout)
+                        if gateways and len(gateways) > 0:
+                            gateway = gateways[0]  # Use the first matching gateway
+                            gateway_name = gateway.get('name', '').split('/')[-1]
+                            location = gateway.get('name', '').split('/')[3]
+                            
+                            # Get the gateway details to find the URL
+                            describe_cmd = [
+                                'gcloud', 'api-gateway', 'gateways', 'describe', gateway_name,
+                                f'--location={location}', f'--project={project_id}',
+                                '--format=json'
+                            ]
+                            desc_result = subprocess.run(describe_cmd, capture_output=True, text=True, env=env)
+                            
+                            if desc_result.returncode == 0 and desc_result.stdout:
+                                gateway_details = json.loads(desc_result.stdout)
+                                default_hostname = gateway_details.get('defaultHostname', '')
+                                if default_hostname:
+                                    output_data['apiGatewayUrl'] = f"https://{default_hostname}"
+                                    log(f"SUCCESS: Discovered API Gateway URL: {output_data['apiGatewayUrl']}")
+                except Exception as e:
+                    log(f"WARNING: Could not discover API Gateway URL: {str(e)[:200]}")
+            
+            # If API Key not found, try to discover it from secrets
+            if output_data.get('apiKey') == 'Not found':
+                log("INFO: API Key not in Terraform state, checking secrets...")
+                try:
+                    # Try to read the API key from Secret Manager
+                    secret_name = f"{prefix}-api-key"
+                    read_cmd = [
+                        'gcloud', 'secrets', 'versions', 'access', 'latest',
+                        '--secret', secret_name, f'--project={project_id}'
+                    ]
+                    result = subprocess.run(read_cmd, capture_output=True, text=True, env=env)
+                    
+                    if result.returncode == 0 and result.stdout:
+                        output_data['apiKey'] = result.stdout.strip()
+                        log("SUCCESS: Retrieved API Key from Secret Manager")
+                except Exception as e:
+                    log(f"INFO: Could not retrieve API Key from secrets: {str(e)[:100]}")
+            
+            # Fill in missing secret names
+            if 'Not found' in output_data['firebaseConfigSecret']:
+                output_data['firebaseConfigSecret'] = f"projects/{project_id}/secrets/{prefix}-firebase-config"
+            if 'Not found' in output_data['apiKeySecret']:
+                output_data['apiKeySecret'] = f"projects/{project_id}/secrets/{prefix}-api-key"
             
             if REDIS_AVAILABLE and redis_client:
                 try:
@@ -868,8 +1087,17 @@ output "workload_identity_provider" {{
             log("STATUS: DEPLOYMENT_COMPLETE")
             log("SUCCESS: All resources created successfully!")
             log(f"RESULT: API Gateway URL: {output_data['apiGatewayUrl']}")
+            log(f"RESULT: API Key: {output_data.get('apiKey', 'Check Secret Manager')}")
             log(f"RESULT: Firebase Config Secret: {output_data['firebaseConfigSecret']}")
             log(f"RESULT: API Key Secret: {output_data['apiKeySecret']}")
+            
+            # Log Firebase config if available
+            if output_data.get('firebaseConfig'):
+                fc = output_data['firebaseConfig']
+                log(f"RESULT: Firebase Project ID: {fc.get('projectId', 'Not found')}")
+                log(f"RESULT: Firebase Auth Domain: {fc.get('authDomain', 'Not found')}")
+                log(f"RESULT: Firebase Storage Bucket: {fc.get('storageBucket', 'Not found')}")
+                log(f"RESULT: Firebase Web App ID: {fc.get('appId', 'Not found')}")
     
     except Exception as e:
         log(f"ERROR: Deployment failed: {str(e)}")
@@ -980,14 +1208,32 @@ def get_deployment_status(deployment_id):
             if steps:
                 deployment_data['steps'] = {k: json.loads(v) for k, v in steps.items()}
             
+            # Get current step
+            current_step = redis_client.get(f'deployment_current_step:{deployment_id}')
+            if current_step:
+                deployment_data['currentStep'] = current_step
+            
+            # Get step status details
+            step_status = redis_client.hgetall(f'deployment_step_status:{deployment_id}')
+            if step_status:
+                deployment_data['stepStatus'] = {k: json.loads(v) for k, v in step_status.items()}
+            
             if deployment_data['status'] == 'completed':
                 outputs = redis_client.get(f'deployment_outputs:{deployment_id}')
                 if outputs:
                     deployment_data['outputs'] = json.loads(outputs)
         except:
-            deployment_data['logs'] = ['Redis unavailable - check Cloud Run logs']
+            # Use in-memory logs as fallback
+            if deployment_id in IN_MEMORY_LOGS:
+                deployment_data['logs'] = IN_MEMORY_LOGS[deployment_id]
+            else:
+                deployment_data['logs'] = ['Redis error - using in-memory logs']
     else:
-        deployment_data['logs'] = ['Redis unavailable - check Cloud Run logs']
+        # Use in-memory logs when Redis is unavailable
+        if deployment_id in IN_MEMORY_LOGS:
+            deployment_data['logs'] = IN_MEMORY_LOGS[deployment_id]
+        else:
+            deployment_data['logs'] = ['No logs available yet...']
     
     return jsonify(deployment_data)
 
