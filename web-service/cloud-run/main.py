@@ -28,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.29"  # Added ACAP configuration API endpoint and region to outputs
+VERSION = "2.3.30"  # FIXED: NameError - region variable was not defined
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -451,6 +451,7 @@ def run_single_deployment(job_data):
         log("ACTION: Enabling required Google Cloud APIs...")
         project_id = job_data['projectId']
         prefix = job_data['prefix']
+        region = job_data['region']
         
         # Create auth header for API calls
         credentials = google.oauth2.credentials.Credentials(**job_data['credentials'])
