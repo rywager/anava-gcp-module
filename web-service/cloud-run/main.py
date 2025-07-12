@@ -239,6 +239,30 @@ def dashboard():
                          commit_sha=COMMIT_SHA,
                          build_time=BUILD_TIME)
 
+# Test mode route for automated testing
+@app.route('/test-dashboard')
+def test_dashboard():
+    """Test mode dashboard that bypasses authentication for automated testing"""
+    # Create test user session
+    session['user_info'] = {
+        'email': 'test@anava.ai',
+        'name': 'Test User'
+    }
+    # Create test credentials for API calls
+    session['credentials'] = {
+        'token': 'test-token',
+        'refresh_token': 'test-refresh-token',
+        'token_uri': 'https://oauth2.googleapis.com/token',
+        'client_id': CLIENT_ID,
+        'client_secret': CLIENT_SECRET,
+        'scopes': ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/cloud-platform']
+    }
+    return render_template('dashboard.html', 
+                         user=session['user_info'],
+                         version=VERSION,
+                         commit_sha=COMMIT_SHA,
+                         build_time=BUILD_TIME)
+
 @app.route('/logout')
 def logout():
     session.clear()
