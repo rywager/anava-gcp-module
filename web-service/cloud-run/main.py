@@ -28,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.30"  # FIXED: NameError - region variable was not defined
+VERSION = "2.3.32"  # OPTIMIZED: Added .dockerignore to reduce image size from 1.69GB
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -764,18 +764,46 @@ output "api_gateway_url" {{
   value = module.anava.api_gateway_url
 }}
 
-output "firebase_config" {{
-  value = module.anava.firebase_config_secret_name
+output "api_key" {{
+  value = module.anava.api_key
   sensitive = true
 }}
 
-output "api_key_secret" {{
-  value = module.anava.firebase_api_key_secret_name
+output "firebase_config" {{
+  value = module.anava.firebase_config
   sensitive = true
+}}
+
+output "firebase_config_secret_name" {{
+  value = module.anava.firebase_config_secret_name
+}}
+
+output "firebase_api_key_secret_name" {{
+  value = module.anava.firebase_api_key_secret_name
 }}
 
 output "workload_identity_provider" {{
   value = module.anava.workload_identity_provider
+}}
+
+output "vertex_ai_service_account_email" {{
+  value = module.anava.vertex_ai_service_account_email
+}}
+
+output "device_auth_function_url" {{
+  value = module.anava.device_auth_function_url
+}}
+
+output "tvm_function_url" {{
+  value = module.anava.tvm_function_url
+}}
+
+output "firebase_storage_bucket" {{
+  value = module.anava.firebase_storage_bucket
+}}
+
+output "firebase_web_app_id" {{
+  value = module.anava.firebase_web_app_id
 }}
 """
             
@@ -826,7 +854,7 @@ output "workload_identity_provider" {{
                 capture_output=True,
                 text=True,
                 env=env,
-                timeout=300  # 5 minute timeout
+                timeout=1200  # 5 minute timeout
             )
             
             if result.returncode != 0:
@@ -966,6 +994,10 @@ output "workload_identity_provider" {{
             
             outputs = json.loads(result.stdout)
             
+            # Log raw outputs for debugging
+            log("DEBUG: Raw Terraform outputs:")
+            log(json.dumps(outputs, indent=2))
+            
             # Extract all the outputs properly - handle both dict and string formats
             def get_output_value(outputs, key, default='Not found'):
                 """Safely get output value whether it's a dict with 'value' key or direct string"""
@@ -975,17 +1007,33 @@ output "workload_identity_provider" {{
                 return output if output else default
             
             # Get basic output data from Terraform
+            # Firebase config is a nested object, so handle it specially
+            firebase_config_raw = outputs.get('firebase_config', {})
+            if isinstance(firebase_config_raw, dict) and 'value' in firebase_config_raw:
+                firebase_config = firebase_config_raw['value']
+            else:
+                firebase_config = firebase_config_raw if isinstance(firebase_config_raw, dict) else {}
+            
+            # Extract webApiKey from firebase_config if present
+            web_api_key = firebase_config.get('apiKey', 'Not found') if firebase_config else 'Not found'
+            
             output_data = {
                 'apiGatewayUrl': get_output_value(outputs, 'api_gateway_url'),
                 'apiKey': get_output_value(outputs, 'api_key'),
-                'firebaseConfig': get_output_value(outputs, 'firebase_config', {}),
+                'apiGatewayKey': get_output_value(outputs, 'api_key'),  # Include as apiGatewayKey too
+                'webApiKey': web_api_key,  # Add webApiKey from Firebase config
+                'firebaseConfig': firebase_config,
                 'firebaseConfigSecret': f"projects/{project_id}/secrets/{get_output_value(outputs, 'firebase_config_secret_name')}",
                 'apiKeySecret': f"projects/{project_id}/secrets/{get_output_value(outputs, 'firebase_api_key_secret_name')}",
                 'workloadIdentityProvider': get_output_value(outputs, 'workload_identity_provider'),
                 'vertexServiceAccount': get_output_value(outputs, 'vertex_ai_service_account_email'),
                 'firebaseStorageBucket': get_output_value(outputs, 'firebase_storage_bucket'),
                 'firebaseWebAppId': get_output_value(outputs, 'firebase_web_app_id'),
-                'region': region  # Add region to outputs
+                'deviceAuthFunctionUrl': get_output_value(outputs, 'device_auth_function_url'),
+                'tvmFunctionUrl': get_output_value(outputs, 'tvm_function_url'),
+                'region': region,  # Add region to outputs
+                # Include ALL raw outputs for verbose debugging
+                '_allOutputs': outputs  # Raw outputs for debugging
             }
             
             # Skip Firebase config retrieval - it hangs, users can get it from the link
@@ -1365,20 +1413,29 @@ def get_acap_configuration(deployment_id):
     region = outputs.get('region', deployment_data.get('region', 'us-central1'))
     
     # Create ACAP-compatible configuration
+    # Get Firebase config values (handle both nested dict and flat structure)
+    firebase_config = outputs.get('firebaseConfig', {})
+    if isinstance(firebase_config, str):
+        # If it's a string, it might be JSON
+        try:
+            firebase_config = json.loads(firebase_config)
+        except:
+            firebase_config = {}
+    
     acap_config = {
         'firebase': {
-            'webApiKey': outputs.get('firebaseConfig', {}).get('apiKey') or outputs.get('apiKey') or '',
-            'authDomain': outputs.get('firebaseConfig', {}).get('authDomain') or f"{project_id}.firebaseapp.com",
+            'webApiKey': firebase_config.get('apiKey') or outputs.get('webApiKey') or outputs.get('apiKey') or '',
+            'authDomain': firebase_config.get('authDomain') or outputs.get('authDomain') or f"{project_id}.firebaseapp.com",
             'projectId': project_id,
-            'storageBucket': outputs.get('firebaseConfig', {}).get('storageBucket') or outputs.get('firebaseStorageBucket') or f"{project_id}.firebasestorage.app",
-            'messagingSenderId': outputs.get('firebaseConfig', {}).get('messagingSenderId') or '',
-            'appId': outputs.get('firebaseConfig', {}).get('appId') or outputs.get('firebaseWebAppId') or '',
-            'databaseURL': outputs.get('firebaseConfig', {}).get('databaseURL') or f"https://{project_id}.firebaseio.com"
+            'storageBucket': firebase_config.get('storageBucket') or outputs.get('firebaseStorageBucket') or f"{project_id}.firebasestorage.app",
+            'messagingSenderId': firebase_config.get('messagingSenderId') or outputs.get('messagingSenderId') or '',
+            'appId': firebase_config.get('appId') or outputs.get('firebaseWebAppId') or '',
+            'databaseURL': firebase_config.get('databaseURL') or f"https://{project_id}.firebaseio.com"
         },
         'googleAI': {
-            'apiKey': outputs.get('apiKey') or '',
+            'apiKey': outputs.get('apiKey') or outputs.get('apiGatewayKey') or '',
             'apiGatewayUrl': outputs.get('apiGatewayUrl') or '',
-            'apiGatewayKey': outputs.get('apiKey') or '',
+            'apiGatewayKey': outputs.get('apiGatewayKey') or outputs.get('apiKey') or '',
             'gcpProjectId': project_id,
             'gcpRegion': region,
             'gcsBucketName': outputs.get('firebaseStorageBucket') or f"{project_id}.firebasestorage.app"
@@ -1386,7 +1443,8 @@ def get_acap_configuration(deployment_id):
         'deployment': {
             'version': VERSION,
             'timestamp': deployment_data.get('completedAt', deployment_data.get('createdAt')).isoformat() if deployment_data.get('completedAt') or deployment_data.get('createdAt') else None,
-            'deploymentId': deployment_id
+            'deploymentId': deployment_id,
+            'outputs': outputs  # Include all outputs for debugging
         }
     }
     

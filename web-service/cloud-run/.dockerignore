@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Logs
+*.log
+logs/
+
+# Testing files
+test_*.py
+*_test.py
+testing_*.py
+automated_test_loop.py
+test_framework.py
+run_single_deployment_fixed.py
+deployment_fixes.py
+fix_ui_progress.py
+
+# Documentation
+*.md
+README.md
+TESTING_STRATEGY.md
+DEPLOYMENT_SUCCESS_*.md
+HANDOFF_*.md
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# JavaScript files (not needed in backend)
+*.js
+dashboard_*.html
+main_fixed.py
+new_show_success_function.js
+
+# Claude
+.claude/
