@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-07-14T02:47:41.779Z",
+  "camera": {
+    "ip": "192.168.50.156",
+    "accessible": false,
+    "authentication": "Failed"
+  },
+  "cloudServices": {
+    "webService": "Online",
+    "deploymentUrl": "https://anava-deploy-392865621461.us-central1.run.app"
+  },
+  "acapDeployment": {
+    "simulated": true,
+    "configLoaded": true
+  },
+  "mcpIntegration": {
+    "configured": true
+  },
+  "nextSteps": [
+    "Configure camera with correct credentials",
+    "Ensure camera is on the same network",
+    "Authenticate with deployment service",
+    "Create actual deployment via web UI",
+    "Deploy ACAP to physical camera"
+  ]
+}

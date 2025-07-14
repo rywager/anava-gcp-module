@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  skill-builder:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - GCP_REGION=${GCP_REGION:-us-central1}
+      - MCP_SERVER_URL=${MCP_SERVER_URL}
+      - REDIS_URL=redis://redis:6379
+      - DEBUG=${DEBUG:-false}
+    depends_on:
+      - redis
+    volumes:
+      - ./app:/app/app
+      - ./data:/app/data
+    command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  # Optional: Local testing database
+  firestore-emulator:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+    ports:
+      - "8086:8086"
+    command: >
+      sh -c "gcloud beta emulators firestore start --host-port=0.0.0.0:8086 --project=test-project"
+    environment:
+      - FIRESTORE_EMULATOR_HOST=localhost:8086
+
+volumes:
+  redis_data:

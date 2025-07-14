@@ -28,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.32"  # OPTIMIZED: Added .dockerignore to reduce image size from 1.69GB
+VERSION = "2.3.33"  # FIXED: Firebase Storage URL format (gs://project.firebasestorage.app)
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -1017,6 +1017,16 @@ output "firebase_web_app_id" {{
             # Extract webApiKey from firebase_config if present
             web_api_key = firebase_config.get('apiKey', 'Not found') if firebase_config else 'Not found'
             
+            # Fix storage bucket format if needed
+            storage_bucket = get_output_value(outputs, 'firebase_storage_bucket')
+            if storage_bucket.startswith('projects/') and '/buckets/' in storage_bucket:
+                # Convert GCS format to Firebase Storage format
+                storage_bucket = f"gs://{project_id}.firebasestorage.app"
+            
+            # Also fix it in firebase_config
+            if firebase_config and firebase_config.get('storageBucket', '').startswith('projects/'):
+                firebase_config['storageBucket'] = f"gs://{project_id}.firebasestorage.app"
+            
             output_data = {
                 'apiGatewayUrl': get_output_value(outputs, 'api_gateway_url'),
                 'apiKey': get_output_value(outputs, 'api_key'),
@@ -1027,7 +1037,7 @@ output "firebase_web_app_id" {{
                 'apiKeySecret': f"projects/{project_id}/secrets/{get_output_value(outputs, 'firebase_api_key_secret_name')}",
                 'workloadIdentityProvider': get_output_value(outputs, 'workload_identity_provider'),
                 'vertexServiceAccount': get_output_value(outputs, 'vertex_ai_service_account_email'),
-                'firebaseStorageBucket': get_output_value(outputs, 'firebase_storage_bucket'),
+                'firebaseStorageBucket': storage_bucket,  # Use corrected format
                 'firebaseWebAppId': get_output_value(outputs, 'firebase_web_app_id'),
                 'deviceAuthFunctionUrl': get_output_value(outputs, 'device_auth_function_url'),
                 'tvmFunctionUrl': get_output_value(outputs, 'tvm_function_url'),
@@ -1133,7 +1143,18 @@ output "firebase_web_app_id" {{
                 fc = output_data['firebaseConfig']
                 log(f"RESULT: Firebase Project ID: {fc.get('projectId', 'Not found')}")
                 log(f"RESULT: Firebase Auth Domain: {fc.get('authDomain', 'Not found')}")
-                log(f"RESULT: Firebase Storage Bucket: {fc.get('storageBucket', 'Not found')}")
+                
+                # Format storage bucket correctly for Firebase
+                storage_bucket = fc.get('storageBucket', 'Not found')
+                if storage_bucket.startswith('projects/') and '/buckets/' in storage_bucket:
+                    # Extract bucket name from GCS format
+                    bucket_name = storage_bucket.split('/buckets/')[1]
+                    # For Firebase, use the project ID format
+                    firebase_storage_url = f"gs://{project_id}.firebasestorage.app"
+                    log(f"RESULT: Firebase Storage Bucket: {firebase_storage_url}")
+                else:
+                    log(f"RESULT: Firebase Storage Bucket: {storage_bucket}")
+                    
                 log(f"RESULT: Firebase Web App ID: {fc.get('appId', 'Not found')}")
     
     except Exception as e:

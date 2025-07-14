@@ -1,0 +1,79 @@
+{
+  "api_gateway_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://anava-gateway-05178d35.apigateway.us-central1.run.app"
+  },
+  "api_key": {
+    "sensitive": true,
+    "type": "string",
+    "value": null
+  },
+  "device_auth_function_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://anava-device-auth-fn-p2kamosfwq-uc.a.run.app"
+  },
+  "firebase_api_key_secret_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "projects/392865621461/secrets/anava-api-key"
+  },
+  "firebase_config": {
+    "sensitive": true,
+    "type": [
+      "object",
+      {
+        "apiKey": "string",
+        "appId": "string",
+        "authDomain": "string",
+        "databaseURL": "string",
+        "projectId": "string",
+        "storageBucket": "string"
+      }
+    ],
+    "value": {
+      "apiKey": "AIzaSyCJbWAa-zQir1v8kmlye8Kv3kmhPb9r18s",
+      "appId": "1:392865621461:web:15db206ae4e9c72f7dc95c",
+      "authDomain": "anava-ai.firebaseapp.com",
+      "databaseURL": "https://anava-ai.firebaseio.com",
+      "projectId": "anava-ai",
+      "storageBucket": null
+    }
+  },
+  "firebase_config_secret_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "projects/392865621461/secrets/anava-firebase-config"
+  },
+  "firebase_storage_bucket": {
+    "sensitive": false,
+    "type": "string",
+    "value": null
+  },
+  "firebase_web_app_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "1:392865621461:web:15db206ae4e9c72f7dc95c"
+  },
+  "firestore_database_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "anava"
+  },
+  "tvm_function_url": {
+    "sensitive": false,
+    "type": "string",
+    "value": "https://anava-tvm-fn-p2kamosfwq-uc.a.run.app"
+  },
+  "vertex_ai_service_account_email": {
+    "sensitive": false,
+    "type": "string",
+    "value": "anava-vertex-ai-sa@anava-ai.iam.gserviceaccount.com"
+  },
+  "workload_identity_provider": {
+    "sensitive": false,
+    "type": "string",
+    "value": "projects/392865621461/locations/global/workloadIdentityPools/anava-wif-pool/providers/anava-firebase-provider"
+  }
+}

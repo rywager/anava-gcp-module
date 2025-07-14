@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Anava Vision</title>
+    <link rel="manifest" href="/manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Mobile-first design */
+        body { 
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .safe-top { padding-top: env(safe-area-inset-top); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+</head>
+<body class="bg-black text-white h-screen flex flex-col">
+    <!-- Status Bar -->
+    <div class="safe-top bg-gray-900 px-4 py-2 flex justify-between items-center text-sm">
+        <span id="connectionStatus" class="flex items-center">
+            <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+            Offline
+        </span>
+        <span id="cameraCount">0 cameras</span>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-hidden flex flex-col">
+        <!-- Camera View/List Toggle -->
+        <div class="bg-gray-800 p-4">
+            <div class="flex gap-2 mb-4">
+                <button onclick="showView('cameras')" class="flex-1 bg-blue-600 py-2 rounded">Cameras</button>
+                <button onclick="showView('chat')" class="flex-1 bg-gray-700 py-2 rounded">Chat</button>
+                <button onclick="showView('deploy')" class="flex-1 bg-gray-700 py-2 rounded">Deploy</button>
+            </div>
+        </div>
+
+        <!-- Cameras View -->
+        <div id="camerasView" class="flex-1 overflow-y-auto p-4">
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Camera cards will be added here -->
+            </div>
+            <button onclick="discoverCameras()" class="w-full mt-4 bg-blue-600 py-3 rounded-lg">
+                Discover Cameras
+            </button>
+        </div>
+
+        <!-- Chat View -->
+        <div id="chatView" class="hidden flex-1 flex flex-col">
+            <div id="messages" class="flex-1 overflow-y-auto p-4">
+                <!-- Messages -->
+            </div>
+            <div class="p-4 bg-gray-800 safe-bottom">
+                <div class="flex gap-2">
+                    <input id="chatInput" type="text" class="flex-1 bg-gray-700 px-4 py-3 rounded-full" 
+                           placeholder="Ask your cameras...">
+                    <button onclick="sendMessage()" class="bg-blue-600 px-6 py-3 rounded-full">
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deploy View -->
+        <div id="deployView" class="hidden flex-1 overflow-y-auto p-4">
+            <h2 class="text-xl font-bold mb-4">Quick Deploy</h2>
+            <div class="space-y-4">
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <h3 class="font-bold mb-2">Perimeter Security</h3>
+                    <p class="text-sm text-gray-400 mb-3">Monitor boundaries and alert on intrusions</p>
+                    <button class="bg-green-600 px-4 py-2 rounded">Deploy to All</button>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <h3 class="font-bold mb-2">Package Detection</h3>
+                    <p class="text-sm text-gray-400 mb-3">Alert when deliveries arrive</p>
+                    <button class="bg-green-600 px-4 py-2 rounded">Deploy to All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile-optimized Anava Vision
+        class AnavaMobile {
+            constructor() {
+                this.cameras = [];
+                this.isOnline = false;
+                this.cloudEndpoint = 'https://anava-deploy-p2kamosfwq-uc.a.run.app';
+                this.init();
+            }
+
+            async init() {
+                // Check connection type
+                this.checkConnection();
+                
+                // Load cached data
+                this.loadCache();
+                
+                // Set up event handlers
+                this.setupHandlers();
+                
+                // Try to connect
+                await this.connect();
+            }
+
+            checkConnection() {
+                // Are we on local network or cloud?
+                if (window.location.hostname === 'localhost' || 
+                    window.location.hostname.startsWith('192.168.')) {
+                    this.mode = 'local';
+                } else {
+                    this.mode = 'cloud';
+                }
+            }
+
+            async connect() {
+                try {
+                    const response = await fetch(`${this.cloudEndpoint}/api/health`);
+                    if (response.ok) {
+                        this.setOnline(true);
+                    }
+                } catch (e) {
+                    this.setOnline(false);
+                }
+            }
+
+            setOnline(status) {
+                this.isOnline = status;
+                const indicator = document.querySelector('#connectionStatus span');
+                const text = document.querySelector('#connectionStatus');
+                
+                if (status) {
+                    indicator.classList.remove('bg-red-500');
+                    indicator.classList.add('bg-green-500');
+                    text.lastChild.textContent = ' Online';
+                } else {
+                    indicator.classList.remove('bg-green-500');
+                    indicator.classList.add('bg-red-500');
+                    text.lastChild.textContent = ' Offline';
+                }
+            }
+
+            loadCache() {
+                const cached = localStorage.getItem('anava-cameras');
+                if (cached) {
+                    this.cameras = JSON.parse(cached);
+                    this.updateCameraDisplay();
+                }
+            }
+
+            saveCache() {
+                localStorage.setItem('anava-cameras', JSON.stringify(this.cameras));
+            }
+
+            setupHandlers() {
+                // Handle online/offline
+                window.addEventListener('online', () => this.setOnline(true));
+                window.addEventListener('offline', () => this.setOnline(false));
+                
+                // Handle input
+                document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') window.sendMessage();
+                });
+            }
+
+            async discoverCameras() {
+                // For MVP, simulate discovery
+                this.cameras = [
+                    { id: '001', name: 'Front Door', ip: '192.168.1.100', status: 'online' },
+                    { id: '002', name: 'Loading Dock', ip: '192.168.1.101', status: 'online' },
+                    { id: '003', name: 'Parking Lot', ip: '192.168.1.102', status: 'offline' }
+                ];
+                
+                this.saveCache();
+                this.updateCameraDisplay();
+                
+                // Show notification
+                this.showToast(`Found ${this.cameras.length} cameras`);
+            }
+
+            updateCameraDisplay() {
+                const container = document.querySelector('#camerasView .grid');
+                container.innerHTML = '';
+                
+                this.cameras.forEach(camera => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-800 p-4 rounded-lg';
+                    card.innerHTML = `
+                        <div class="aspect-video bg-gray-700 rounded mb-2 flex items-center justify-center">
+                            <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <h3 class="font-bold text-sm">${camera.name}</h3>
+                        <p class="text-xs text-gray-400">${camera.ip}</p>
+                        <div class="mt-2 flex items-center">
+                            <span class="w-2 h-2 ${camera.status === 'online' ? 'bg-green-500' : 'bg-red-500'} rounded-full mr-1"></span>
+                            <span class="text-xs">${camera.status}</span>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                
+                document.getElementById('cameraCount').textContent = `${this.cameras.length} cameras`;
+            }
+
+            async sendMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                if (!message) return;
+                
+                this.addMessage('user', message);
+                input.value = '';
+                
+                // Simulate response
+                setTimeout(() => {
+                    if (message.toLowerCase().includes('see')) {
+                        this.addMessage('assistant', 'I can see 2 people near the front door and normal activity in the parking lot.');
+                    } else if (message.toLowerCase().includes('alert')) {
+                        this.addMessage('assistant', 'I\'ve configured alerts for any unusual activity after 6 PM.');
+                    } else {
+                        this.addMessage('assistant', 'I understand. I\'ll help you monitor your cameras.');
+                    }
+                }, 1000);
+            }
+
+            addMessage(type, text) {
+                const messages = document.getElementById('messages');
+                const div = document.createElement('div');
+                div.className = `mb-3 ${type === 'user' ? 'text-right' : ''}`;
+                
+                const bubble = document.createElement('div');
+                bubble.className = `inline-block px-4 py-2 rounded-2xl max-w-[80%] ${
+                    type === 'user' ? 'bg-blue-600' : 'bg-gray-700'
+                }`;
+                bubble.textContent = text;
+                
+                div.appendChild(bubble);
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            showToast(message) {
+                // Create toast notification
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-20 left-4 right-4 bg-gray-800 px-4 py-3 rounded-lg shadow-lg z-50';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => toast.remove(), 3000);
+            }
+        }
+
+        // View switching
+        function showView(view) {
+            document.querySelectorAll('[id$="View"]').forEach(v => v.classList.add('hidden'));
+            document.getElementById(view + 'View').classList.remove('hidden');
+            
+            // Update button styles
+            const buttons = document.querySelectorAll('.bg-gray-800 button');
+            buttons.forEach(b => {
+                b.classList.remove('bg-blue-600');
+                b.classList.add('bg-gray-700');
+            });
+            event.target.classList.remove('bg-gray-700');
+            event.target.classList.add('bg-blue-600');
+        }
+
+        // Global functions
+        window.app = new AnavaMobile();
+        window.discoverCameras = () => app.discoverCameras();
+        window.sendMessage = () => app.sendMessage();
+        
+        // PWA install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+    </script>
+</body>
+</html>

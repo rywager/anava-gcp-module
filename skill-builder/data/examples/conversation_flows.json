@@ -1,0 +1,249 @@
+{
+  "conversation_examples": [
+    {
+      "scenario": "loading_dock_security",
+      "description": "User wants to monitor loading dock for unauthorized access at night",
+      "conversation": [
+        {
+          "user": "I need to monitor my loading dock for unauthorized access at night",
+          "bot": "I'll help you set up night security for your loading dock. Should I alert you immediately when someone is detected, or just record the events?",
+          "extracted_info": {
+            "location": "loading dock",
+            "detection_types": ["person", "intrusion"],
+            "schedule": ["night"],
+            "intent": "monitor"
+          }
+        },
+        {
+          "user": "Alert me immediately and turn on the lights",
+          "bot": "Perfect! I've created a skill that will:\n- Monitor for people after business hours\n- Send immediate alerts\n- Activate floodlights\n- Record all events\n\nReady to deploy?",
+          "extracted_info": {
+            "alerts_enabled": true,
+            "actions": ["lights", "alert", "record"]
+          }
+        },
+        {
+          "user": "Yes, deploy it",
+          "bot": "Excellent! Your 'Loading Dock Night Security' skill has been created and is ready to deploy to your cameras.",
+          "final_skill": {
+            "name": "Loading Dock Night Security",
+            "type": "perimeter_security",
+            "schedule": "nighttime",
+            "detections": ["person", "intrusion"],
+            "actions": ["record", "alert", "relay_lights"],
+            "alerts": "immediate"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "package_delivery",
+      "description": "User wants to monitor for package deliveries",
+      "conversation": [
+        {
+          "user": "Watch for package deliveries at my front door",
+          "bot": "I'll set up package delivery monitoring for your front door. What hours should this be active? For example: business hours, all day, or specific times?",
+          "extracted_info": {
+            "location": "front door",
+            "detection_types": ["package", "person"],
+            "intent": "detect"
+          }
+        },
+        {
+          "user": "During business hours, 8 AM to 6 PM",
+          "bot": "Got it! Should I send you notifications when packages are delivered, or would you prefer to just record the deliveries?",
+          "extracted_info": {
+            "schedule": ["business hours", "8 AM to 6 PM"]
+          }
+        },
+        {
+          "user": "Send me notifications",
+          "bot": "Perfect! Your package delivery monitor will:\n- Watch for packages and delivery personnel\n- Active 8 AM to 6 PM on weekdays\n- Send notifications when deliveries arrive\n- Record all delivery events\n\nShall I create this skill?",
+          "extracted_info": {
+            "alerts_enabled": true
+          }
+        },
+        {
+          "user": "Yes",
+          "bot": "Great! Your 'Front Door Package Detection' skill is ready to deploy.",
+          "final_skill": {
+            "name": "Front Door Package Detection",
+            "type": "package_delivery",
+            "schedule": "business_hours",
+            "detections": ["package", "person"],
+            "actions": ["record", "alert"],
+            "alerts": "enabled"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "vehicle_monitoring",
+      "description": "User wants to monitor parking lot for unauthorized vehicles",
+      "conversation": [
+        {
+          "user": "Monitor the parking lot for unauthorized vehicles",
+          "bot": "I'll help you set up vehicle monitoring for your parking lot. When should this monitoring be active?",
+          "extracted_info": {
+            "location": "parking lot",
+            "detection_types": ["vehicle"],
+            "intent": "monitor"
+          }
+        },
+        {
+          "user": "24/7",
+          "bot": "Should I alert you about every vehicle, or only during specific conditions like after hours or in restricted areas?",
+          "extracted_info": {
+            "schedule": ["24/7"]
+          }
+        },
+        {
+          "user": "Only after 6 PM and on weekends",
+          "bot": "I understand. So I'll monitor for vehicles and alert you only after 6 PM on weekdays and all day on weekends. Does that sound right?",
+          "extracted_info": {
+            "schedule": ["after 6 PM", "weekends"],
+            "alerts_enabled": true
+          }
+        },
+        {
+          "user": "Perfect",
+          "bot": "Excellent! Your 'Parking Lot Vehicle Monitoring' skill will track unauthorized parking during specified hours.",
+          "final_skill": {
+            "name": "Parking Lot Vehicle Monitoring",
+            "type": "vehicle_monitoring",
+            "schedule": "after_hours_and_weekends",
+            "detections": ["vehicle"],
+            "actions": ["record", "alert"],
+            "alerts": "conditional"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "crowd_detection",
+      "description": "User wants to monitor for crowd formation",
+      "conversation": [
+        {
+          "user": "I need to detect when crowds form in the lobby",
+          "bot": "I'll set up crowd detection for your lobby. What should I consider a 'crowd'? For example, how many people would trigger an alert?",
+          "extracted_info": {
+            "location": "lobby",
+            "detection_types": ["person"],
+            "intent": "detect"
+          }
+        },
+        {
+          "user": "More than 10 people at once",
+          "bot": "Got it! Should I monitor for crowds 24/7, or only during specific hours?",
+          "extracted_info": {
+            "crowd_threshold": 10
+          }
+        },
+        {
+          "user": "Only during business hours",
+          "bot": "Perfect! Your crowd detection will:\n- Monitor the lobby during business hours\n- Alert when more than 10 people gather\n- Record crowd formation events\n- Track density levels\n\nReady to deploy?",
+          "extracted_info": {
+            "schedule": ["business hours"],
+            "alerts_enabled": true
+          }
+        },
+        {
+          "user": "Yes",
+          "bot": "Your 'Lobby Crowd Detection' skill is ready to monitor for crowd formation.",
+          "final_skill": {
+            "name": "Lobby Crowd Detection",
+            "type": "crowd_detection",
+            "schedule": "business_hours",
+            "detections": ["person"],
+            "parameters": {"crowd_threshold": 10},
+            "actions": ["record", "alert"],
+            "alerts": "enabled"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "safety_compliance",
+      "description": "User wants to monitor safety equipment compliance",
+      "conversation": [
+        {
+          "user": "Monitor workers for hard hat compliance in the construction area",
+          "bot": "I'll set up safety compliance monitoring for hard hat usage. Should this run during all work hours, or specific times?",
+          "extracted_info": {
+            "location": "construction area",
+            "detection_types": ["person"],
+            "intent": "monitor",
+            "compliance_type": "hard_hat"
+          }
+        },
+        {
+          "user": "During work hours, 7 AM to 5 PM",
+          "bot": "How should I handle compliance violations? Immediate alerts, or periodic reports?",
+          "extracted_info": {
+            "schedule": ["work hours", "7 AM to 5 PM"]
+          }
+        },
+        {
+          "user": "Immediate alerts for safety",
+          "bot": "Absolutely! Safety first. Your compliance monitor will:\n- Check for hard hat usage during work hours\n- Send immediate alerts for violations\n- Record all safety events\n- Generate compliance reports\n\nShall I create this?",
+          "extracted_info": {
+            "alerts_enabled": true,
+            "priority": "high"
+          }
+        },
+        {
+          "user": "Yes, create it",
+          "bot": "Your 'Construction Area Safety Compliance' skill is ready to ensure worker safety.",
+          "final_skill": {
+            "name": "Construction Area Safety Compliance",
+            "type": "safety_compliance",
+            "schedule": "work_hours",
+            "detections": ["person"],
+            "parameters": {"compliance_check": "hard_hat"},
+            "actions": ["record", "alert", "report"],
+            "alerts": "immediate"
+          }
+        }
+      ]
+    }
+  ],
+  "quick_start_examples": [
+    {
+      "phrase": "Monitor loading dock at night",
+      "expected_result": {
+        "intent": "monitor",
+        "location": "loading dock",
+        "schedule": "night",
+        "skill_type": "perimeter_security"
+      }
+    },
+    {
+      "phrase": "Watch for packages at front door",
+      "expected_result": {
+        "intent": "detect",
+        "location": "front door",
+        "detection_types": ["package"],
+        "skill_type": "package_delivery"
+      }
+    },
+    {
+      "phrase": "Alert me about vehicles in parking lot",
+      "expected_result": {
+        "intent": "alert",
+        "location": "parking lot",
+        "detection_types": ["vehicle"],
+        "skill_type": "vehicle_monitoring"
+      }
+    },
+    {
+      "phrase": "Detect crowds in lobby during business hours",
+      "expected_result": {
+        "intent": "detect",
+        "location": "lobby",
+        "detection_types": ["person"],
+        "schedule": "business hours",
+        "skill_type": "crowd_detection"
+      }
+    }
+  ]
+}

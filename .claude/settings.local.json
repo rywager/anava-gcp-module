@@ -60,17 +60,17 @@
       "Bash(timeout:*)",
       "Bash(gcloud run operations list:*)",
       "Bash(gcloud beta run deploy:*)",
-      "Bash(--source . )",
-      "Bash(--region us-central1 )",
       "Bash(--async )",
       "Bash(--platform managed)",
       "Bash(gcloud run revisions list:*)",
       "Bash(--image gcr.io/anava-ai/anava-deploy:v2.3.29 )",
-      "Bash(--region us-central1 )",
       "Bash(gcloud firestore operations list:*)",
       "Bash(open https://anava-deploy-392865621461.us-central1.run.app)",
       "Bash(python3:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "mcp__multi-ai-collab__gemini_think_deep",
+      "mcp__multi-ai-collab__openai_architecture",
+      "WebFetch(domain:docs.google.com)"
     ],
     "deny": []
   }

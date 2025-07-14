@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anava Vision - Browser MCP Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto p-8">
+        <h1 class="text-4xl font-bold mb-8">Anava Vision - Local Camera Control</h1>
+        
+        <!-- Camera Discovery -->
+        <div class="mb-8 bg-gray-800 p-6 rounded-lg">
+            <h2 class="text-2xl mb-4">Camera Discovery</h2>
+            <button id="discoverBtn" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
+                Discover Cameras
+            </button>
+            <div id="cameraList" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Discovered cameras will appear here -->
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="bg-gray-800 p-6 rounded-lg">
+            <h2 class="text-2xl mb-4">Chat with Cameras</h2>
+            <div id="chatMessages" class="h-96 overflow-y-auto bg-gray-900 p-4 rounded mb-4">
+                <!-- Chat messages appear here -->
+            </div>
+            <div class="flex gap-2">
+                <input id="chatInput" type="text" 
+                    class="flex-1 bg-gray-700 p-2 rounded" 
+                    placeholder="Ask your cameras anything...">
+                <button id="sendBtn" class="bg-green-600 px-4 py-2 rounded hover:bg-green-700">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Browser-based MCP implementation
+        class BrowserMCPClient {
+            constructor() {
+                this.cameras = new Map();
+                this.workers = new Map();
+                this.setupUI();
+            }
+
+            setupUI() {
+                document.getElementById('discoverBtn').addEventListener('click', () => this.discoverCameras());
+                document.getElementById('sendBtn').addEventListener('click', () => this.sendMessage());
+                document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+            }
+
+            async discoverCameras() {
+                const button = document.getElementById('discoverBtn');
+                button.disabled = true;
+                button.textContent = 'Discovering...';
+
+                try {
+                    // Use WebRTC local network discovery
+                    const cameras = await this.scanLocalNetwork();
+                    
+                    // For demo, add some mock cameras
+                    if (cameras.length === 0) {
+                        cameras.push(
+                            { id: 'cam-001', ip: '192.168.1.100', name: 'Front Door Camera' },
+                            { id: 'cam-002', ip: '192.168.1.101', name: 'Loading Dock Camera' },
+                            { id: 'cam-003', ip: '192.168.1.102', name: 'Parking Lot Camera' }
+                        );
+                    }
+
+                    this.displayCameras(cameras);
+                } finally {
+                    button.disabled = false;
+                    button.textContent = 'Discover Cameras';
+                }
+            }
+
+            async scanLocalNetwork() {
+                // Real implementation would use:
+                // 1. WebRTC for local network discovery
+                // 2. mDNS/Bonjour via browser extensions
+                // 3. Known camera registry from localStorage
+                
+                return new Promise((resolve) => {
+                    // Simulate network scan
+                    setTimeout(() => {
+                        resolve([]);
+                    }, 2000);
+                });
+            }
+
+            displayCameras(cameras) {
+                const list = document.getElementById('cameraList');
+                list.innerHTML = '';
+
+                cameras.forEach(camera => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-700 p-4 rounded-lg';
+                    card.innerHTML = `
+                        <h3 class="font-bold mb-2">${camera.name}</h3>
+                        <p class="text-sm text-gray-400 mb-2">${camera.ip}</p>
+                        <button class="bg-blue-600 px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                onclick="window.mcp.connectCamera('${camera.id}')">
+                            Connect
+                        </button>
+                    `;
+                    list.appendChild(card);
+                    
+                    this.cameras.set(camera.id, camera);
+                });
+
+                this.addMessage('system', `Found ${cameras.length} cameras on your network`);
+            }
+
+            async connectCamera(cameraId) {
+                const camera = this.cameras.get(cameraId);
+                if (!camera) return;
+
+                // Create a Web Worker for this camera connection
+                const worker = new Worker(URL.createObjectURL(new Blob([`
+                    // Camera connection worker
+                    let ws = null;
+                    
+                    self.onmessage = async (e) => {
+                        const { type, data } = e.data;
+                        
+                        switch(type) {
+                            case 'connect':
+                                // In production, connect to camera's local MCP endpoint
+                                // For now, simulate connection
+                                setTimeout(() => {
+                                    self.postMessage({ type: 'connected', camera: data });
+                                }, 1000);
+                                break;
+                                
+                            case 'command':
+                                // Process camera command
+                                const result = await processCommand(data);
+                                self.postMessage({ type: 'response', data: result });
+                                break;
+                        }
+                    };
+                    
+                    async function processCommand(cmd) {
+                        // Simulate camera responses
+                        if (cmd.includes('see')) {
+                            return 'I see 2 people near the entrance and 3 vehicles in the parking lot.';
+                        } else if (cmd.includes('alert')) {
+                            return 'Alert configured for unauthorized access after hours.';
+                        } else if (cmd.includes('status')) {
+                            return 'Camera operational. Recording at 1080p, 30fps. Storage: 45% used.';
+                        }
+                        return 'Command processed successfully.';
+                    }
+                `], { type: 'application/javascript' })));
+
+                worker.onmessage = (e) => this.handleWorkerMessage(cameraId, e.data);
+                worker.postMessage({ type: 'connect', data: camera });
+                
+                this.workers.set(cameraId, worker);
+            }
+
+            handleWorkerMessage(cameraId, message) {
+                if (message.type === 'connected') {
+                    this.addMessage('system', `Connected to ${message.camera.name}`);
+                } else if (message.type === 'response') {
+                    this.addMessage('camera', message.data, message.camera?.name);
+                }
+            }
+
+            async sendMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                if (!message) return;
+
+                this.addMessage('user', message);
+                input.value = '';
+
+                // Send to all connected cameras
+                this.workers.forEach((worker, cameraId) => {
+                    worker.postMessage({ type: 'command', data: message });
+                });
+
+                // If no cameras connected, show help
+                if (this.workers.size === 0) {
+                    this.addMessage('system', 'No cameras connected. Click "Discover Cameras" to find cameras on your network.');
+                }
+            }
+
+            addMessage(type, text, sender = '') {
+                const messages = document.getElementById('chatMessages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `mb-4 ${type === 'user' ? 'text-right' : ''}`;
+                
+                const bubble = document.createElement('div');
+                bubble.className = `inline-block px-4 py-2 rounded-lg max-w-md ${
+                    type === 'user' ? 'bg-blue-600' : 
+                    type === 'camera' ? 'bg-green-600' : 
+                    'bg-gray-600'
+                }`;
+                
+                if (sender) {
+                    const senderSpan = document.createElement('div');
+                    senderSpan.className = 'text-xs opacity-75 mb-1';
+                    senderSpan.textContent = sender;
+                    bubble.appendChild(senderSpan);
+                }
+                
+                const textSpan = document.createElement('div');
+                textSpan.textContent = text;
+                bubble.appendChild(textSpan);
+                
+                messageDiv.appendChild(bubble);
+                messages.appendChild(messageDiv);
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+
+        // Initialize MCP client
+        window.mcp = new BrowserMCPClient();
+        
+        // Add initial message
+        window.mcp.addMessage('system', 'Welcome to Anava Vision! This browser-based client can discover and control cameras on your local network.');
+    </script>
+</body>
+</html>

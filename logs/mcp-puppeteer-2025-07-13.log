@@ -1,0 +1,11 @@
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-07-13 02:12:45.969"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-07-13 02:12:45.970"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-07-13 02:36:15.441"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-07-13 02:36:15.441"}
+{"arguments":{"url":"https://anava-deploy-392865621461.us-central1.run.app"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-07-13 21:43:04.720","tool":"puppeteer_navigate"}
+{"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-07-13 21:43:04.721"}
+{"level":"info","message":"Browser launched successfully","service":"mcp-puppeteer","timestamp":"2025-07-13 21:43:05.619"}
+{"level":"info","message":"Navigating to URL","service":"mcp-puppeteer","timestamp":"2025-07-13 21:43:05.620","url":"https://anava-deploy-392865621461.us-central1.run.app"}
+{"level":"info","message":"Navigation successful","service":"mcp-puppeteer","status":200,"timestamp":"2025-07-13 21:43:06.336","url":"https://anava-deploy-392865621461.us-central1.run.app"}
+{"arguments":{"height":800,"name":"deployment-service-home","width":1200},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-07-13 21:43:11.182","tool":"puppeteer_screenshot"}
+{"arguments":{},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-07-13 21:43:27.775","tool":"puppeteer_connect_active_tab"}
