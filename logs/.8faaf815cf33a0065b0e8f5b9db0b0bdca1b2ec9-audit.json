@@ -14,6 +14,11 @@
             "date": 1752390765925,
             "name": "/Users/ryanwager/terraform-installer/logs/mcp-puppeteer-2025-07-13.log",
             "hash": "a0b49a86822b5f042443ee7032096a0e93a41954811b5f23642502cc838bc528"
+        },
+        {
+            "date": 1752598216679,
+            "name": "/Users/ryanwager/terraform-installer/logs/mcp-puppeteer-2025-07-15.log",
+            "hash": "a12b0845734038d036f791c1bf9a10ab8886e962c477e835997f92b331f522ef"
         }
     ],
     "hashType": "sha256"

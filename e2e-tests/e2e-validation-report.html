@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anava Vision E2E Validation Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .header { background: #f5f5f5; padding: 20px; border-radius: 8px; }
+        .summary { display: flex; gap: 20px; margin: 20px 0; }
+        .metric { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; }
+        .passed { color: green; }
+        .failed { color: red; }
+        .test-result { margin: 10px 0; padding: 15px; border-radius: 8px; }
+        .test-passed { background: #e8f5e8; border-left: 4px solid green; }
+        .test-failed { background: #ffeaea; border-left: 4px solid red; }
+        .json-data { background: #f8f8f8; padding: 10px; border-radius: 4px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Anava Vision E2E Validation Report</h1>
+        <p><strong>Version:</strong> 2.3.33</p>
+        <p><strong>Timestamp:</strong> 2025-07-14T05:03:10.344Z</p>
+        <p><strong>Success Rate:</strong> 50%</p>
+    </div>
+    
+    <div class="summary">
+        <div class="metric">
+            <h3>Total Tests</h3>
+            <div style="font-size: 24px; font-weight: bold;">2</div>
+        </div>
+        <div class="metric">
+            <h3>Passed</h3>
+            <div style="font-size: 24px; font-weight: bold;" class="passed">1</div>
+        </div>
+        <div class="metric">
+            <h3>Failed</h3>
+            <div style="font-size: 24px; font-weight: bold;" class="failed">1</div>
+        </div>
+    </div>
+    
+    <h2>📊 Test Results</h2>
+    
+        <div class="test-result test-passed">
+            <h3>✅ Web Service Health</h3>
+            <p><strong>Status:</strong> PASSED</p>
+            <p><strong>Duration:</strong> 122ms</p>
+            <p><strong>Timestamp:</strong> 2025-07-14T05:03:10.468Z</p>
+            <div class="json-data">{
+  "status": "healthy",
+  "version": "2.3.32",
+  "redis": "unavailable",
+  "queue": -1
+}</div>
+            
+        </div>
+    
+        <div class="test-result test-failed">
+            <h3>❌ Camera Discovery</h3>
+            <p><strong>Status:</strong> FAILED</p>
+            <p><strong>Duration:</strong> 52ms</p>
+            <p><strong>Timestamp:</strong> 2025-07-14T05:03:10.520Z</p>
+            
+            <p><strong>Error:</strong> Request failed with status code 404</p>
+        </div>
+    
+    
+    <h2>🔧 System Configuration</h2>
+    <div class="json-data">
+{
+  "webService": "https://anava-deploy-392865621461.us-central1.run.app",
+  "orchestrator": "https://anava-deploy-392865621461.us-central1.run.app",
+  "pwaUrl": "https://anava-vision-pwa.firebaseapp.com",
+  "timeout": 30000,
+  "maxRetries": 3,
+  "loadTestConnections": 10,
+  "loadTestDuration": 60000
+}
+    </div>
+</body>
+</html>

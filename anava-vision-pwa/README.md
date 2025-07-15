@@ -1,46 +1,168 @@
-# Getting Started with Create React App
+# Anava Vision PWA
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A production-ready Progressive Web App for professional camera control with PTZ support.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+✨ **Modern PWA Features**
+- 📱 Installable on mobile and desktop
+- 🔄 Offline support with service worker
+- 🔔 Push notifications for alerts
+- ⚡ Fast loading and caching
 
-### `npm start`
+🎥 **Camera Control**
+- 📹 WebRTC video streaming
+- 🎛️ PTZ (Pan-Tilt-Zoom) controls with virtual joystick
+- 📷 Camera list from orchestrator service
+- 🎯 Preset positions
+- 📸 Snapshot capture
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+🎨 **Beautiful UI**
+- 🌙 Dark theme with gradient design
+- 📱 Mobile-first responsive design
+- ✨ Smooth animations with Framer Motion
+- 🎨 Modern glassmorphism effects
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Quick Start
 
-### `npm test`
+### 1. Install Dependencies
+```bash
+npm install
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 2. Configure Environment
+Edit `.env` file to set your orchestrator URL:
+```bash
+REACT_APP_ORCHESTRATOR_URL=http://your-orchestrator-url/api
+```
 
-### `npm run build`
+### 3. Development
+```bash
+npm start
+```
+Open [http://localhost:3000](http://localhost:3000) to view in the browser.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 4. Production Build
+```bash
+npm run build:pwa
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 5. Serve Production Build
+```bash
+npm run serve
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## PWA Installation
 
-### `npm run eject`
+### Desktop (Chrome/Edge)
+1. Click the install icon in the address bar
+2. Or go to Settings → Install Anava Vision
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Mobile (iOS)
+1. Open in Safari
+2. Tap Share button
+3. Select "Add to Home Screen"
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Mobile (Android)
+1. Open in Chrome
+2. Tap menu and select "Add to Home Screen"
+3. Or use the install prompt
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Configuration
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Environment Variables
+- `REACT_APP_ORCHESTRATOR_URL` - Camera orchestrator API URL
+- `REACT_APP_ENABLE_DEMO_MODE` - Enable demo cameras for development
+- `REACT_APP_ENABLE_NOTIFICATIONS` - Enable push notifications
+- `REACT_APP_ENABLE_PWA_FEATURES` - Enable PWA features
 
-## Learn More
+### Camera Orchestrator API
+The app expects a REST API with these endpoints:
+- `GET /api/cameras` - List all cameras
+- `GET /api/cameras/:id` - Get camera details
+- `POST /api/cameras/:id/stream` - Start WebRTC stream
+- `POST /api/cameras/:id/ptz` - Send PTZ commands
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Architecture
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Components
+- **App.tsx** - Main application container
+- **CameraList** - Camera selection sidebar
+- **VideoPlayer** - WebRTC video display with controls
+- **PTZControls** - Pan-tilt-zoom control interface
+- **InstallPrompt** - PWA installation UI
+- **NotificationManager** - Push notification handler
+
+### Contexts
+- **CameraContext** - Camera state management
+- **WebRTCContext** - Video streaming management
+
+### Services
+- **orchestratorService** - API communication
+- **serviceWorkerRegistration** - PWA functionality
+
+## Browser Support
+
+- ✅ Chrome 80+
+- ✅ Firefox 80+
+- ✅ Safari 14+
+- ✅ Edge 80+
+
+## Development
+
+### Demo Mode
+When orchestrator is unavailable, the app runs in demo mode with:
+- Mock camera list
+- Simulated video streams
+- Working PTZ controls (visual feedback only)
+
+### Testing PWA Features
+1. Build the app: `npm run build`
+2. Serve over HTTPS (required for PWA)
+3. Test on mobile devices
+4. Verify service worker registration
+5. Test offline functionality
+
+## Deployment
+
+### Static Hosting
+Deploy the `build` folder to any static hosting service:
+- Netlify
+- Vercel
+- AWS S3 + CloudFront
+- Firebase Hosting
+
+### Docker
+```dockerfile
+FROM nginx:alpine
+COPY build /usr/share/nginx/html
+EXPOSE 80
+```
+
+### HTTPS Required
+PWA features require HTTPS in production. Most hosting services provide this automatically.
+
+## Troubleshooting
+
+### Service Worker Issues
+- Clear browser cache and reload
+- Check browser developer tools → Application → Service Workers
+- Ensure HTTPS in production
+
+### Camera Connection Issues
+- Verify orchestrator URL in `.env`
+- Check CORS settings on orchestrator
+- Ensure WebRTC is supported
+
+### Installation Issues
+- Verify manifest.json is accessible
+- Check PWA requirements in Lighthouse
+- Ensure service worker is registered
+
+## License
+
+Copyright (c) 2025 Anava Vision. All rights reserved.
+
+## Support
+
+For technical support, please contact the development team.

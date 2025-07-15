@@ -1,0 +1,172 @@
+# Alternative deployment using Cloud Run for STUN-only mode
+# Note: Cloud Run has limitations for TURN (UDP relay) but works well for STUN
+
+variable "enable_cloud_run" {
+  description = "Enable Cloud Run deployment (STUN-only mode)"
+  type        = bool
+  default     = false
+}
+
+# Cloud Run service for STUN server
+resource "google_cloud_run_v2_service" "coturn_stun" {
+  count    = var.enable_cloud_run ? 1 : 0
+  name     = "coturn-stun-${var.environment}"
+  location = var.region
+  project  = var.project_id
+
+  template {
+    service_account = google_service_account.coturn.email
+
+    scaling {
+      min_instance_count = 1
+      max_instance_count = 10
+    }
+
+    containers {
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.coturn.repository_id}/coturn:latest"
+      
+      resources {
+        limits = {
+          cpu    = "4"
+          memory = "8Gi"
+        }
+      }
+
+      env {
+        name  = "TURN_SECRET"
+        value = random_password.turn_secret.result
+      }
+
+      env {
+        name  = "REALM"
+        value = var.domain
+      }
+
+      env {
+        name  = "STUN_ONLY"
+        value = "true"
+      }
+
+      env {
+        name  = "REDIS_HOST"
+        value = google_redis_instance.coturn_cache.host
+      }
+
+      env {
+        name  = "POSTGRES_HOST"
+        value = google_sql_database_instance.coturn_db.private_ip_address
+      }
+
+      ports {
+        container_port = 3478
+        name          = "stun"
+      }
+
+      ports {
+        container_port = 8080
+        name          = "http"
+      }
+
+      startup_probe {
+        http_get {
+          path = "/health"
+          port = 8080
+        }
+        initial_delay_seconds = 10
+        timeout_seconds       = 3
+        period_seconds       = 10
+        failure_threshold    = 3
+      }
+
+      liveness_probe {
+        http_get {
+          path = "/health"
+          port = 8080
+        }
+        initial_delay_seconds = 30
+        timeout_seconds       = 3
+        period_seconds       = 30
+        failure_threshold    = 3
+      }
+    }
+
+    vpc_access {
+      connector = google_vpc_access_connector.coturn[0].id
+    }
+  }
+
+  traffic {
+    percent = 100
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+  }
+
+  depends_on = [
+    google_project_service.cloud_run_api,
+    google_vpc_access_connector.coturn
+  ]
+}
+
+# VPC Connector for Cloud Run
+resource "google_vpc_access_connector" "coturn" {
+  count   = var.enable_cloud_run ? 1 : 0
+  name    = "coturn-connector-${var.environment}"
+  region  = var.region
+  project = var.project_id
+
+  subnet {
+    name       = google_compute_subnetwork.coturn_subnet.name
+    project_id = var.project_id
+  }
+
+  machine_type   = "e2-micro"
+  min_instances  = 2
+  max_instances  = 10
+}
+
+# Enable Cloud Run API
+resource "google_project_service" "cloud_run_api" {
+  count   = var.enable_cloud_run ? 1 : 0
+  project = var.project_id
+  service = "run.googleapis.com"
+
+  disable_dependent_services = true
+}
+
+# Enable VPC Access API
+resource "google_project_service" "vpc_access_api" {
+  count   = var.enable_cloud_run ? 1 : 0
+  project = var.project_id
+  service = "vpcaccess.googleapis.com"
+
+  disable_dependent_services = true
+}
+
+# Cloud Run IAM policy
+resource "google_cloud_run_service_iam_policy" "noauth" {
+  count    = var.enable_cloud_run ? 1 : 0
+  location = google_cloud_run_v2_service.coturn_stun[0].location
+  project  = google_cloud_run_v2_service.coturn_stun[0].project
+  service  = google_cloud_run_v2_service.coturn_stun[0].name
+
+  policy_data = data.google_iam_policy.noauth[0].policy_data
+}
+
+data "google_iam_policy" "noauth" {
+  count = var.enable_cloud_run ? 1 : 0
+  
+  binding {
+    role = "roles/run.invoker"
+    members = [
+      "allUsers",
+    ]
+  }
+}
+
+# Outputs for Cloud Run
+output "cloud_run_url" {
+  value = var.enable_cloud_run ? google_cloud_run_v2_service.coturn_stun[0].uri : null
+}
+
+output "stun_endpoint" {
+  value = var.enable_cloud_run ? "${google_cloud_run_v2_service.coturn_stun[0].uri}:3478" : null
+}

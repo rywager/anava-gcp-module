@@ -1,0 +1,25 @@
+[Unit]
+Description=Anava Vision Enterprise Stack
+Documentation=https://anava.vision/docs
+Requires=docker.service network-online.target
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/anava-vision
+EnvironmentFile=/opt/anava-vision/.env
+ExecStartPre=/usr/bin/docker compose pull
+ExecStart=/usr/bin/docker compose up -d --remove-orphans
+ExecStop=/usr/bin/docker compose down
+ExecReload=/usr/bin/docker compose restart
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=anava-vision
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=600
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target

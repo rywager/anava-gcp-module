@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  edge-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    image: edge-gateway:latest
+    container_name: edge-gateway
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      # Cloud orchestrator WebSocket URL
+      CLOUD_ORCHESTRATOR_URL: "${CLOUD_ORCHESTRATOR_URL:-wss://orchestrator.example.com/gateway}"
+      
+      # Default camera credentials
+      CAMERA_USERNAME: "${CAMERA_USERNAME:-root}"
+      CAMERA_PASSWORD: "${CAMERA_PASSWORD:-pass}"
+      
+      # Logging
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+      
+      # Gateway identification
+      GATEWAY_LOCATION: "${GATEWAY_LOCATION:-Unknown}"
+      GATEWAY_DESCRIPTION: "${GATEWAY_DESCRIPTION:-Edge Gateway}"
+    
+    # Use host networking for camera discovery and RTSP access
+    # This allows the gateway to discover cameras on the local network
+    # and access them without NAT issues
+    
+    # Volumes for persistent data
+    volumes:
+      - gateway-logs:/var/log/edge-gateway
+      - /etc/localtime:/etc/localtime:ro
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "edge-gateway"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Optional: Watchtower for automatic updates
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    environment:
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_POLL_INTERVAL: 3600  # Check for updates every hour
+      WATCHTOWER_INCLUDE_STOPPED: "true"
+      WATCHTOWER_REVIVE_STOPPED: "false"
+      WATCHTOWER_NOTIFICATIONS: "email"
+      WATCHTOWER_NOTIFICATION_EMAIL_FROM: "${WATCHTOWER_EMAIL_FROM:-gateway@example.com}"
+      WATCHTOWER_NOTIFICATION_EMAIL_TO: "${WATCHTOWER_EMAIL_TO:-admin@example.com}"
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER: "${WATCHTOWER_EMAIL_SERVER:-smtp.gmail.com}"
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT: "${WATCHTOWER_EMAIL_PORT:-587}"
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER: "${WATCHTOWER_EMAIL_USER:-}"
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD: "${WATCHTOWER_EMAIL_PASSWORD:-}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    profiles:
+      - auto-update
+
+volumes:
+  gateway-logs:
+    driver: local
