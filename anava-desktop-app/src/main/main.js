@@ -10,6 +10,7 @@ const CameraDiscoveryService = require('./services/cameraDiscovery');
 const ACAPDeploymentService = require('./services/acapDeployment');
 const WebRTCOrchestrator = require('./services/webrtcOrchestrator');
 const QRCodeService = require('./services/qrCodeService');
+const AcapDownloaderService = require('./services/acapDownloader');
 
 // Configure logging
 log.transports.file.level = 'info';
@@ -27,6 +28,7 @@ let cameraDiscoveryService;
 let acapDeploymentService;
 let webrtcOrchestrator;
 let qrCodeService;
+let acapDownloaderService;
 
 // Auto-updater configuration
 if (!isDev) {
@@ -203,6 +205,7 @@ function initializeServices() {
     acapDeploymentService = new ACAPDeploymentService();
     webrtcOrchestrator = new WebRTCOrchestrator();
     qrCodeService = new QRCodeService();
+    acapDownloaderService = new AcapDownloaderService();
     
     log.info('All services initialized successfully');
   } catch (error) {

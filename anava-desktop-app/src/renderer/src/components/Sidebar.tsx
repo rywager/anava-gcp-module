@@ -15,6 +15,7 @@ import {
   Dashboard as DashboardIcon,
   Videocam as VideocamIcon,
   CloudUpload as CloudUploadIcon,
+  Download as DownloadIcon,
   Hub as HubIcon,
   Chat as ChatIcon,
   Settings as SettingsIcon,
@@ -31,6 +32,7 @@ const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
   { id: 'cameras', label: 'Camera Discovery', icon: <VideocamIcon /> },
   { id: 'acap', label: 'ACAP Deployment', icon: <CloudUploadIcon /> },
+  { id: 'acap-manager', label: 'ACAP Manager', icon: <DownloadIcon /> },
   { id: 'webrtc', label: 'WebRTC Orchestrator', icon: <HubIcon /> },
   { id: 'chat', label: 'Chat Interface', icon: <ChatIcon /> },
   { id: 'settings', label: 'Settings', icon: <SettingsIcon /> }

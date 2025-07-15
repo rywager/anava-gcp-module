@@ -26,10 +26,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Camera discovery
   scanNetworkForCameras: () => ipcRenderer.invoke('scan-network-cameras'),
-  quickScanCamera: (ip) => ipcRenderer.invoke('quick-scan-camera', ip),
+  quickScanCamera: (ip, username, password) => ipcRenderer.invoke('quick-scan-camera', ip, username, password),
   
   // ACAP deployment
   deployACAP: (cameraIp, acapFile, progress) => ipcRenderer.invoke('deploy-acap', cameraIp, acapFile, progress),
+  
+  // ACAP downloader
+  getLatestAcaps: () => ipcRenderer.invoke('get-latest-acaps'),
+  downloadAcap: (downloadUrl, fileName) => ipcRenderer.invoke('download-acap', downloadUrl, fileName),
+  getDownloadedAcaps: () => ipcRenderer.invoke('get-downloaded-acaps'),
   
   // WebRTC orchestration
   startWebRTCOrchestrator: (port) => ipcRenderer.invoke('start-webrtc-orchestrator', port),

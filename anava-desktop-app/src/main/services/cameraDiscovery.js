@@ -3,6 +3,7 @@ const ping = require('ping');
 const axios = require('axios');
 const { spawn } = require('child_process');
 const os = require('os');
+const crypto = require('crypto');
 
 class CameraDiscoveryService {
   constructor() {
@@ -15,17 +16,17 @@ class CameraDiscoveryService {
       return this.scanNetworkForCameras();
     });
     
-    ipcMain.handle('quick-scan-camera', async (event, ip) => {
-      return this.quickScanSpecificCamera(ip);
+    ipcMain.handle('quick-scan-camera', async (event, ip, username = 'root', password = 'pass') => {
+      return this.quickScanSpecificCamera(ip, username, password);
     });
   }
 
-  async quickScanSpecificCamera(ip) {
+  async quickScanSpecificCamera(ip, username = 'root', password = 'pass') {
     try {
-      console.log(`Quick scanning camera at ${ip}`);
+      console.log(`Quick scanning camera at ${ip} with credentials ${username}:${password}`);
       
       // Try to connect to the specific camera with digest auth
-      const camera = await this.checkAxisCamera(ip, 'root', 'pass');
+      const camera = await this.checkAxisCamera(ip, username, password);
       if (camera) {
         console.log(`Found camera at ${ip}:`, camera);
         return [camera];
@@ -180,46 +181,356 @@ class CameraDiscoveryService {
     try {
       console.log(`Checking Axis camera at ${ip} with credentials ${username}:${password}`);
       
-      // Try to access the Axis parameter endpoint with digest auth
-      const response = await axios.get(`http://${ip}/axis-cgi/param.cgi?action=list&group=Brand`, {
-        timeout: 5000,
-        auth: {
-          username: username,
-          password: password
-        },
-        validateStatus: (status) => status < 500
-      });
+      // Multiple validation methods to ensure it's actually a camera
+      const validationResults = await this.validateCamera(ip, username, password);
       
-      console.log(`Response status: ${response.status}`);
-      
-      if (response.status === 200) {
-        const cameraInfo = this.parseCameraInfo(response.data, response.headers);
-        
+      if (validationResults.isCamera) {
         const camera = {
           id: `camera-${ip.replace(/\./g, '-')}`,
           ip: ip,
           port: 80,
-          type: cameraInfo.type || 'Axis Camera',
-          model: cameraInfo.model || 'Unknown Model',
-          manufacturer: cameraInfo.manufacturer || 'Axis Communications',
+          type: validationResults.type || 'IP Camera',
+          model: validationResults.model || 'Unknown Model',
+          manufacturer: validationResults.manufacturer || 'Unknown',
           mac: await this.getMACAddress(ip),
-          capabilities: cameraInfo.capabilities || ['ACAP', 'ONVIF', 'RTSP', 'HTTP'],
+          capabilities: validationResults.capabilities || ['HTTP'],
           discoveredAt: new Date().toISOString(),
           status: 'accessible',
           credentials: { username, password },
-          rtspUrl: `rtsp://${username}:${password}@${ip}:554/axis-media/media.amp`,
-          httpUrl: `http://${ip}`
+          rtspUrl: validationResults.rtspUrl || `rtsp://${username}:${password}@${ip}:554/`,
+          httpUrl: `http://${ip}`,
+          validationScore: validationResults.score
         };
         
         console.log('Camera found:', camera);
         return camera;
       }
       
+      console.log(`Device at ${ip} is not a camera (score: ${validationResults.score})`);
       return null;
     } catch (error) {
-      console.error(`Error checking Axis camera at ${ip}:`, error.message);
+      console.error(`Error checking camera at ${ip}:`, error.message);
       return null;
     }
+  }
+
+  async validateCamera(ip, username, password) {
+    let score = 0;
+    let isCamera = false;
+    let type = 'Unknown Device';
+    let model = 'Unknown';
+    let manufacturer = 'Unknown';
+    let capabilities = [];
+    let rtspUrl = null;
+
+    // Method 1: Check for ONVIF compliance (most reliable)
+    try {
+      const onvifResult = await this.checkONVIF(ip, username, password);
+      if (onvifResult.isOnvif) {
+        score += 50;
+        isCamera = true;
+        type = 'ONVIF Camera';
+        capabilities.push('ONVIF');
+        if (onvifResult.rtspUrl) {
+          rtspUrl = onvifResult.rtspUrl;
+          capabilities.push('RTSP');
+        }
+      }
+    } catch (error) {
+      console.log('ONVIF check failed:', error.message);
+    }
+
+    // Method 2: Check for RTSP server on port 554
+    try {
+      const rtspResult = await this.checkRTSP(ip, username, password);
+      if (rtspResult.hasRtsp) {
+        score += 30;
+        isCamera = true;
+        capabilities.push('RTSP');
+        if (!rtspUrl) {
+          rtspUrl = rtspResult.rtspUrl;
+        }
+      }
+    } catch (error) {
+      console.log('RTSP check failed:', error.message);
+    }
+
+    // Method 3: Check for Axis-specific endpoints
+    try {
+      const axisResult = await this.checkAxisEndpoints(ip, username, password);
+      if (axisResult.isAxis) {
+        score += 40;
+        isCamera = true;
+        type = 'Axis Camera';
+        manufacturer = 'Axis Communications';
+        model = axisResult.model || model;
+        capabilities.push('ACAP', 'VAPIX', 'HTTP');
+        if (axisResult.rtspUrl) {
+          rtspUrl = axisResult.rtspUrl;
+          capabilities.push('RTSP');
+        }
+      }
+    } catch (error) {
+      console.log('Axis check failed:', error.message);
+    }
+
+    // Method 4: Check HTTP headers for camera signatures
+    try {
+      const headerResult = await this.checkCameraHeaders(ip, username, password);
+      if (headerResult.isCamera) {
+        score += 20;
+        isCamera = true;
+        if (headerResult.manufacturer) manufacturer = headerResult.manufacturer;
+        if (headerResult.model) model = headerResult.model;
+      }
+    } catch (error) {
+      console.log('Header check failed:', error.message);
+    }
+
+    // Method 5: Check for common camera endpoints
+    try {
+      const endpointResult = await this.checkCameraEndpoints(ip, username, password);
+      if (endpointResult.isCamera) {
+        score += 15;
+        isCamera = true;
+        capabilities.push('HTTP');
+      }
+    } catch (error) {
+      console.log('Endpoint check failed:', error.message);
+    }
+
+    // Remove duplicates from capabilities
+    capabilities = [...new Set(capabilities)];
+
+    // Final decision: need at least 30 points to be considered a camera
+    isCamera = score >= 30;
+
+    return {
+      isCamera,
+      score,
+      type,
+      model,
+      manufacturer,
+      capabilities,
+      rtspUrl
+    };
+  }
+
+  async checkONVIF(ip, username, password) {
+    try {
+      // ONVIF discovery request
+      const onvifSoap = `<?xml version="1.0" encoding="UTF-8"?>
+        <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
+          <soap:Header/>
+          <soap:Body>
+            <tds:GetDeviceInformation/>
+          </soap:Body>
+        </soap:Envelope>`;
+
+      const response = await axios.post(`http://${ip}/onvif/device_service`, onvifSoap, {
+        headers: {
+          'Content-Type': 'application/soap+xml',
+          'SOAPAction': 'http://www.onvif.org/ver10/device/wsdl/GetDeviceInformation'
+        },
+        auth: { username, password },
+        timeout: 3000
+      });
+
+      if (response.status === 200 && response.data.includes('GetDeviceInformationResponse')) {
+        return { isOnvif: true, rtspUrl: `rtsp://${username}:${password}@${ip}:554/` };
+      }
+    } catch (error) {
+      // Try alternate ONVIF ports
+      for (const port of [8080, 8000, 80]) {
+        try {
+          const response = await axios.post(`http://${ip}:${port}/onvif/device_service`, onvifSoap, {
+            headers: {
+              'Content-Type': 'application/soap+xml',
+              'SOAPAction': 'http://www.onvif.org/ver10/device/wsdl/GetDeviceInformation'
+            },
+            auth: { username, password },
+            timeout: 2000
+          });
+
+          if (response.status === 200 && response.data.includes('GetDeviceInformationResponse')) {
+            return { isOnvif: true, rtspUrl: `rtsp://${username}:${password}@${ip}:554/` };
+          }
+        } catch (portError) {
+          continue;
+        }
+      }
+    }
+    return { isOnvif: false };
+  }
+
+  async checkRTSP(ip, username, password) {
+    return new Promise((resolve) => {
+      const net = require('net');
+      const socket = new net.Socket();
+      
+      socket.setTimeout(2000);
+      
+      socket.connect(554, ip, () => {
+        socket.write(`OPTIONS rtsp://${ip}:554/ RTSP/1.0\r\nCSeq: 1\r\n\r\n`);
+      });
+      
+      socket.on('data', (data) => {
+        const response = data.toString();
+        socket.destroy();
+        
+        if (response.includes('RTSP/1.0') && response.includes('200')) {
+          resolve({ hasRtsp: true, rtspUrl: `rtsp://${username}:${password}@${ip}:554/` });
+        } else {
+          resolve({ hasRtsp: false });
+        }
+      });
+      
+      socket.on('error', () => {
+        resolve({ hasRtsp: false });
+      });
+      
+      socket.on('timeout', () => {
+        socket.destroy();
+        resolve({ hasRtsp: false });
+      });
+    });
+  }
+
+  async checkAxisEndpoints(ip, username, password) {
+    try {
+      // Try digest authentication for Axis cameras
+      const response = await this.digestAuth(ip, username, password, '/axis-cgi/param.cgi?action=list&group=Brand');
+      
+      if (response && response.includes('Brand=AXIS')) {
+        const modelMatch = response.match(/ProdNbr=([^\\r\\n]+)/);
+        return {
+          isAxis: true,
+          model: modelMatch ? modelMatch[1] : 'Unknown Axis Model',
+          rtspUrl: `rtsp://${username}:${password}@${ip}:554/axis-media/media.amp`
+        };
+      }
+    } catch (error) {
+      console.log('Axis endpoint check error:', error.message);
+    }
+    return { isAxis: false };
+  }
+
+  async checkCameraHeaders(ip, username, password) {
+    try {
+      const response = await axios.get(`http://${ip}/`, {
+        auth: { username, password },
+        timeout: 2000,
+        validateStatus: () => true
+      });
+
+      const server = response.headers['server'] || '';
+      const contentType = response.headers['content-type'] || '';
+      
+      // Check for camera-specific headers
+      if (server.toLowerCase().includes('axis') || 
+          server.toLowerCase().includes('camera') ||
+          server.toLowerCase().includes('ipcam') ||
+          contentType.includes('video') ||
+          contentType.includes('image')) {
+        
+        let manufacturer = 'Unknown';
+        if (server.toLowerCase().includes('axis')) manufacturer = 'Axis Communications';
+        else if (server.toLowerCase().includes('hikvision')) manufacturer = 'Hikvision';
+        else if (server.toLowerCase().includes('dahua')) manufacturer = 'Dahua';
+        
+        return { isCamera: true, manufacturer };
+      }
+    } catch (error) {
+      console.log('Header check error:', error.message);
+    }
+    return { isCamera: false };
+  }
+
+  async checkCameraEndpoints(ip, username, password) {
+    const cameraEndpoints = [
+      '/cgi-bin/hi3510/mjpegstream.cgi',
+      '/mjpeg',
+      '/video.mjpeg',
+      '/image.jpg',
+      '/snapshot.jpg',
+      '/cgi-bin/snapshot.cgi',
+      '/video.cgi',
+      '/axis-cgi/mjpg/video.cgi'
+    ];
+
+    for (const endpoint of cameraEndpoints) {
+      try {
+        const response = await axios.get(`http://${ip}${endpoint}`, {
+          auth: { username, password },
+          timeout: 2000,
+          validateStatus: () => true
+        });
+
+        const contentType = response.headers['content-type'] || '';
+        
+        if (contentType.includes('image/jpeg') || 
+            contentType.includes('video/') ||
+            contentType.includes('multipart/x-mixed-replace')) {
+          return { isCamera: true };
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+    return { isCamera: false };
+  }
+
+  async digestAuth(ip, username, password, path) {
+    try {
+      // First request to get the digest challenge
+      const response1 = await axios.get(`http://${ip}${path}`, {
+        timeout: 3000,
+        validateStatus: () => true
+      });
+
+      if (response1.status === 401) {
+        const wwwAuth = response1.headers['www-authenticate'];
+        if (wwwAuth && wwwAuth.includes('Digest')) {
+          const digestData = this.parseDigestAuth(wwwAuth);
+          const authHeader = this.buildDigestHeader(username, password, 'GET', path, digestData);
+          
+          const response2 = await axios.get(`http://${ip}${path}`, {
+            headers: { 'Authorization': authHeader },
+            timeout: 3000
+          });
+
+          if (response2.status === 200) {
+            return response2.data;
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Digest auth error:', error.message);
+    }
+    return null;
+  }
+
+  parseDigestAuth(authHeader) {
+    const data = {};
+    const regex = /(\w+)=(?:"([^"]+)"|([^,]+))/g;
+    let match;
+    
+    while ((match = regex.exec(authHeader)) !== null) {
+      data[match[1]] = match[2] || match[3];
+    }
+    
+    return data;
+  }
+
+  buildDigestHeader(username, password, method, uri, digestData) {
+    const nc = '00000001';
+    const cnonce = crypto.randomBytes(8).toString('hex');
+    
+    const ha1 = crypto.createHash('md5').update(`${username}:${digestData.realm}:${password}`).digest('hex');
+    const ha2 = crypto.createHash('md5').update(`${method}:${uri}`).digest('hex');
+    const response = crypto.createHash('md5').update(`${ha1}:${digestData.nonce}:${nc}:${cnonce}:${digestData.qop}:${ha2}`).digest('hex');
+    
+    return `Digest username="${username}", realm="${digestData.realm}", nonce="${digestData.nonce}", uri="${uri}", qop=${digestData.qop}, nc=${nc}, cnonce="${cnonce}", response="${response}"`;
   }
 
   parseCameraInfo(data, headers) {

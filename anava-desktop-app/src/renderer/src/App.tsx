@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import CameraDiscovery from './components/CameraDiscovery';
 import ACAPDeployment from './components/ACAPDeployment';
+import AcapManager from './components/AcapManager';
 import WebRTCOrchestrator from './components/WebRTCOrchestrator';
 import ChatInterface from './components/ChatInterface';
 import Settings from './components/Settings';
@@ -76,6 +77,8 @@ function App() {
         return <CameraDiscovery />;
       case 'acap':
         return <ACAPDeployment />;
+      case 'acap-manager':
+        return <AcapManager />;
       case 'webrtc':
         return <WebRTCOrchestrator />;
       case 'chat':

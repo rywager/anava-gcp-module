@@ -28,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.33"  # FIXED: Firebase Storage URL format (gs://project.firebasestorage.app)
+VERSION = "2.3.34"  # FIXED: Cleanup logic - properly detect and clean existing resources
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -551,35 +551,61 @@ def run_single_deployment(job_data):
         except Exception as e:
             log(f"ERROR: Failed to enable APIs: {str(e)}")
         
-        # Step 1.5: Clean ONLY resources that block output generation
-        log("STATUS: CLEANING_BLOCKING_RESOURCES")
-        log("ACTION: Removing only resources that prevent output retrieval...")
+        # Set up environment variables for gcloud commands
+        # Get credentials ready for cleanup operations
+        creds_file = '/tmp/temp_creds.json'
+        cred_data = job_data['credentials']
+        
+        # Ensure we have a refresh token
+        if not cred_data.get('refresh_token'):
+            raise Exception("No refresh token available. Please re-authenticate.")
+        
+        credentials = google.oauth2.credentials.Credentials(**cred_data)
+        
+        # Always refresh to ensure valid token
+        try:
+            auth_request = google.auth.transport.requests.Request()
+            credentials.refresh(auth_request)
+            log("SUCCESS: Refreshed OAuth token")
+        except Exception as e:
+            log(f"ERROR: Failed to refresh OAuth token: {str(e)}")
+            raise Exception("Failed to refresh OAuth token. Please re-authenticate.")
+        
+        # Write credentials to file
+        with open(creds_file, 'w') as f:
+            f.write(json.dumps({
+                'type': 'authorized_user',
+                'client_id': credentials.client_id,
+                'client_secret': credentials.client_secret,
+                'refresh_token': credentials.refresh_token
+            }))
+        
+        env = os.environ.copy()
+        env['GOOGLE_APPLICATION_CREDENTIALS'] = creds_file
+        
+        # Step 1.5: Detect and clean existing resources that block deployment
+        log("STATUS: SCANNING_EXISTING_RESOURCES")
+        log("ACTION: Scanning for existing resources that need to be cleaned...")
+        
+        existing_resources = []
+        cleaned = 0
         
         try:
-            # Only clean resources that block output generation
-            cleaned = 0
-            
-            # Skip service accounts - they don't generate outputs we need
-            log("INFO: Skipping service account cleanup - they don't block outputs")
-            
-            # Skip storage buckets - they don't block outputs
-            log("INFO: Skipping bucket cleanup - they don't block outputs")
-            
-            # Skip secrets - we can update them instead of deleting
-            log("INFO: Skipping secret cleanup - we'll update them instead")
-            
-            # 1. Delete API Keys that block new key generation
+            # 1. Check for existing API Keys
             try:
-                # Use user's credentials for API key operations
                 list_cmd = ['gcloud', 'services', 'api-keys', 'list',
                             '--filter', f'displayName:"{prefix}*"',
                             '--format=value(name)', f'--project={project_id}']
                 result = subprocess.run(list_cmd, capture_output=True, text=True, env=env)
                 if result.returncode == 0 and result.stdout:
-                    for key_name in result.stdout.strip().split('\n'):
-                        if key_name:
+                    keys = [k for k in result.stdout.strip().split('\n') if k]
+                    if keys:
+                        existing_resources.extend([f"API Key: {k}" for k in keys])
+                        log(f"FOUND: {len(keys)} existing API keys")
+                        
+                        # Auto-clean API keys as they block new key generation
+                        for key_name in keys:
                             log(f"CLEANING: API Key {key_name}")
-                            # API keys need the full resource name
                             cmd = ['gcloud', 'services', 'api-keys', 'delete', key_name,
                                    f'--project={project_id}', '--quiet']
                             result = subprocess.run(cmd, capture_output=True, text=True, env=env)
@@ -587,22 +613,71 @@ def run_single_deployment(job_data):
                                 log(f"CLEANED: Removed API Key")
                                 cleaned += 1
                             else:
-                                log(f"INFO: Could not delete API key - may not have permission")
+                                log(f"WARNING: Could not delete API key - may not have permission")
             except Exception as e:
-                log(f"INFO: API key cleanup skipped: {str(e)[:100]}")
+                log(f"WARNING: API key scan failed: {str(e)[:100]}")
             
-            # 2. Skip API Gateway - we'll discover the existing URL instead
-            log("INFO: Skipping API Gateway cleanup - we'll discover existing URL")
+            # 2. Check for existing API Gateway
+            try:
+                list_cmd = ['gcloud', 'api-gateway', 'gateways', 'list',
+                            '--filter', f'displayName:"{prefix}*"',
+                            '--format=value(name)', f'--project={project_id}']
+                result = subprocess.run(list_cmd, capture_output=True, text=True, env=env)
+                if result.returncode == 0 and result.stdout:
+                    gateways = [g for g in result.stdout.strip().split('\n') if g]
+                    if gateways:
+                        existing_resources.extend([f"API Gateway: {g}" for g in gateways])
+                        log(f"FOUND: {len(gateways)} existing API gateways")
+                        
+                        # Auto-clean API gateways as they can cause naming conflicts
+                        for gateway in gateways:
+                            log(f"CLEANING: API Gateway {gateway}")
+                            # Extract location from gateway name
+                            parts = gateway.split('/')
+                            if len(parts) >= 4:
+                                location = parts[3]
+                                gateway_name = parts[5]
+                                cmd = ['gcloud', 'api-gateway', 'gateways', 'delete', gateway_name,
+                                       f'--location={location}', f'--project={project_id}', '--quiet']
+                                result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+                                if result.returncode == 0:
+                                    log(f"CLEANED: Removed API Gateway")
+                                    cleaned += 1
+                                else:
+                                    log(f"WARNING: Could not delete API Gateway")
+            except Exception as e:
+                log(f"WARNING: API Gateway scan failed: {str(e)[:100]}")
             
+            # 3. Check for existing Firebase web apps
+            try:
+                list_cmd = ['gcloud', 'firebase', 'apps', 'list',
+                            '--filter', f'displayName:"{prefix}*"',
+                            '--format=value(name)', f'--project={project_id}']
+                result = subprocess.run(list_cmd, capture_output=True, text=True, env=env)
+                if result.returncode == 0 and result.stdout:
+                    apps = [a for a in result.stdout.strip().split('\n') if a]
+                    if apps:
+                        existing_resources.extend([f"Firebase App: {a}" for a in apps])
+                        log(f"FOUND: {len(apps)} existing Firebase apps")
+                        # Don't auto-delete Firebase apps - they can be reused
+            except Exception as e:
+                log(f"WARNING: Firebase app scan failed: {str(e)[:100]}")
+                
+            # Summary
+            if existing_resources:
+                log(f"FOUND: {len(existing_resources)} existing resources in project {project_id}")
+                for resource in existing_resources:
+                    log(f"  - {resource}")
+                    
             if cleaned > 0:
-                log(f"SUCCESS: Cleaned {cleaned} existing resources")
+                log(f"SUCCESS: Cleaned {cleaned} conflicting resources")
                 log("INFO: Waiting 10 seconds for deletions to propagate...")
                 time.sleep(10)
             else:
-                log("INFO: No existing resources found to clean")
+                log("INFO: No conflicting resources found or cleaned")
                 
         except Exception as e:
-            log(f"WARNING: Cleanup had issues but continuing: {str(e)[:200]}")
+            log(f"WARNING: Resource scanning had issues but continuing: {str(e)[:200]}")
         
         log("STATUS: SETTING_PERMISSIONS")  # Force status update
         
@@ -810,32 +885,13 @@ output "firebase_web_app_id" {{
             with open(os.path.join(temp_dir, 'main.tf'), 'w') as f:
                 f.write(tf_config)
             
-            # Set up credentials with refresh
+            # Use existing credentials file from cleanup section
             creds_file = os.path.join(temp_dir, 'creds.json')
-            cred_data = job_data['credentials']
+            # Copy the credentials file to the temp directory
+            import shutil
+            shutil.copy('/tmp/temp_creds.json', creds_file)
             
-            # Ensure we have a refresh token
-            if not cred_data.get('refresh_token'):
-                raise Exception("No refresh token available. Please re-authenticate.")
-            
-            credentials = google.oauth2.credentials.Credentials(**cred_data)
-            
-            # Always refresh to ensure valid token
-            try:
-                auth_request = google.auth.transport.requests.Request()
-                credentials.refresh(auth_request)
-                log("SUCCESS: Refreshed OAuth token")
-            except Exception as e:
-                log(f"WARNING: Token refresh failed: {e}")
-            
-            with open(creds_file, 'w') as f:
-                f.write(json.dumps({
-                    'type': 'authorized_user',
-                    'client_id': credentials.client_id,
-                    'client_secret': credentials.client_secret,
-                    'refresh_token': credentials.refresh_token
-                }))
-            
+            # Environment was already set up in cleanup section
             env = os.environ.copy()
             env['GOOGLE_APPLICATION_CREDENTIALS'] = creds_file
             

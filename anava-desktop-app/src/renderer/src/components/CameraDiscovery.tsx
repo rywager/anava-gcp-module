@@ -41,6 +41,7 @@ const CameraDiscovery: React.FC = () => {
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
   const [credentialsDialog, setCredentialsDialog] = useState(false);
   const [credentials, setCredentials] = useState({ username: 'root', password: 'pass' });
+  const [defaultCredentials, setDefaultCredentials] = useState({ username: 'root', password: 'pass' });
 
   useEffect(() => {
     loadCameras();
@@ -93,8 +94,8 @@ const CameraDiscovery: React.FC = () => {
       setScanning(true);
       setError(null);
       
-      // Quick scan for the specific camera at 192.168.50.156
-      const discoveredCameras = await window.electronAPI.quickScanCamera('192.168.50.156');
+      // Quick scan for the specific camera at 192.168.50.156 with current credentials
+      const discoveredCameras = await window.electronAPI.quickScanCamera('192.168.50.156', defaultCredentials.username, defaultCredentials.password);
       
       if (discoveredCameras && discoveredCameras.length > 0) {
         // Merge with existing cameras, avoiding duplicates
@@ -220,6 +221,35 @@ const CameraDiscovery: React.FC = () => {
           {error}
         </Alert>
       )}
+
+      {/* Default Credentials Card */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Default Camera Credentials
+          </Typography>
+          <Box display="flex" gap={2} alignItems="center">
+            <TextField
+              label="Username"
+              size="small"
+              value={defaultCredentials.username}
+              onChange={(e) => setDefaultCredentials({ ...defaultCredentials, username: e.target.value })}
+              sx={{ minWidth: 120 }}
+            />
+            <TextField
+              label="Password"
+              size="small"
+              type="password"
+              value={defaultCredentials.password}
+              onChange={(e) => setDefaultCredentials({ ...defaultCredentials, password: e.target.value })}
+              sx={{ minWidth: 120 }}
+            />
+            <Typography variant="body2" color="textSecondary">
+              These credentials will be used for camera discovery and quick scan.
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
