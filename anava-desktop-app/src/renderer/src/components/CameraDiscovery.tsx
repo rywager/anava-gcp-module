@@ -42,6 +42,7 @@ const CameraDiscovery: React.FC = () => {
   const [credentialsDialog, setCredentialsDialog] = useState(false);
   const [credentials, setCredentials] = useState({ username: 'root', password: 'pass' });
   const [defaultCredentials, setDefaultCredentials] = useState({ username: 'root', password: 'pass' });
+  const [scanProgress, setScanProgress] = useState<string>('');
 
   useEffect(() => {
     loadCameras();
@@ -93,31 +94,59 @@ const CameraDiscovery: React.FC = () => {
     try {
       setScanning(true);
       setError(null);
+      setScanProgress('Starting quick scan...');
+      
+      console.log('Starting quick scan with credentials:', defaultCredentials.username, ':*****');
+      
+      // Update existing camera with new credentials if it exists
+      const existingCamera = cameras.find(cam => cam.ip === '192.168.50.156');
+      if (existingCamera && existingCamera.status === 'requires_auth') {
+        setScanProgress('Updating camera credentials...');
+        existingCamera.credentials = {
+          username: defaultCredentials.username,
+          password: defaultCredentials.password
+        };
+        // Re-validate with new credentials
+      }
+      
+      setScanProgress('Checking camera at 192.168.50.156...');
       
       // Quick scan for the specific camera at 192.168.50.156 with current credentials
       const discoveredCameras = await window.electronAPI.quickScanCamera('192.168.50.156', defaultCredentials.username, defaultCredentials.password);
       
+      console.log('Quick scan result:', discoveredCameras);
+      
       if (discoveredCameras && discoveredCameras.length > 0) {
-        // Merge with existing cameras, avoiding duplicates
-        const existingIps = cameras.map(cam => cam.ip);
-        const newCameras = discoveredCameras.filter((cam: Camera) => !existingIps.includes(cam.ip));
-        const updatedCameras = [...cameras, ...newCameras];
+        // Update existing camera or add new one
+        const updatedCameras = cameras.map(cam => {
+          if (cam.ip === '192.168.50.156') {
+            // Update existing camera with new status
+            return discoveredCameras[0];
+          }
+          return cam;
+        });
+        
+        // If camera wasn't in list, add it
+        if (!cameras.find(cam => cam.ip === '192.168.50.156')) {
+          updatedCameras.push(discoveredCameras[0]);
+        }
         
         setCameras(updatedCameras);
         
         // Store in Electron store
         await window.electronAPI.store.set('discoveredCameras', updatedCameras);
         
-        if (newCameras.length === 0) {
-          setError('Camera already discovered');
-        }
+        setError('✅ Successfully connected to camera at 192.168.50.156');
+        setScanProgress('');
       } else {
-        setError('Camera not found at 192.168.50.156. Check IP and credentials.');
+        setError('❌ No camera found at 192.168.50.156. Check:\n1. IP address is correct\n2. Camera is powered on\n3. Camera is on same network\n4. Username/password are correct');
+        setScanProgress('');
       }
       
-    } catch (err) {
-      setError('Failed to scan for camera');
+    } catch (err: any) {
       console.error('Error scanning for camera:', err);
+      setError(`❌ Failed to scan for camera: ${err.message || 'Unknown error'}`);
+      setScanProgress('');
     } finally {
       setScanning(false);
     }
@@ -217,8 +246,19 @@ const CameraDiscovery: React.FC = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error}
+        <Alert severity={error.startsWith('✅') ? 'success' : 'error'} sx={{ mb: 3 }} onClose={() => setError(null)}>
+          {error.split('\n').map((line, idx) => (
+            <div key={idx}>{line}</div>
+          ))}
+        </Alert>
+      )}
+      
+      {scanning && scanProgress && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Box display="flex" alignItems="center" gap={2}>
+            <CircularProgress size={20} />
+            <Typography>{scanProgress}</Typography>
+          </Box>
         </Alert>
       )}
 

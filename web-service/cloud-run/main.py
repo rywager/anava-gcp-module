@@ -28,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.34"  # FIXED: Cleanup logic - properly detect and clean existing resources
+VERSION = "2.3.35"  # FIXED: Resource discovery for missing outputs + better error handling
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -1143,6 +1143,88 @@ output "firebase_web_app_id" {{
                     log("WARNING: API Gateway discovery timed out after 30 seconds")
                 except Exception as e:
                     log(f"WARNING: Could not discover API Gateway URL: {str(e)[:200]}")
+            
+            # If API Key not found, try to discover it
+            if output_data.get('apiKey') == 'Not found' or output_data.get('apiGatewayKey') == 'Not found':
+                log("INFO: API Key not in Terraform state, discovering...")
+                try:
+                    # List API Keys
+                    list_cmd = [
+                        'gcloud', 'services', 'api-keys', 'list',
+                        '--filter', f'displayName:{prefix}*',
+                        '--format=json', f'--project={project_id}'
+                    ]
+                    result = subprocess.run(list_cmd, capture_output=True, text=True, env=env, timeout=30)
+                    
+                    if result.returncode == 0 and result.stdout:
+                        api_keys = json.loads(result.stdout)
+                        if api_keys and len(api_keys) > 0:
+                            # Get the first matching key
+                            api_key = api_keys[0]
+                            key_string = api_key.get('keyString', '')
+                            if key_string:
+                                output_data['apiKey'] = key_string
+                                output_data['apiGatewayKey'] = key_string
+                                log(f"SUCCESS: Discovered API Key: {key_string[:8]}...")
+                            else:
+                                # Need to describe the key to get the string
+                                key_name = api_key.get('name', '')
+                                if key_name:
+                                    describe_cmd = [
+                                        'gcloud', 'services', 'api-keys', 'describe', key_name,
+                                        '--format=json', f'--project={project_id}'
+                                    ]
+                                    desc_result = subprocess.run(describe_cmd, capture_output=True, text=True, env=env, timeout=30)
+                                    
+                                    if desc_result.returncode == 0 and desc_result.stdout:
+                                        key_details = json.loads(desc_result.stdout)
+                                        key_string = key_details.get('keyString', '')
+                                        if key_string:
+                                            output_data['apiKey'] = key_string
+                                            output_data['apiGatewayKey'] = key_string
+                                            log(f"SUCCESS: Discovered API Key: {key_string[:8]}...")
+                except subprocess.TimeoutExpired:
+                    log("WARNING: API Key discovery timed out after 30 seconds")
+                except Exception as e:
+                    log(f"WARNING: Could not discover API Key: {str(e)[:200]}")
+            
+            # Discover Cloud Function URLs if missing
+            if output_data.get('deviceAuthFunctionUrl') == 'Not found' or output_data.get('tvmFunctionUrl') == 'Not found':
+                log("INFO: Cloud Function URLs not in Terraform state, discovering...")
+                try:
+                    # List Cloud Functions
+                    list_cmd = [
+                        'gcloud', 'functions', 'list',
+                        '--filter', f'name:{prefix}*',
+                        '--format=json', f'--project={project_id}', '--gen2'
+                    ]
+                    result = subprocess.run(list_cmd, capture_output=True, text=True, env=env, timeout=30)
+                    
+                    if result.returncode == 0 and result.stdout:
+                        functions = json.loads(result.stdout)
+                        for func in functions:
+                            func_name = func.get('name', '').split('/')[-1]
+                            service_config = func.get('serviceConfig', {})
+                            uri = service_config.get('uri', '')
+                            
+                            if 'device-auth' in func_name and uri:
+                                output_data['deviceAuthFunctionUrl'] = uri
+                                log(f"SUCCESS: Discovered Device Auth Function URL: {uri}")
+                            elif 'tvm' in func_name and uri:
+                                output_data['tvmFunctionUrl'] = uri
+                                log(f"SUCCESS: Discovered TVM Function URL: {uri}")
+                except Exception as e:
+                    log(f"WARNING: Could not discover Cloud Function URLs: {str(e)[:200]}")
+            
+            # Discover Vertex AI service account if missing
+            if output_data.get('vertexServiceAccount') == 'Not found':
+                expected_sa = f"{prefix}-vertex-ai-sa@{project_id}.iam.gserviceaccount.com"
+                check_cmd = ['gcloud', 'iam', 'service-accounts', 'describe', expected_sa,
+                             f'--project={project_id}', '--format=value(email)']
+                result = subprocess.run(check_cmd, capture_output=True, text=True, env=env)
+                if result.returncode == 0:
+                    output_data['vertexServiceAccount'] = expected_sa
+                    log(f"SUCCESS: Discovered Vertex AI service account: {expected_sa}")
             
             # Instead of retrieving secret values, provide helpful links
             log("INFO: Creating resource links for easy access...")

@@ -33,6 +33,7 @@ import {
   Add as AddIcon
 } from '@mui/icons-material';
 import { ApplicationSettings } from '../types';
+import BackendConfig from './BackendConfig';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -273,6 +274,7 @@ const Settings: React.FC = () => {
           <Tab label="Network" />
           <Tab label="WebRTC" />
           <Tab label="ACAP" />
+          <Tab label="Backend" />
         </Tabs>
 
         {/* General Settings */}
@@ -541,6 +543,11 @@ const Settings: React.FC = () => {
               </Card>
             </Grid>
           </Grid>
+        </TabPanel>
+
+        {/* Backend Settings */}
+        <TabPanel value={tabValue} index={4}>
+          <BackendConfig />
         </TabPanel>
       </Paper>
 

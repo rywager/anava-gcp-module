@@ -41,6 +41,7 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [recentCameras, setRecentCameras] = useState<Camera[]>([]);
   const [systemStatus, setSystemStatus] = useState<'healthy' | 'warning' | 'error'>('healthy');
+  const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -85,16 +86,22 @@ const Dashboard: React.FC = () => {
       // Check if WebRTC orchestrator is running
       const webrtcStatus = await window.electronAPI.store.get('webrtcOrchestratorStatus');
       
-      // Check if any cameras are offline
+      // Check if any cameras are offline or need auth
       const cameras = await window.electronAPI.store.get('discoveredCameras') || [];
       const offlineCameras = cameras.filter((camera: Camera) => camera.status === 'offline');
+      const needAuthCameras = cameras.filter((camera: Camera) => camera.status === 'requires_auth');
       
       if (offlineCameras.length > 0) {
         return 'warning';
       }
       
+      if (needAuthCameras.length > 0 && cameras.length > 0) {
+        return 'warning'; // Some cameras need authentication
+      }
+      
       if (!webrtcStatus || webrtcStatus !== 'running') {
-        return 'warning';
+        // Don't warn about WebRTC not running if it's just not started yet
+        // return 'warning';
       }
       
       return 'healthy';
@@ -166,6 +173,9 @@ const Dashboard: React.FC = () => {
       >
         <Typography variant="body1">
           System Status: {systemStatus.charAt(0).toUpperCase() + systemStatus.slice(1)}
+          {systemStatus === 'warning' && stats.totalCameras > 0 && (
+            <span> - Some cameras require authentication. Please check camera credentials.</span>
+          )}
         </Typography>
       </Alert>
 
@@ -260,22 +270,40 @@ const Dashboard: React.FC = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Button
                   variant="contained"
-                  startIcon={<VideocamIcon />}
-                  onClick={() => window.electronAPI.scanNetworkForCameras()}
+                  startIcon={scanning ? <CircularProgress size={20} /> : <VideocamIcon />}
+                  onClick={async () => {
+                    setScanning(true);
+                    try {
+                      await window.electronAPI.scanNetworkForCameras();
+                      // Reload dashboard data after scan
+                      await loadDashboardData();
+                    } catch (error) {
+                      console.error('Error scanning:', error);
+                    } finally {
+                      setScanning(false);
+                    }
+                  }}
+                  disabled={scanning}
                 >
-                  Scan for Cameras
+                  {scanning ? 'Scanning...' : 'Scan for Cameras'}
                 </Button>
                 <Button
                   variant="outlined"
                   startIcon={<CloudUploadIcon />}
-                  onClick={() => {/* Navigate to ACAP deployment */}}
+                  onClick={() => {
+                    // Navigate to ACAP deployment
+                    window.location.hash = '#acap';
+                  }}
                 >
                   Deploy ACAP
                 </Button>
                 <Button
                   variant="outlined"
                   startIcon={<HubIcon />}
-                  onClick={() => {/* Navigate to WebRTC orchestrator */}}
+                  onClick={() => {
+                    // Navigate to WebRTC orchestrator
+                    window.location.hash = '#webrtc';
+                  }}
                 >
                   Start WebRTC Orchestrator
                 </Button>

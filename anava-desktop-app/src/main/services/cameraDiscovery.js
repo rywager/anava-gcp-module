@@ -23,19 +23,37 @@ class CameraDiscoveryService {
 
   async quickScanSpecificCamera(ip, username = 'root', password = 'pass') {
     try {
-      console.log(`Quick scanning camera at ${ip} with credentials ${username}:${password}`);
+      console.log(`=== Quick scanning camera at ${ip} with credentials ${username}:${password} ===`);
+      
+      // First check if the IP is reachable
+      console.log(`Step 1: Checking if ${ip} is reachable...`);
+      const ping = require('ping');
+      const pingResult = await ping.promise.probe(ip, {
+        timeout: 5,
+        min_reply: 1
+      });
+      
+      console.log(`Ping result for ${ip}:`, pingResult);
+      
+      if (!pingResult.alive) {
+        console.log(`❌ ${ip} is not reachable via ping`);
+        return [];
+      }
+      
+      console.log(`✅ ${ip} is reachable`);
+      console.log(`Step 2: Checking for camera with digest auth...`);
       
       // Try to connect to the specific camera with digest auth
       const camera = await this.checkAxisCamera(ip, username, password);
       if (camera) {
-        console.log(`Found camera at ${ip}:`, camera);
+        console.log(`✅ Found camera at ${ip}:`, camera);
         return [camera];
       }
       
-      console.log(`No camera found at ${ip}`);
+      console.log(`❌ No camera found at ${ip}`);
       return [];
     } catch (error) {
-      console.error(`Error quick scanning camera at ${ip}:`, error);
+      console.error(`❌ Error quick scanning camera at ${ip}:`, error);
       return [];
     }
   }
@@ -179,10 +197,13 @@ class CameraDiscoveryService {
 
   async checkAxisCamera(ip, username, password) {
     try {
-      console.log(`Checking Axis camera at ${ip} with credentials ${username}:${password}`);
+      console.log(`=== Checking Axis camera at ${ip} with credentials ${username}:${password} ===`);
       
       // Multiple validation methods to ensure it's actually a camera
+      console.log(`Step 3: Running camera validation...`);
       const validationResults = await this.validateCamera(ip, username, password);
+      
+      console.log(`Validation results:`, validationResults);
       
       if (validationResults.isCamera) {
         const camera = {
@@ -202,14 +223,14 @@ class CameraDiscoveryService {
           validationScore: validationResults.score
         };
         
-        console.log('Camera found:', camera);
+        console.log('✅ Camera validated and created:', camera);
         return camera;
       }
       
-      console.log(`Device at ${ip} is not a camera (score: ${validationResults.score})`);
+      console.log(`❌ Device at ${ip} is not a camera (score: ${validationResults.score})`);
       return null;
     } catch (error) {
-      console.error(`Error checking camera at ${ip}:`, error.message);
+      console.error(`❌ Error checking camera at ${ip}:`, error.message);
       return null;
     }
   }
@@ -225,38 +246,47 @@ class CameraDiscoveryService {
 
     // Method 1: Check for ONVIF compliance (most reliable)
     try {
+      console.log('  - Testing ONVIF compliance...');
       const onvifResult = await this.checkONVIF(ip, username, password);
       if (onvifResult.isOnvif) {
         score += 50;
         isCamera = true;
         type = 'ONVIF Camera';
         capabilities.push('ONVIF');
+        console.log('  ✅ ONVIF check passed (+50 points)');
         if (onvifResult.rtspUrl) {
           rtspUrl = onvifResult.rtspUrl;
           capabilities.push('RTSP');
         }
+      } else {
+        console.log('  ❌ ONVIF check failed');
       }
     } catch (error) {
-      console.log('ONVIF check failed:', error.message);
+      console.log('  ❌ ONVIF check failed:', error.message);
     }
 
     // Method 2: Check for RTSP server on port 554
     try {
+      console.log('  - Testing RTSP server on port 554...');
       const rtspResult = await this.checkRTSP(ip, username, password);
       if (rtspResult.hasRtsp) {
         score += 30;
         isCamera = true;
         capabilities.push('RTSP');
+        console.log('  ✅ RTSP check passed (+30 points)');
         if (!rtspUrl) {
           rtspUrl = rtspResult.rtspUrl;
         }
+      } else {
+        console.log('  ❌ RTSP check failed');
       }
     } catch (error) {
-      console.log('RTSP check failed:', error.message);
+      console.log('  ❌ RTSP check failed:', error.message);
     }
 
     // Method 3: Check for Axis-specific endpoints
     try {
+      console.log('  - Testing Axis-specific endpoints...');
       const axisResult = await this.checkAxisEndpoints(ip, username, password);
       if (axisResult.isAxis) {
         score += 40;
@@ -265,13 +295,16 @@ class CameraDiscoveryService {
         manufacturer = 'Axis Communications';
         model = axisResult.model || model;
         capabilities.push('ACAP', 'VAPIX', 'HTTP');
+        console.log('  ✅ Axis check passed (+40 points)');
         if (axisResult.rtspUrl) {
           rtspUrl = axisResult.rtspUrl;
           capabilities.push('RTSP');
         }
+      } else {
+        console.log('  ❌ Axis check failed');
       }
     } catch (error) {
-      console.log('Axis check failed:', error.message);
+      console.log('  ❌ Axis check failed:', error.message);
     }
 
     // Method 4: Check HTTP headers for camera signatures
@@ -304,6 +337,15 @@ class CameraDiscoveryService {
 
     // Final decision: need at least 30 points to be considered a camera
     isCamera = score >= 30;
+    
+    console.log(`=== Validation Summary ===`);
+    console.log(`Total score: ${score}`);
+    console.log(`Is camera: ${isCamera}`);
+    console.log(`Type: ${type}`);
+    console.log(`Manufacturer: ${manufacturer}`);
+    console.log(`Model: ${model}`);
+    console.log(`Capabilities: ${capabilities.join(', ')}`);
+    console.log(`RTSP URL: ${rtspUrl}`);
 
     return {
       isCamera,

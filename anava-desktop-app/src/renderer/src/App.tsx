@@ -67,6 +67,19 @@ function App() {
     if (window.electronAPI) {
       window.electronAPI.getVersion().then(setAppVersion);
     }
+    
+    // Handle hash navigation
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        setCurrentView(hash);
+      }
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange(); // Check initial hash
+    
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   const renderContent = () => {
