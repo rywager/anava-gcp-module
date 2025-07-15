@@ -373,7 +373,12 @@ const CameraDiscovery: React.FC = () => {
                       </TableCell>
                       <TableCell>{camera.manufacturer}</TableCell>
                       <TableCell>{camera.model}</TableCell>
-                      <TableCell>{camera.type}</TableCell>
+                      <TableCell>
+                        {camera.type}
+                        {camera.needsValidation && (
+                          <Chip label="Needs validation" size="small" color="info" sx={{ ml: 1 }} />
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={getStatusText(camera.status)}

@@ -13,6 +13,11 @@ export interface Camera {
     username: string;
     password: string;
   };
+  needsValidation?: boolean;
+  authenticated?: boolean;
+  validationScore?: number;
+  rtspUrl?: string;
+  httpUrl?: string;
 }
 
 export interface ACAPPackage {
@@ -109,6 +114,7 @@ declare global {
       onMenuOpenProject: (callback: (path: string) => void) => void;
       onMenuSettings: (callback: () => void) => void;
       scanNetworkForCameras: () => Promise<Camera[]>;
+      quickScanCamera: (ip: string, username: string, password: string) => Promise<Camera[]>;
       deployACAP: (cameraIp: string, acapFile: string, credentials: any) => Promise<any>;
       startWebRTCOrchestrator: (port: number) => Promise<any>;
       stopWebRTCOrchestrator: () => Promise<any>;

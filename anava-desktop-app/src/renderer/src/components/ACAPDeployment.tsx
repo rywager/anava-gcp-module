@@ -53,7 +53,11 @@ const ACAPDeploymentComponent: React.FC = () => {
   const [logsDialog, setLogsDialog] = useState(false);
 
   const accessibleCameras = cameras.filter(camera => 
-    camera.status === 'accessible' && camera.capabilities.includes('ACAP')
+    camera.status === 'accessible' && 
+    camera.capabilities.includes('ACAP') &&
+    camera.type !== 'Unknown Device' && // Exclude unvalidated devices
+    camera.manufacturer === 'Axis Communications' && // Only Axis cameras support ACAP
+    !camera.needsValidation // Only show fully validated cameras
   );
 
   useEffect(() => {

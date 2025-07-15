@@ -137,20 +137,41 @@ class CameraDiscoveryService {
         return null;
       }
       
-      // Check for common camera ports and endpoints
-      const cameraChecks = [
-        { port: 80, path: '/axis-cgi/param.cgi?action=list&group=Brand' },
-        { port: 80, path: '/cgi-bin/guest/Video.cgi?media=MJPEG' },
-        { port: 80, path: '/onvif/device_service' },
-        { port: 8080, path: '/onvif/device_service' },
-        { port: 554, path: '/', protocol: 'rtsp' }
-      ];
+      console.log(`Checking device at ${ip}...`);
       
-      for (const check of cameraChecks) {
-        const camera = await this.checkCameraEndpoint(ip, check);
-        if (camera) {
-          return camera;
+      // Check if it has a web server and looks like a camera
+      try {
+        const response = await axios.get(`http://${ip}/`, {
+          timeout: 2000,
+          validateStatus: () => true
+        });
+        
+        if (response.status === 200 || response.status === 401) {
+          const server = response.headers['server'] || '';
+          
+          // Only mark as potential camera if it has camera-related headers
+          if (server.toLowerCase().includes('axis') || 
+              server.toLowerCase().includes('camera') ||
+              server.toLowerCase().includes('ipcam') ||
+              response.status === 401) { // 401 often means auth required for camera
+            
+            return {
+              id: `camera-${ip.replace(/\./g, '-')}`,
+              ip: ip,
+              port: 80,
+              type: 'Unknown Device',
+              model: 'Unknown',
+              manufacturer: server.toLowerCase().includes('axis') ? 'Axis Communications' : 'Unknown',
+              mac: await this.getMACAddress(ip),
+              capabilities: ['HTTP'],
+              discoveredAt: new Date().toISOString(),
+              status: 'requires_auth',
+              needsValidation: true
+            };
+          }
         }
+      } catch (error) {
+        // No web server or error
       }
       
       return null;
@@ -216,11 +237,13 @@ class CameraDiscoveryService {
           mac: await this.getMACAddress(ip),
           capabilities: validationResults.capabilities || ['HTTP'],
           discoveredAt: new Date().toISOString(),
-          status: 'accessible',
+          status: validationResults.authenticated ? 'accessible' : 'requires_auth',
           credentials: { username, password },
           rtspUrl: validationResults.rtspUrl || `rtsp://${username}:${password}@${ip}:554/`,
           httpUrl: `http://${ip}`,
-          validationScore: validationResults.score
+          validationScore: validationResults.score,
+          authenticated: validationResults.authenticated || false,
+          needsValidation: false // Camera has been validated
         };
         
         console.log('✅ Camera validated and created:', camera);
@@ -354,7 +377,8 @@ class CameraDiscoveryService {
       model,
       manufacturer,
       capabilities,
-      rtspUrl
+      rtspUrl,
+      authenticated: isCamera && score >= 40 // Successfully authenticated if we got good validation
     };
   }
 
@@ -440,14 +464,36 @@ class CameraDiscoveryService {
 
   async checkAxisEndpoints(ip, username, password) {
     try {
-      // Try digest authentication for Axis cameras
-      const response = await this.digestAuth(ip, username, password, '/axis-cgi/param.cgi?action=list&group=Brand');
+      console.log(`  - Checking Axis VAPIX endpoints for ${ip}...`);
+      
+      // Try both HTTP and HTTPS with digest authentication
+      let response = await this.digestAuth(ip, username, password, '/axis-cgi/param.cgi?action=list&group=Brand');
+      
+      // If HTTP fails, try HTTPS
+      if (!response) {
+        console.log(`  - HTTP failed, trying HTTPS...`);
+        response = await this.digestAuthHTTPS(ip, username, password, '/axis-cgi/param.cgi?action=list&group=Brand');
+      }
       
       if (response && response.includes('Brand=AXIS')) {
+        console.log(`  ✅ Confirmed Axis device via VAPIX`);
         const modelMatch = response.match(/ProdNbr=([^\\r\\n]+)/);
+        const typeMatch = response.match(/ProdType=([^\\r\\n]+)/);
+        const productType = typeMatch ? typeMatch[1] : '';
+        
+        // Filter out non-camera Axis devices
+        if (productType.toLowerCase().includes('speaker') || 
+            productType.toLowerCase().includes('audio') ||
+            productType.toLowerCase().includes('sound')) {
+          console.log(`  ❌ Axis device is not a camera (${productType})`);
+          return { isAxis: false };
+        }
+        
+        console.log(`  ✅ Axis camera model: ${modelMatch ? modelMatch[1] : 'Unknown'}`);
         return {
           isAxis: true,
           model: modelMatch ? modelMatch[1] : 'Unknown Axis Model',
+          productType: productType,
           rtspUrl: `rtsp://${username}:${password}@${ip}:554/axis-media/media.amp`
         };
       }
@@ -459,8 +505,8 @@ class CameraDiscoveryService {
 
   async checkCameraHeaders(ip, username, password) {
     try {
+      // First try without auth to get headers
       const response = await axios.get(`http://${ip}/`, {
-        auth: { username, password },
         timeout: 2000,
         validateStatus: () => true
       });
@@ -490,30 +536,47 @@ class CameraDiscoveryService {
 
   async checkCameraEndpoints(ip, username, password) {
     const cameraEndpoints = [
+      '/axis-cgi/jpg/image.cgi',
+      '/axis-cgi/mjpg/video.cgi',
       '/cgi-bin/hi3510/mjpegstream.cgi',
       '/mjpeg',
       '/video.mjpeg',
       '/image.jpg',
       '/snapshot.jpg',
       '/cgi-bin/snapshot.cgi',
-      '/video.cgi',
-      '/axis-cgi/mjpg/video.cgi'
+      '/video.cgi'
     ];
 
     for (const endpoint of cameraEndpoints) {
       try {
-        const response = await axios.get(`http://${ip}${endpoint}`, {
-          auth: { username, password },
-          timeout: 2000,
-          validateStatus: () => true
-        });
+        // For Axis endpoints, use digest auth
+        let response;
+        if (endpoint.startsWith('/axis-cgi/')) {
+          const imageData = await this.digestAuth(ip, username, password, endpoint);
+          if (imageData && imageData.length > 100) {
+            console.log(`  ✅ Found valid camera endpoint via digest auth: ${endpoint}`);
+            return { isCamera: true };
+          }
+        } else {
+          // Try basic auth for other endpoints
+          response = await axios.get(`http://${ip}${endpoint}`, {
+            auth: { username, password },
+            timeout: 2000,
+            validateStatus: () => true
+          });
 
-        const contentType = response.headers['content-type'] || '';
-        
-        if (contentType.includes('image/jpeg') || 
-            contentType.includes('video/') ||
-            contentType.includes('multipart/x-mixed-replace')) {
-          return { isCamera: true };
+          const contentType = response.headers['content-type'] || '';
+          
+          // Important: exclude HTML responses - these are not camera endpoints
+          if ((contentType.includes('image/jpeg') || 
+               contentType.includes('video/') ||
+               contentType.includes('multipart/x-mixed-replace')) &&
+              !contentType.includes('text/html')) {
+            console.log(`  ✅ Found valid camera endpoint: ${endpoint} (${contentType})`);
+            return { isCamera: true };
+          } else if (contentType.includes('text/html')) {
+            console.log(`  ❌ ${endpoint} returns HTML, not camera data`);
+          }
         }
       } catch (error) {
         continue;
@@ -538,7 +601,8 @@ class CameraDiscoveryService {
           
           const response2 = await axios.get(`http://${ip}${path}`, {
             headers: { 'Authorization': authHeader },
-            timeout: 3000
+            timeout: 3000,
+            responseType: path.includes('image') || path.includes('jpg') ? 'arraybuffer' : 'text'
           });
 
           if (response2.status === 200) {
@@ -548,6 +612,44 @@ class CameraDiscoveryService {
       }
     } catch (error) {
       console.log('Digest auth error:', error.message);
+    }
+    return null;
+  }
+
+  async digestAuthHTTPS(ip, username, password, path) {
+    try {
+      const https = require('https');
+      const httpsAgent = new https.Agent({
+        rejectUnauthorized: false // Allow self-signed certificates
+      });
+
+      // First request to get the digest challenge
+      const response1 = await axios.get(`https://${ip}${path}`, {
+        httpsAgent,
+        timeout: 3000,
+        validateStatus: () => true
+      });
+
+      if (response1.status === 401) {
+        const wwwAuth = response1.headers['www-authenticate'];
+        if (wwwAuth && wwwAuth.includes('Digest')) {
+          const digestData = this.parseDigestAuth(wwwAuth);
+          const authHeader = this.buildDigestHeader(username, password, 'GET', path, digestData);
+          
+          const response2 = await axios.get(`https://${ip}${path}`, {
+            httpsAgent,
+            headers: { 'Authorization': authHeader },
+            timeout: 3000,
+            responseType: path.includes('image') || path.includes('jpg') ? 'arraybuffer' : 'text'
+          });
+
+          if (response2.status === 200) {
+            return response2.data;
+          }
+        }
+      }
+    } catch (error) {
+      console.log('HTTPS Digest auth error:', error.message);
     }
     return null;
   }

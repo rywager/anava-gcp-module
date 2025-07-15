@@ -56,7 +56,8 @@ const BackendConfig: React.FC = () => {
       setSuccess(null);
       
       // Test connection to terraform-installer backend
-      const response = await fetch(`${config.url}/api/health`);
+      // The terraform-installer uses root path, not /api/health
+      const response = await fetch(config.url);
       
       if (response.ok) {
         const updatedConfig = {
