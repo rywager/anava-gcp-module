@@ -28,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.35"  # FIXED: Resource discovery for missing outputs + better error handling
+VERSION = "2.3.37"  # FIXED: Improved API Gateway discovery with fallback logic
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -960,13 +960,18 @@ output "firebase_web_app_id" {{
             # Step 5: Plan deployment
             log("STATUS: TERRAFORM_PLAN")
             log("ACTION: Planning infrastructure changes...")
-            result = subprocess.run(
-                ['terraform', 'plan', '-out=tfplan'],
-                cwd=temp_dir,
-                capture_output=True,
-                text=True,
-                env=env
-            )
+            try:
+                result = subprocess.run(
+                    ['terraform', 'plan', '-out=tfplan'],
+                    cwd=temp_dir,
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                    timeout=1200  # 5 minute timeout
+                )
+            except subprocess.TimeoutExpired:
+                log("ERROR: Terraform plan timed out after 5 minutes")
+                raise Exception("Terraform plan timed out - this may indicate an authentication issue or network problem")
             
             if result.returncode != 0:
                 # Try refresh and plan again
@@ -976,7 +981,8 @@ output "firebase_web_app_id" {{
                     cwd=temp_dir,
                     capture_output=True,
                     text=True,
-                    env=env
+                    env=env,
+                    timeout=1200  # 5 minute timeout
                 )
                 
                 # Retry plan
@@ -985,7 +991,8 @@ output "firebase_web_app_id" {{
                     cwd=temp_dir,
                     capture_output=True,
                     text=True,
-                    env=env
+                    env=env,
+                    timeout=1200  # 5 minute timeout
                 )
                 
                 if result.returncode != 0:
@@ -1042,7 +1049,8 @@ output "firebase_web_app_id" {{
                 cwd=temp_dir,
                 capture_output=True,
                 text=True,
-                env=env
+                env=env,
+                timeout=120  # 1 minute timeout
             )
             
             if result.returncode != 0:
@@ -1113,7 +1121,7 @@ output "firebase_web_app_id" {{
                     # List API Gateways with timeout
                     list_cmd = [
                         'gcloud', 'api-gateway', 'gateways', 'list',
-                        '--filter', f'displayName:{prefix}*',
+                        '--filter', f'displayName~{prefix}',
                         '--format=json', f'--project={project_id}'
                     ]
                     result = subprocess.run(list_cmd, capture_output=True, text=True, env=env, timeout=30)
@@ -1139,6 +1147,37 @@ output "firebase_web_app_id" {{
                                 if default_hostname:
                                     output_data['apiGatewayUrl'] = f"https://{default_hostname}"
                                     log(f"SUCCESS: Discovered API Gateway URL: {output_data['apiGatewayUrl']}")
+                        else:
+                            # Fallback: list all gateways and search for matching ones
+                            log("INFO: No filtered results, checking all gateways...")
+                            all_cmd = [
+                                'gcloud', 'api-gateway', 'gateways', 'list',
+                                '--format=json', f'--project={project_id}'
+                            ]
+                            all_result = subprocess.run(all_cmd, capture_output=True, text=True, env=env, timeout=30)
+                            
+                            if all_result.returncode == 0 and all_result.stdout:
+                                all_gateways = json.loads(all_result.stdout)
+                                for gateway in all_gateways:
+                                    gateway_name = gateway.get('name', '').split('/')[-1]
+                                    if prefix in gateway_name:
+                                        location = gateway.get('name', '').split('/')[3]
+                                        
+                                        # Get the gateway details to find the URL with timeout
+                                        describe_cmd = [
+                                            'gcloud', 'api-gateway', 'gateways', 'describe', gateway_name,
+                                            f'--location={location}', f'--project={project_id}',
+                                            '--format=json'
+                                        ]
+                                        desc_result = subprocess.run(describe_cmd, capture_output=True, text=True, env=env, timeout=30)
+                                        
+                                        if desc_result.returncode == 0 and desc_result.stdout:
+                                            gateway_details = json.loads(desc_result.stdout)
+                                            default_hostname = gateway_details.get('defaultHostname', '')
+                                            if default_hostname:
+                                                output_data['apiGatewayUrl'] = f"https://{default_hostname}"
+                                                log(f"SUCCESS: Discovered API Gateway URL: {output_data['apiGatewayUrl']}")
+                                                break
                 except subprocess.TimeoutExpired:
                     log("WARNING: API Gateway discovery timed out after 30 seconds")
                 except Exception as e:

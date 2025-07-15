@@ -12,6 +12,72 @@ class ACAPDeploymentService {
     this.setupIPC();
   }
 
+  // Helper method for digest authentication
+  async digestAuth(ip, username, password, method, uri, data = null, options = {}) {
+    try {
+      const url = `http://${ip}${uri}`;
+      const httpsAgent = new https.Agent({ rejectUnauthorized: false });
+      
+      // First request to get the digest challenge
+      const config1 = {
+        method,
+        url,
+        httpsAgent,
+        timeout: options.timeout || 30000,
+        validateStatus: () => true,
+        ...options
+      };
+
+      if (data) {
+        config1.data = data;
+      }
+
+      const response1 = await axios(config1);
+
+      if (response1.status === 401) {
+        const wwwAuth = response1.headers['www-authenticate'];
+        if (wwwAuth && wwwAuth.includes('Digest')) {
+          // Parse digest parameters
+          const digestData = {};
+          const regex = /(\w+)=(?:"([^"]+)"|([^,]+))/g;
+          let match;
+          while ((match = regex.exec(wwwAuth)) !== null) {
+            digestData[match[1]] = match[2] || match[3];
+          }
+
+          // Build digest header
+          const nc = '00000001';
+          const cnonce = crypto.randomBytes(8).toString('hex');
+          const ha1 = crypto.createHash('md5').update(`${username}:${digestData.realm}:${password}`).digest('hex');
+          const ha2 = crypto.createHash('md5').update(`${method}:${uri}`).digest('hex');
+          const response = crypto.createHash('md5').update(`${ha1}:${digestData.nonce}:${nc}:${cnonce}:${digestData.qop}:${ha2}`).digest('hex');
+          
+          const authHeader = `Digest username="${username}", realm="${digestData.realm}", nonce="${digestData.nonce}", uri="${uri}", qop=${digestData.qop}, nc=${nc}, cnonce="${cnonce}", response="${response}"`;
+          
+          // Second request with auth
+          const config2 = {
+            ...config1,
+            headers: {
+              ...config1.headers,
+              'Authorization': authHeader
+            }
+          };
+
+          const response2 = await axios(config2);
+          return response2;
+        }
+      } else if (response1.status === 200) {
+        // No auth required
+        return response1;
+      }
+      
+      throw new Error(`Unexpected response: ${response1.status}`);
+    } catch (error) {
+      console.error('Digest auth error:', error.message);
+      throw error;
+    }
+  }
+
   setupIPC() {
     ipcMain.handle('deploy-acap', async (event, cameraIp, acapFile, credentials) => {
       return this.deployACAP(cameraIp, acapFile, credentials, (progress) => {
@@ -101,40 +167,60 @@ class ACAPDeploymentService {
     const formData = new FormData();
     const fileStream = fs.createReadStream(acapFilePath);
     
+    // Axis cameras expect the field name to be 'packfil'
     formData.append('packfil', fileStream, {
       filename: path.basename(acapFilePath),
       contentType: 'application/octet-stream'
     });
     
-    const config = {
-      method: 'post',
-      url: `http://${cameraIp}/axis-cgi/applications/upload.cgi`,
-      headers: {
-        ...formData.getHeaders(),
-      },
-      data: formData,
-      auth: {
-        username: credentials.username || 'root',
-        password: credentials.password || 'pass'
-      },
-      timeout: 60000,
-      onUploadProgress: (progressEvent) => {
-        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        progressCallback({ 
-          stage: 'uploading', 
-          percent: Math.min(10 + (percent * 0.4), 50), 
-          message: `Uploading... ${percent}%` 
-        });
-      }
-    };
-
     try {
-      const response = await axios(config);
+      progressCallback({ 
+        stage: 'uploading', 
+        percent: 10, 
+        message: 'Uploading ACAP file...' 
+      });
+
+      // Use digest auth for upload
+      const response = await this.digestAuth(
+        cameraIp,
+        credentials.username || 'root',
+        credentials.password || 'pass',
+        'POST',
+        '/axis-cgi/applications/upload.cgi',
+        formData,
+        {
+          headers: formData.getHeaders(),
+          timeout: 60000,
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              progressCallback({ 
+                stage: 'uploading', 
+                percent: Math.min(10 + (percent * 0.4), 50), 
+                message: `Uploading... ${percent}%` 
+              });
+            }
+          }
+        }
+      );
+      
+      console.log('Upload response:', response.data);
       
       // Parse response to get package name
-      const packageMatch = response.data.match(/package="([^"]+)"/);
+      // Response format: "OK package=<packagename> version=<version>"
+      const packageMatch = response.data.match(/package=([^\s]+)/);
       if (!packageMatch) {
-        throw new Error('Could not determine package name from upload response');
+        // Try alternate format
+        const altMatch = response.data.match(/packagename\s+([^\s]+)/);
+        if (!altMatch) {
+          throw new Error('Could not determine package name from upload response: ' + response.data);
+        }
+        return {
+          packageName: altMatch[1],
+          response: response.data
+        };
       }
       
       return {
@@ -144,7 +230,7 @@ class ACAPDeploymentService {
       
     } catch (error) {
       if (error.response) {
-        throw new Error(`Upload failed: ${error.response.status} ${error.response.statusText}`);
+        throw new Error(`Upload failed: ${error.response.status} ${error.response.data}`);
       } else if (error.request) {
         throw new Error('Upload failed: No response from camera');
       } else {
@@ -155,23 +241,34 @@ class ACAPDeploymentService {
 
   async installACAP(cameraIp, packageName, credentials) {
     try {
-      const response = await axios.post(
-        `http://${cameraIp}/axis-cgi/applications/control.cgi`,
-        `action=install&package=${packageName}`,
+      // For Axis cameras, the install step is often automatic after upload
+      // But we'll try the install command anyway
+      const params = `action=install&package=${packageName}`;
+      
+      const response = await this.digestAuth(
+        cameraIp,
+        credentials.username || 'root',
+        credentials.password || 'pass',
+        'POST',
+        '/axis-cgi/applications/control.cgi',
+        params,
         {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          auth: {
-            username: credentials.username || 'root',
-            password: credentials.password || 'pass'
           },
           timeout: 30000
         }
       );
       
+      console.log('Install response:', response.data);
+      
       if (response.data.includes('Error')) {
-        throw new Error(`Installation failed: ${response.data}`);
+        // Check if it's already installed
+        if (response.data.includes('already installed')) {
+          console.log('Package already installed, proceeding...');
+        } else {
+          throw new Error(`Installation failed: ${response.data}`);
+        }
       }
       
       return {
@@ -196,16 +293,18 @@ class ACAPDeploymentService {
         'configurable': 'yes'
       };
       
-      const response = await axios.post(
-        `http://${cameraIp}/axis-cgi/applications/control.cgi`,
-        Object.keys(configParams).map(key => `${key}=${configParams[key]}`).join('&'),
+      const params = Object.keys(configParams).map(key => `${key}=${configParams[key]}`).join('&');
+      
+      const response = await this.digestAuth(
+        cameraIp,
+        credentials.username || 'root',
+        credentials.password || 'pass',
+        'POST',
+        '/axis-cgi/applications/control.cgi',
+        params,
         {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          auth: {
-            username: credentials.username || 'root',
-            password: credentials.password || 'pass'
           },
           timeout: 10000
         }
@@ -228,29 +327,38 @@ class ACAPDeploymentService {
 
   async startACAP(cameraIp, packageName, credentials) {
     try {
-      const response = await axios.post(
-        `http://${cameraIp}/axis-cgi/applications/control.cgi`,
-        `action=start&package=${packageName}`,
+      // Use GET method with query parameters for control.cgi
+      const response = await this.digestAuth(
+        cameraIp,
+        credentials.username || 'root',
+        credentials.password || 'pass',
+        'GET',
+        `/axis-cgi/applications/control.cgi?action=start&package=${encodeURIComponent(packageName)}`,
+        null,
         {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          auth: {
-            username: credentials.username || 'root',
-            password: credentials.password || 'pass'
-          },
           timeout: 15000
         }
       );
       
+      console.log('Start response:', response.data);
+      
       if (response.data.includes('Error')) {
-        throw new Error(`Start failed: ${response.data}`);
+        // Check if already running
+        if (response.data.includes('already running')) {
+          console.log('Application already running');
+        } else {
+          throw new Error(`Start failed: ${response.data}`);
+        }
       }
+      
+      // Verify the application is actually running
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s
+      const status = await this.getACAPStatus(cameraIp, packageName, credentials);
       
       return {
         success: true,
         packageName,
-        status: 'running',
+        status: status.running ? 'running' : 'stopped',
         response: response.data
       };
       
@@ -261,17 +369,14 @@ class ACAPDeploymentService {
 
   async stopACAP(cameraIp, packageName, credentials) {
     try {
-      const response = await axios.post(
-        `http://${cameraIp}/axis-cgi/applications/control.cgi`,
-        `action=stop&package=${packageName}`,
+      const response = await this.digestAuth(
+        cameraIp,
+        credentials.username || 'root',
+        credentials.password || 'pass',
+        'GET',
+        `/axis-cgi/applications/control.cgi?action=stop&package=${encodeURIComponent(packageName)}`,
+        null,
         {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          auth: {
-            username: credentials.username || 'root',
-            password: credentials.password || 'pass'
-          },
           timeout: 15000
         }
       );
@@ -294,17 +399,14 @@ class ACAPDeploymentService {
       await this.stopACAP(cameraIp, packageName, credentials);
       
       // Then uninstall it
-      const response = await axios.post(
-        `http://${cameraIp}/axis-cgi/applications/control.cgi`,
-        `action=remove&package=${packageName}`,
+      const response = await this.digestAuth(
+        cameraIp,
+        credentials.username || 'root',
+        credentials.password || 'pass',
+        'GET',
+        `/axis-cgi/applications/control.cgi?action=remove&package=${encodeURIComponent(packageName)}`,
+        null,
         {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          auth: {
-            username: credentials.username || 'root',
-            password: credentials.password || 'pass'
-          },
           timeout: 15000
         }
       );
@@ -323,26 +425,43 @@ class ACAPDeploymentService {
 
   async getACAPStatus(cameraIp, packageName, credentials) {
     try {
-      const response = await axios.get(
-        `http://${cameraIp}/axis-cgi/applications/list.cgi`,
+      const response = await this.digestAuth(
+        cameraIp,
+        credentials?.username || 'root',
+        credentials?.password || 'pass',
+        'GET',
+        '/axis-cgi/applications/list.cgi',
+        null,
         {
-          auth: {
-            username: credentials?.username || 'root',
-            password: credentials?.password || 'pass'
-          },
           timeout: 10000
         }
       );
       
+      console.log('List response:', response.data);
+      
       // Parse the response to find the package status
-      const packageMatch = response.data.match(new RegExp(`${packageName}.*?Status=([^\\r\\n]+)`));
-      const status = packageMatch ? packageMatch[1] : 'unknown';
+      // Format: packagename version vendor status
+      const lines = response.data.split('\n');
+      const appLine = lines.find(line => line.trim().startsWith(packageName));
+      
+      if (!appLine) {
+        return {
+          packageName,
+          status: 'Not installed',
+          running: false,
+          installed: false
+        };
+      }
+      
+      // Parse the status from the line
+      const parts = appLine.trim().split(/\s+/);
+      const status = parts.length >= 4 ? parts[3] : 'Unknown';
       
       return {
         packageName,
         status,
-        running: status === 'Running',
-        installed: status !== 'Not installed'
+        running: status.toLowerCase() === 'running',
+        installed: true
       };
       
     } catch (error) {
@@ -352,13 +471,14 @@ class ACAPDeploymentService {
 
   async getACAPLogs(cameraIp, packageName, credentials) {
     try {
-      const response = await axios.get(
-        `http://${cameraIp}/axis-cgi/applications/logs.cgi?package=${packageName}`,
+      const response = await this.digestAuth(
+        cameraIp,
+        credentials?.username || 'root',
+        credentials?.password || 'pass',
+        'GET',
+        `/axis-cgi/applications/logs.cgi?package=${encodeURIComponent(packageName)}`,
+        null,
         {
-          auth: {
-            username: credentials?.username || 'root',
-            password: credentials?.password || 'pass'
-          },
           timeout: 10000
         }
       );

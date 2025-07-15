@@ -139,7 +139,7 @@ class CameraDiscoveryService {
       
       console.log(`Checking device at ${ip}...`);
       
-      // Check if it has a web server and looks like a camera
+      // Check if it has a web server
       try {
         const response = await axios.get(`http://${ip}/`, {
           timeout: 2000,
@@ -147,21 +147,46 @@ class CameraDiscoveryService {
         });
         
         if (response.status === 200 || response.status === 401) {
-          const server = response.headers['server'] || '';
+          // Quick check for Axis-specific endpoints to determine if it's likely a camera
+          let isLikelyCamera = false;
+          let manufacturer = 'Unknown';
           
-          // Only mark as potential camera if it has camera-related headers
-          if (server.toLowerCase().includes('axis') || 
-              server.toLowerCase().includes('camera') ||
-              server.toLowerCase().includes('ipcam') ||
-              response.status === 401) { // 401 often means auth required for camera
+          // Check for Axis VAPIX endpoint
+          try {
+            const axisCheck = await axios.get(`http://${ip}/axis-cgi/param.cgi`, {
+              timeout: 1000,
+              validateStatus: () => true
+            });
             
+            if (axisCheck.status === 401 || axisCheck.status === 200) {
+              // This is definitely an Axis device
+              isLikelyCamera = true;
+              manufacturer = 'Axis Communications';
+              console.log(`  ✓ Found Axis device at ${ip} (VAPIX endpoint responded)`);
+            }
+          } catch (e) {
+            // Not an Axis device, check other indicators
+            const server = response.headers['server'] || '';
+            const contentType = response.headers['content-type'] || '';
+            
+            // Check if it might be a camera based on other factors
+            if (server.toLowerCase().includes('camera') ||
+                server.toLowerCase().includes('ipcam') ||
+                server.toLowerCase().includes('hikvision') ||
+                server.toLowerCase().includes('dahua') ||
+                response.status === 401) {
+              isLikelyCamera = true;
+            }
+          }
+          
+          if (isLikelyCamera) {
             return {
               id: `camera-${ip.replace(/\./g, '-')}`,
               ip: ip,
               port: 80,
               type: 'Unknown Device',
               model: 'Unknown',
-              manufacturer: server.toLowerCase().includes('axis') ? 'Axis Communications' : 'Unknown',
+              manufacturer: manufacturer,
               mac: await this.getMACAddress(ip),
               capabilities: ['HTTP'],
               discoveredAt: new Date().toISOString(),
