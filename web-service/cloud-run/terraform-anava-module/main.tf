@@ -433,8 +433,8 @@ resource "google_api_gateway_gateway" "anava_gateway" {
 data "google_api_gateway_gateway" "anava_gateway_data" {
   provider = google-beta
   project  = google_api_gateway_gateway.anava_gateway.project
-  region   = google_api_gateway_gateway.anava_gateway.region
-  name     = google_api_gateway_gateway.anava_gateway.gateway_id
+  location = google_api_gateway_gateway.anava_gateway.region
+  gateway_id = google_api_gateway_gateway.anava_gateway.gateway_id
 
   depends_on = [google_api_gateway_gateway.anava_gateway]
 }
