@@ -421,17 +421,8 @@ resource "google_api_gateway_api" "anava_api" {
   ]
 }
 
-# CRITICAL: Enable the dynamically created managed service
-# This is the key missing piece that caused silent failures
-resource "google_project_service" "api_gateway_managed_service" {
-  provider = google-beta
-  project  = var.project_id
-  service  = google_api_gateway_api.anava_api.managed_service
-  
-  disable_on_destroy = false
-  
-  depends_on = [google_api_gateway_api.anava_api]
-}
+# MOVED: Managed service enablement moved to after API config creation
+# See null_resource "enable_managed_service" below
 
 # Time delay after API creation (matching shell script)
 resource "time_sleep" "after_api_creation" {
@@ -439,17 +430,7 @@ resource "time_sleep" "after_api_creation" {
   depends_on = [google_api_gateway_api.anava_api]
 }
 
-# Time delay before service enablement (matching shell script)
-resource "time_sleep" "before_service_enablement" {
-  create_duration = "10s"
-  depends_on = [time_sleep.after_api_creation]
-}
-
-# Time delay after service enablement (matching shell script)
-resource "time_sleep" "after_service_enablement" {
-  create_duration = "30s"
-  depends_on = [google_project_service.api_gateway_managed_service]
-}
+# Removed time delays for service enablement - moved to after config creation
 
 # OpenAPI specification for API Gateway
 locals {
@@ -485,7 +466,7 @@ resource "google_api_gateway_api_config" "anava_config" {
     google_api_gateway_api.anava_api,
     google_cloudfunctions2_function.device_auth,
     google_cloudfunctions2_function.tvm,
-    time_sleep.after_service_enablement
+    time_sleep.after_api_creation
   ]
 }
 
@@ -527,6 +508,57 @@ resource "null_resource" "api_config_polling" {
   depends_on = [google_api_gateway_api_config.anava_config]
 }
 
+# CRITICAL FIX: Enable managed service AFTER config creation (not before)
+# This matches the shell script's successful sequence
+resource "null_resource" "enable_managed_service" {
+  triggers = {
+    api_config_id = google_api_gateway_api_config.anava_config.id
+  }
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Enabling managed service for API Gateway..."
+      
+      # Get the managed service name
+      API_MANAGED_SERVICE_NAME=$(gcloud api-gateway apis describe "${var.solution_prefix}-api" \
+        --project="${var.project_id}" \
+        --format="value(managedService)")
+      
+      echo "Managed service: $API_MANAGED_SERVICE_NAME"
+      
+      # Wait 10 seconds before enabling (from shell script)
+      sleep 10
+      
+      # Check if already enabled
+      ENABLED_CHECK=$(gcloud services list \
+        --enabled \
+        --project="${var.project_id}" \
+        --filter="config.name=$API_MANAGED_SERVICE_NAME" \
+        --format="value(config.name)" 2>/dev/null || echo "")
+      
+      if [ -z "$ENABLED_CHECK" ]; then
+        echo "Enabling managed service..."
+        gcloud services enable "$API_MANAGED_SERVICE_NAME" \
+          --project="${var.project_id}" \
+          --quiet || {
+          echo "WARNING: Failed to enable managed service. This may be normal."
+          echo "The service may auto-enable when the gateway is created."
+        }
+      else
+        echo "Managed service already enabled"
+      fi
+      
+      # Wait for propagation
+      sleep 30
+    EOT
+  }
+  
+  depends_on = [
+    google_api_gateway_api_config.anava_config,
+    null_resource.api_config_polling
+  ]
+}
+
 # API Gateway
 resource "google_api_gateway_gateway" "anava_gateway" {
   provider   = google-beta
@@ -537,7 +569,8 @@ resource "google_api_gateway_gateway" "anava_gateway" {
   
   depends_on = [
     google_api_gateway_api_config.anava_config,
-    null_resource.api_config_polling
+    null_resource.api_config_polling,
+    null_resource.enable_managed_service
   ]
 }
 

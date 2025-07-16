@@ -132,3 +132,6 @@
 {"level":"info","message":"Navigating to URL","service":"mcp-puppeteer","timestamp":"2025-07-16 16:58:14.138","url":"https://anava-deploy-392865621461.us-central1.run.app"}
 {"error":"Attempted to use detached Frame '830FAAB3D3AC13442C8E47824928D59B'.","level":"error","message":"Navigation failed","service":"mcp-puppeteer","timestamp":"2025-07-16 16:58:14.139","url":"https://anava-deploy-392865621461.us-central1.run.app"}
 {"arguments":{},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-07-16 16:58:22.217","tool":"puppeteer_connect_active_tab"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-07-16 18:12:07.356"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-07-16 18:12:07.357"}
+{"level":"info","message":"Puppeteer MCP Server closing","service":"mcp-puppeteer","timestamp":"2025-07-16 18:12:24.614"}

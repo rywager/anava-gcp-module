@@ -87,7 +87,8 @@
       "Bash(gcloud api-gateway apis list:*)",
       "Bash(gcloud api-gateway api-configs list:*)",
       "Bash(gcloud api-gateway apis delete:*)",
-      "Bash(gcloud services list:*)"
+      "Bash(gcloud services list:*)",
+      "Bash(gcloud api-gateway apis describe:*)"
     ],
     "deny": []
   }
