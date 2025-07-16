@@ -27000,3 +27000,281 @@
 [2025-07-15 21:36:03] TEST: Running terraform_deployment_test
 [2025-07-15 21:36:05] TEST: Running error_detection_test
 [2025-07-15 21:36:37] TEST_CYCLE: Starting test cycle #5401
+[2025-07-15 21:36:37] TEST: Running login_flow_test
+[2025-07-15 21:36:39] TEST: Running dashboard_navigation_test
+[2025-07-15 21:36:41] TEST: Running terraform_deployment_test
+[2025-07-15 21:36:43] TEST: Running error_detection_test
+[2025-07-15 21:37:15] TEST_CYCLE: Starting test cycle #5402
+[2025-07-15 21:37:15] TEST: Running login_flow_test
+[2025-07-15 21:37:17] TEST: Running dashboard_navigation_test
+[2025-07-15 21:37:19] TEST: Running terraform_deployment_test
+[2025-07-15 21:37:21] TEST: Running error_detection_test
+[2025-07-15 21:37:53] TEST_CYCLE: Starting test cycle #5403
+[2025-07-15 21:37:53] TEST: Running login_flow_test
+[2025-07-15 21:37:55] TEST: Running dashboard_navigation_test
+[2025-07-15 21:37:57] TEST: Running terraform_deployment_test
+[2025-07-15 21:37:59] TEST: Running error_detection_test
+[2025-07-15 21:38:31] TEST_CYCLE: Starting test cycle #5404
+[2025-07-15 21:38:31] TEST: Running login_flow_test
+[2025-07-15 21:38:33] TEST: Running dashboard_navigation_test
+[2025-07-15 21:38:35] TEST: Running terraform_deployment_test
+[2025-07-15 21:38:37] TEST: Running error_detection_test
+[2025-07-15 21:39:09] TEST_CYCLE: Starting test cycle #5405
+[2025-07-15 21:39:09] TEST: Running login_flow_test
+[2025-07-15 21:39:11] TEST: Running dashboard_navigation_test
+[2025-07-15 21:39:13] TEST: Running terraform_deployment_test
+[2025-07-15 21:39:15] TEST: Running error_detection_test
+[2025-07-15 21:39:47] TEST_CYCLE: Starting test cycle #5406
+[2025-07-15 21:39:47] TEST: Running login_flow_test
+[2025-07-15 21:39:49] TEST: Running dashboard_navigation_test
+[2025-07-15 21:39:51] TEST: Running terraform_deployment_test
+[2025-07-15 21:39:53] TEST: Running error_detection_test
+[2025-07-15 21:40:25] TEST_CYCLE: Starting test cycle #5407
+[2025-07-15 21:40:25] TEST: Running login_flow_test
+[2025-07-15 21:40:27] TEST: Running dashboard_navigation_test
+[2025-07-15 21:40:29] TEST: Running terraform_deployment_test
+[2025-07-15 21:40:31] TEST: Running error_detection_test
+[2025-07-15 21:41:03] TEST_CYCLE: Starting test cycle #5408
+[2025-07-15 21:41:03] TEST: Running login_flow_test
+[2025-07-15 21:41:05] TEST: Running dashboard_navigation_test
+[2025-07-15 21:41:07] TEST: Running terraform_deployment_test
+[2025-07-15 21:41:09] TEST: Running error_detection_test
+[2025-07-15 21:41:41] TEST_CYCLE: Starting test cycle #5409
+[2025-07-15 21:41:41] TEST: Running login_flow_test
+[2025-07-15 21:41:43] TEST: Running dashboard_navigation_test
+[2025-07-15 21:41:45] TEST: Running terraform_deployment_test
+[2025-07-15 21:41:47] TEST: Running error_detection_test
+[2025-07-15 21:42:19] TEST_CYCLE: Starting test cycle #5410
+[2025-07-15 21:42:19] TEST: Running login_flow_test
+[2025-07-15 21:42:21] TEST: Running dashboard_navigation_test
+[2025-07-15 21:42:23] TEST: Running terraform_deployment_test
+[2025-07-15 21:42:25] TEST: Running error_detection_test
+[2025-07-15 21:42:57] TEST_CYCLE: Starting test cycle #5411
+[2025-07-15 21:42:57] TEST: Running login_flow_test
+[2025-07-15 21:42:59] TEST: Running dashboard_navigation_test
+[2025-07-15 21:43:01] TEST: Running terraform_deployment_test
+[2025-07-15 21:43:03] TEST: Running error_detection_test
+[2025-07-15 21:43:35] TEST_CYCLE: Starting test cycle #5412
+[2025-07-15 21:43:35] TEST: Running login_flow_test
+[2025-07-15 21:43:37] TEST: Running dashboard_navigation_test
+[2025-07-15 21:43:39] TEST: Running terraform_deployment_test
+[2025-07-15 21:43:41] TEST: Running error_detection_test
+[2025-07-15 21:44:13] TEST_CYCLE: Starting test cycle #5413
+[2025-07-15 21:44:13] TEST: Running login_flow_test
+[2025-07-15 21:44:15] TEST: Running dashboard_navigation_test
+[2025-07-15 21:44:17] TEST: Running terraform_deployment_test
+[2025-07-15 21:44:19] TEST: Running error_detection_test
+[2025-07-15 21:44:51] TEST_CYCLE: Starting test cycle #5414
+[2025-07-15 21:44:51] TEST: Running login_flow_test
+[2025-07-15 21:44:53] TEST: Running dashboard_navigation_test
+[2025-07-15 21:44:55] TEST: Running terraform_deployment_test
+[2025-07-15 21:44:57] TEST: Running error_detection_test
+[2025-07-15 21:45:29] TEST_CYCLE: Starting test cycle #5415
+[2025-07-15 21:45:29] TEST: Running login_flow_test
+[2025-07-15 21:45:31] TEST: Running dashboard_navigation_test
+[2025-07-15 21:45:33] TEST: Running terraform_deployment_test
+[2025-07-15 21:45:35] TEST: Running error_detection_test
+[2025-07-15 21:46:07] TEST_CYCLE: Starting test cycle #5416
+[2025-07-15 21:46:07] TEST: Running login_flow_test
+[2025-07-15 21:46:09] TEST: Running dashboard_navigation_test
+[2025-07-15 21:46:11] TEST: Running terraform_deployment_test
+[2025-07-15 21:46:13] TEST: Running error_detection_test
+[2025-07-15 21:46:45] TEST_CYCLE: Starting test cycle #5417
+[2025-07-15 21:46:45] TEST: Running login_flow_test
+[2025-07-15 21:46:47] TEST: Running dashboard_navigation_test
+[2025-07-15 21:46:49] TEST: Running terraform_deployment_test
+[2025-07-15 21:46:51] TEST: Running error_detection_test
+[2025-07-15 21:47:23] TEST_CYCLE: Starting test cycle #5418
+[2025-07-15 21:47:23] TEST: Running login_flow_test
+[2025-07-15 21:47:25] TEST: Running dashboard_navigation_test
+[2025-07-15 21:47:27] TEST: Running terraform_deployment_test
+[2025-07-15 21:47:29] TEST: Running error_detection_test
+[2025-07-15 21:48:01] TEST_CYCLE: Starting test cycle #5419
+[2025-07-15 21:48:01] TEST: Running login_flow_test
+[2025-07-15 21:48:03] TEST: Running dashboard_navigation_test
+[2025-07-15 21:48:05] TEST: Running terraform_deployment_test
+[2025-07-15 21:48:07] TEST: Running error_detection_test
+[2025-07-15 21:48:39] TEST_CYCLE: Starting test cycle #5420
+[2025-07-15 21:48:39] TEST: Running login_flow_test
+[2025-07-15 21:48:41] TEST: Running dashboard_navigation_test
+[2025-07-15 21:48:43] TEST: Running terraform_deployment_test
+[2025-07-15 21:48:45] TEST: Running error_detection_test
+[2025-07-15 21:49:17] TEST_CYCLE: Starting test cycle #5421
+[2025-07-15 21:49:17] TEST: Running login_flow_test
+[2025-07-15 21:49:19] TEST: Running dashboard_navigation_test
+[2025-07-15 21:49:21] TEST: Running terraform_deployment_test
+[2025-07-15 21:49:23] TEST: Running error_detection_test
+[2025-07-15 21:49:55] TEST_CYCLE: Starting test cycle #5422
+[2025-07-15 21:49:55] TEST: Running login_flow_test
+[2025-07-15 21:49:57] TEST: Running dashboard_navigation_test
+[2025-07-15 21:49:59] TEST: Running terraform_deployment_test
+[2025-07-15 21:50:01] TEST: Running error_detection_test
+[2025-07-15 21:50:33] TEST_CYCLE: Starting test cycle #5423
+[2025-07-15 21:50:33] TEST: Running login_flow_test
+[2025-07-15 21:50:35] TEST: Running dashboard_navigation_test
+[2025-07-15 21:50:37] TEST: Running terraform_deployment_test
+[2025-07-15 21:50:39] TEST: Running error_detection_test
+[2025-07-15 21:51:11] TEST_CYCLE: Starting test cycle #5424
+[2025-07-15 21:51:11] TEST: Running login_flow_test
+[2025-07-15 21:51:13] TEST: Running dashboard_navigation_test
+[2025-07-15 21:51:15] TEST: Running terraform_deployment_test
+[2025-07-15 21:51:17] TEST: Running error_detection_test
+[2025-07-15 21:51:49] TEST_CYCLE: Starting test cycle #5425
+[2025-07-15 21:51:49] TEST: Running login_flow_test
+[2025-07-15 21:51:51] TEST: Running dashboard_navigation_test
+[2025-07-15 21:51:53] TEST: Running terraform_deployment_test
+[2025-07-15 21:51:55] TEST: Running error_detection_test
+[2025-07-15 21:52:27] TEST_CYCLE: Starting test cycle #5426
+[2025-07-15 21:52:27] TEST: Running login_flow_test
+[2025-07-15 21:52:29] TEST: Running dashboard_navigation_test
+[2025-07-15 21:52:31] TEST: Running terraform_deployment_test
+[2025-07-15 21:52:33] TEST: Running error_detection_test
+[2025-07-15 21:53:05] TEST_CYCLE: Starting test cycle #5427
+[2025-07-15 21:53:05] TEST: Running login_flow_test
+[2025-07-15 21:53:07] TEST: Running dashboard_navigation_test
+[2025-07-15 21:53:09] TEST: Running terraform_deployment_test
+[2025-07-15 21:53:11] TEST: Running error_detection_test
+[2025-07-15 21:53:44] TEST_CYCLE: Starting test cycle #5428
+[2025-07-15 21:53:44] TEST: Running login_flow_test
+[2025-07-15 21:53:46] TEST: Running dashboard_navigation_test
+[2025-07-15 21:53:48] TEST: Running terraform_deployment_test
+[2025-07-15 21:53:50] TEST: Running error_detection_test
+[2025-07-15 21:54:22] TEST_CYCLE: Starting test cycle #5429
+[2025-07-15 21:54:22] TEST: Running login_flow_test
+[2025-07-15 21:54:24] TEST: Running dashboard_navigation_test
+[2025-07-15 21:54:26] TEST: Running terraform_deployment_test
+[2025-07-15 21:54:28] TEST: Running error_detection_test
+[2025-07-15 21:55:00] TEST_CYCLE: Starting test cycle #5430
+[2025-07-15 21:55:00] TEST: Running login_flow_test
+[2025-07-15 21:55:02] TEST: Running dashboard_navigation_test
+[2025-07-15 21:55:04] TEST: Running terraform_deployment_test
+[2025-07-15 21:55:06] TEST: Running error_detection_test
+[2025-07-15 21:55:38] TEST_CYCLE: Starting test cycle #5431
+[2025-07-15 21:55:38] TEST: Running login_flow_test
+[2025-07-15 21:55:40] TEST: Running dashboard_navigation_test
+[2025-07-15 21:55:42] TEST: Running terraform_deployment_test
+[2025-07-15 21:55:44] TEST: Running error_detection_test
+[2025-07-15 21:56:16] TEST_CYCLE: Starting test cycle #5432
+[2025-07-15 21:56:16] TEST: Running login_flow_test
+[2025-07-15 21:56:18] TEST: Running dashboard_navigation_test
+[2025-07-15 21:56:20] TEST: Running terraform_deployment_test
+[2025-07-15 21:56:22] TEST: Running error_detection_test
+[2025-07-15 21:56:54] TEST_CYCLE: Starting test cycle #5433
+[2025-07-15 21:56:54] TEST: Running login_flow_test
+[2025-07-15 21:56:56] TEST: Running dashboard_navigation_test
+[2025-07-15 21:56:58] TEST: Running terraform_deployment_test
+[2025-07-15 21:57:00] TEST: Running error_detection_test
+[2025-07-15 21:57:32] TEST_CYCLE: Starting test cycle #5434
+[2025-07-15 21:57:32] TEST: Running login_flow_test
+[2025-07-15 21:57:34] TEST: Running dashboard_navigation_test
+[2025-07-15 21:57:36] TEST: Running terraform_deployment_test
+[2025-07-15 21:57:38] TEST: Running error_detection_test
+[2025-07-15 21:58:10] TEST_CYCLE: Starting test cycle #5435
+[2025-07-15 21:58:10] TEST: Running login_flow_test
+[2025-07-15 21:58:12] TEST: Running dashboard_navigation_test
+[2025-07-15 21:58:14] TEST: Running terraform_deployment_test
+[2025-07-15 21:58:16] TEST: Running error_detection_test
+[2025-07-15 21:58:48] TEST_CYCLE: Starting test cycle #5436
+[2025-07-15 21:58:48] TEST: Running login_flow_test
+[2025-07-15 21:58:50] TEST: Running dashboard_navigation_test
+[2025-07-15 21:58:52] TEST: Running terraform_deployment_test
+[2025-07-15 21:58:54] TEST: Running error_detection_test
+[2025-07-15 22:02:37] TEST_CYCLE: Starting test cycle #5437
+[2025-07-15 22:02:37] TEST: Running login_flow_test
+[2025-07-15 22:02:39] TEST: Running dashboard_navigation_test
+[2025-07-15 22:02:41] TEST: Running terraform_deployment_test
+[2025-07-15 22:02:43] TEST: Running error_detection_test
+[2025-07-15 22:03:15] TEST_CYCLE: Starting test cycle #5438
+[2025-07-15 22:03:15] TEST: Running login_flow_test
+[2025-07-15 22:03:17] TEST: Running dashboard_navigation_test
+[2025-07-15 22:03:19] TEST: Running terraform_deployment_test
+[2025-07-15 22:03:21] TEST: Running error_detection_test
+[2025-07-15 22:03:53] TEST_CYCLE: Starting test cycle #5439
+[2025-07-15 22:03:53] TEST: Running login_flow_test
+[2025-07-15 22:03:55] TEST: Running dashboard_navigation_test
+[2025-07-15 22:03:57] TEST: Running terraform_deployment_test
+[2025-07-15 22:03:59] TEST: Running error_detection_test
+[2025-07-15 22:04:31] TEST_CYCLE: Starting test cycle #5440
+[2025-07-15 22:04:31] TEST: Running login_flow_test
+[2025-07-15 22:04:33] TEST: Running dashboard_navigation_test
+[2025-07-15 22:04:35] TEST: Running terraform_deployment_test
+[2025-07-15 22:04:37] TEST: Running error_detection_test
+[2025-07-15 22:05:09] TEST_CYCLE: Starting test cycle #5441
+[2025-07-15 22:05:09] TEST: Running login_flow_test
+[2025-07-15 22:05:11] TEST: Running dashboard_navigation_test
+[2025-07-15 22:05:13] TEST: Running terraform_deployment_test
+[2025-07-15 22:05:15] TEST: Running error_detection_test
+[2025-07-15 22:05:47] TEST_CYCLE: Starting test cycle #5442
+[2025-07-15 22:05:47] TEST: Running login_flow_test
+[2025-07-15 22:05:49] TEST: Running dashboard_navigation_test
+[2025-07-15 22:05:51] TEST: Running terraform_deployment_test
+[2025-07-15 22:05:53] TEST: Running error_detection_test
+[2025-07-15 22:06:25] TEST_CYCLE: Starting test cycle #5443
+[2025-07-15 22:06:25] TEST: Running login_flow_test
+[2025-07-15 22:06:27] TEST: Running dashboard_navigation_test
+[2025-07-15 22:06:29] TEST: Running terraform_deployment_test
+[2025-07-15 22:06:31] TEST: Running error_detection_test
+[2025-07-15 22:07:03] TEST_CYCLE: Starting test cycle #5444
+[2025-07-15 22:07:03] TEST: Running login_flow_test
+[2025-07-15 22:07:05] TEST: Running dashboard_navigation_test
+[2025-07-15 22:07:07] TEST: Running terraform_deployment_test
+[2025-07-15 22:07:09] TEST: Running error_detection_test
+[2025-07-15 22:07:41] TEST_CYCLE: Starting test cycle #5445
+[2025-07-15 22:07:41] TEST: Running login_flow_test
+[2025-07-15 22:07:43] TEST: Running dashboard_navigation_test
+[2025-07-15 22:07:45] TEST: Running terraform_deployment_test
+[2025-07-15 22:07:47] TEST: Running error_detection_test
+[2025-07-15 22:08:19] TEST_CYCLE: Starting test cycle #5446
+[2025-07-15 22:08:19] TEST: Running login_flow_test
+[2025-07-15 22:08:21] TEST: Running dashboard_navigation_test
+[2025-07-15 22:08:23] TEST: Running terraform_deployment_test
+[2025-07-15 22:08:25] TEST: Running error_detection_test
+[2025-07-15 22:08:57] TEST_CYCLE: Starting test cycle #5447
+[2025-07-15 22:08:57] TEST: Running login_flow_test
+[2025-07-15 22:08:59] TEST: Running dashboard_navigation_test
+[2025-07-15 22:09:01] TEST: Running terraform_deployment_test
+[2025-07-15 22:09:03] TEST: Running error_detection_test
+[2025-07-15 22:09:35] TEST_CYCLE: Starting test cycle #5448
+[2025-07-15 22:09:35] TEST: Running login_flow_test
+[2025-07-15 22:09:37] TEST: Running dashboard_navigation_test
+[2025-07-15 22:09:39] TEST: Running terraform_deployment_test
+[2025-07-15 22:09:41] TEST: Running error_detection_test
+[2025-07-15 22:10:13] TEST_CYCLE: Starting test cycle #5449
+[2025-07-15 22:10:13] TEST: Running login_flow_test
+[2025-07-15 22:10:15] TEST: Running dashboard_navigation_test
+[2025-07-15 22:10:17] TEST: Running terraform_deployment_test
+[2025-07-15 22:10:19] TEST: Running error_detection_test
+[2025-07-15 22:10:51] TEST_CYCLE: Starting test cycle #5450
+[2025-07-15 22:10:51] TEST: Running login_flow_test
+[2025-07-15 22:10:53] TEST: Running dashboard_navigation_test
+[2025-07-15 22:10:55] TEST: Running terraform_deployment_test
+[2025-07-15 22:10:57] TEST: Running error_detection_test
+[2025-07-15 22:11:29] TEST_CYCLE: Starting test cycle #5451
+[2025-07-15 22:11:29] TEST: Running login_flow_test
+[2025-07-15 22:11:31] TEST: Running dashboard_navigation_test
+[2025-07-15 22:11:33] TEST: Running terraform_deployment_test
+[2025-07-15 22:11:35] TEST: Running error_detection_test
+[2025-07-15 22:12:07] TEST_CYCLE: Starting test cycle #5452
+[2025-07-15 22:12:07] TEST: Running login_flow_test
+[2025-07-15 22:12:09] TEST: Running dashboard_navigation_test
+[2025-07-15 22:12:11] TEST: Running terraform_deployment_test
+[2025-07-15 22:12:13] TEST: Running error_detection_test
+[2025-07-15 22:12:45] TEST_CYCLE: Starting test cycle #5453
+[2025-07-15 22:12:45] TEST: Running login_flow_test
+[2025-07-15 22:12:47] TEST: Running dashboard_navigation_test
+[2025-07-15 22:12:49] TEST: Running terraform_deployment_test
+[2025-07-15 22:12:51] TEST: Running error_detection_test
+[2025-07-15 22:13:23] TEST_CYCLE: Starting test cycle #5454
+[2025-07-15 22:13:23] TEST: Running login_flow_test
+[2025-07-15 22:13:25] TEST: Running dashboard_navigation_test
+[2025-07-15 22:13:27] TEST: Running terraform_deployment_test
+[2025-07-15 22:13:29] TEST: Running error_detection_test
+[2025-07-15 22:14:01] TEST_CYCLE: Starting test cycle #5455
+[2025-07-15 22:14:01] TEST: Running login_flow_test
+[2025-07-15 22:14:03] TEST: Running dashboard_navigation_test
+[2025-07-15 22:14:05] TEST: Running terraform_deployment_test
+[2025-07-15 22:14:07] TEST: Running error_detection_test
+[2025-07-15 22:14:39] TEST_CYCLE: Starting test cycle #5456
+[2025-07-15 22:14:39] TEST: Running login_flow_test
+[2025-07-15 22:14:41] TEST: Running dashboard_navigation_test
+[2025-07-15 22:14:43] TEST: Running terraform_deployment_test
