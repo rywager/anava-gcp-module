@@ -429,6 +429,16 @@ resource "google_api_gateway_gateway" "anava_gateway" {
   depends_on = [google_api_gateway_api_config.anava_config]
 }
 
+# Data source to read the created gateway's attributes including default_hostname
+data "google_api_gateway_gateway" "anava_gateway_data" {
+  provider = google-beta
+  project  = google_api_gateway_gateway.anava_gateway.project
+  region   = google_api_gateway_gateway.anava_gateway.region
+  name     = google_api_gateway_gateway.anava_gateway.gateway_id
+
+  depends_on = [google_api_gateway_gateway.anava_gateway]
+}
+
 # API Key for API Gateway
 resource "google_apikeys_key" "api_gateway_key" {
   project      = var.project_id
