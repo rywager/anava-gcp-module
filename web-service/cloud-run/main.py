@@ -28,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.39"  # FIXED: API Gateway URL now uses data source for default_hostname attribute
+VERSION = "2.3.40"  # FIXED: Corrected data source parameters (location, gateway_id)
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
