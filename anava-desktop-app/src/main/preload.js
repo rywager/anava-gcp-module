@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Camera discovery
   scanNetworkForCameras: () => ipcRenderer.invoke('scan-network-cameras'),
   quickScanCamera: (ip, username, password) => ipcRenderer.invoke('quick-scan-camera', ip, username, password),
+  testCameraCredentials: (cameraId, ip, username, password) => ipcRenderer.invoke('test-camera-credentials', cameraId, ip, username, password),
   
   // ACAP deployment
   deployACAP: (cameraIp, acapFile, progress) => ipcRenderer.invoke('deploy-acap', cameraIp, acapFile, progress),

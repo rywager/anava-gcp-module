@@ -175,9 +175,28 @@ const CameraDiscovery: React.FC = () => {
     if (!selectedCamera) return;
     
     try {
+      setLoading(true);
+      
+      console.log('Testing credentials for camera:', selectedCamera?.ip);
+      
+      // Test the credentials before saving
+      const testResult = await window.electronAPI.testCameraCredentials(
+        selectedCamera?.id,
+        selectedCamera?.ip, 
+        credentials.username, 
+        credentials.password
+      );
+      
+      console.log('Credential test result:', testResult);
+      
       const updatedCameras = cameras.map(cam => 
         cam.id === selectedCamera.id 
-          ? { ...cam, credentials }
+          ? { 
+              ...cam, 
+              credentials,
+              status: testResult.authenticated ? 'accessible' : 'requires_auth',
+              authenticated: testResult.authenticated
+            }
           : cam
       );
       
@@ -185,8 +204,17 @@ const CameraDiscovery: React.FC = () => {
       await window.electronAPI.store.set('discoveredCameras', updatedCameras);
       setCredentialsDialog(false);
       setSelectedCamera(null);
+      
+      if (testResult.authenticated) {
+        setError(null);
+      } else {
+        setError(`Authentication failed: ${testResult.message}`);
+      }
     } catch (err) {
       console.error('Error saving credentials:', err);
+      setError(`Error testing credentials: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 

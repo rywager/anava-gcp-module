@@ -46510,3 +46510,3332 @@ Service URL: [1mhttps://anava-deploy-392865621461.us-central1.run.app[m
 ✓ Status: ENABLING_APIS
 ✓ Status: SCANNING_EXISTING_RESOURCES
 ✓ Status: SETTING_PERMISSIONS
+[security-architecture-audit a6e54be] v2.3.31: Automated fix deployment
+ 15 files changed, 1718 insertions(+), 111 deletions(-)
+ create mode 100644 anava-desktop-app/test-acap-deployment.js
+ create mode 100644 anava-desktop-app/test-acap-real.js
+ create mode 100644 anava-desktop-app/test-actual-discovery.js
+ create mode 100644 anava-desktop-app/test-discovery-final.js
+ create mode 100644 anava-desktop-app/test-discovery-standalone.js
+ create mode 100644 anava-desktop-app/test-full-validation.js
+ create mode 100644 anava-desktop-app/test-improved-detection.js
+ create mode 100644 anava-desktop-app/test-network-actual.js
+Creating temporary archive of 96 file(s) totalling 3.8 MiB before compression.
+Uploading tarball of [.] to [gs://anava-ai_cloudbuild/source/1752611625.63717-0ed6bf84391747709cd8497cf77d1e1a.tgz]
+Created [https://cloudbuild.googleapis.com/v1/projects/anava-ai/locations/global/builds/33b17b39-fdd1-4a68-b107-bc4ddedd9831].
+Logs are available at [ https://console.cloud.google.com/cloud-build/builds/33b17b39-fdd1-4a68-b107-bc4ddedd9831?project=392865621461 ].
+ID                                    CREATE_TIME                DURATION  SOURCE                                                                                 IMAGES  STATUS
+33b17b39-fdd1-4a68-b107-bc4ddedd9831  2025-07-15T20:33:46+00:00  -         gs://anava-ai_cloudbuild/source/1752611625.63717-0ed6bf84391747709cd8497cf77d1e1a.tgz  -       QUEUED
+Deploying container to Cloud Run service [[1manava-deploy[m] in project [[1manava-ai[m] region [[1mus-central1[m]
+Deploying...
+Creating Revision.........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................done
+Routing traffic.....done
+Done.
+Service [[1manava-deploy[m] revision [[1manava-deploy-00144-p95[m] has been deployed and is serving [1m100[m percent of traffic.
+Service URL: [1mhttps://anava-deploy-392865621461.us-central1.run.app[m
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+
+⏱️  Deployment timed out after 600 seconds
+
+📋 Deployment Summary:
+   - Resources created: 0
+   - Errors found: 1
+
+🔧 Fix needed: Operation timed out - may need to increase timeout or optimize
+🔧 Increasing timeout values
+✅ Applied fix for: timeout
+
+🚀 Deploying 1 fixes...
+🚀 Deploying fix as v2.3.31
+✓ Build submitted for v2.3.31
+⏳ Waiting 2 minutes for build to complete...
+✅ Successfully deployed v2.3.31
+✅ Fixes deployed successfully
+⏳ Waiting 3 minutes for service to restart...
+
+📊 Test Summary:
+   - Total tests: 2034
+   - Successful: 0
+   - Failed: 2034
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2035
+# 🔧 Current version: 2.3.35
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2035
+   - Successful: 0
+   - Failed: 2035
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2036
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2036
+   - Successful: 0
+   - Failed: 2036
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2037
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2037
+   - Successful: 0
+   - Failed: 2037
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2038
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2038
+   - Successful: 0
+   - Failed: 2038
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2039
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2039
+   - Successful: 0
+   - Failed: 2039
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2040
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2040
+   - Successful: 0
+   - Failed: 2040
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2041
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2041
+   - Successful: 0
+   - Failed: 2041
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2042
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2042
+   - Successful: 0
+   - Failed: 2042
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2043
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2043
+   - Successful: 0
+   - Failed: 2043
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2044
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2044
+   - Successful: 0
+   - Failed: 2044
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2045
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2045
+   - Successful: 0
+   - Failed: 2045
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2046
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2046
+   - Successful: 0
+   - Failed: 2046
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2047
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2047
+   - Successful: 0
+   - Failed: 2047
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2048
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2048
+   - Successful: 0
+   - Failed: 2048
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2049
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2049
+   - Successful: 0
+   - Failed: 2049
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2050
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2050
+   - Successful: 0
+   - Failed: 2050
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2051
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2051
+   - Successful: 0
+   - Failed: 2051
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2052
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2052
+   - Successful: 0
+   - Failed: 2052
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2053
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2053
+   - Successful: 0
+   - Failed: 2053
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2054
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2054
+   - Successful: 0
+   - Failed: 2054
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2055
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2055
+   - Successful: 0
+   - Failed: 2055
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2056
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2056
+   - Successful: 0
+   - Failed: 2056
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2057
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2057
+   - Successful: 0
+   - Failed: 2057
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2058
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2058
+   - Successful: 0
+   - Failed: 2058
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2059
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2059
+   - Successful: 0
+   - Failed: 2059
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2060
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2060
+   - Successful: 0
+   - Failed: 2060
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2061
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2061
+   - Successful: 0
+   - Failed: 2061
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2062
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2062
+   - Successful: 0
+   - Failed: 2062
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2063
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2063
+   - Successful: 0
+   - Failed: 2063
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2064
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2064
+   - Successful: 0
+   - Failed: 2064
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2065
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2065
+   - Successful: 0
+   - Failed: 2065
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2066
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2066
+   - Successful: 0
+   - Failed: 2066
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2067
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2067
+   - Successful: 0
+   - Failed: 2067
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2068
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2068
+   - Successful: 0
+   - Failed: 2068
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2069
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2069
+   - Successful: 0
+   - Failed: 2069
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2070
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2070
+   - Successful: 0
+   - Failed: 2070
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2071
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2071
+   - Successful: 0
+   - Failed: 2071
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2072
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2072
+   - Successful: 0
+   - Failed: 2072
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2073
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2073
+   - Successful: 0
+   - Failed: 2073
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2074
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2074
+   - Successful: 0
+   - Failed: 2074
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2075
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2075
+   - Successful: 0
+   - Failed: 2075
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2076
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2076
+   - Successful: 0
+   - Failed: 2076
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2077
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2077
+   - Successful: 0
+   - Failed: 2077
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2078
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2078
+   - Successful: 0
+   - Failed: 2078
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2079
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2079
+   - Successful: 0
+   - Failed: 2079
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2080
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2080
+   - Successful: 0
+   - Failed: 2080
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2081
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2081
+   - Successful: 0
+   - Failed: 2081
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2082
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2082
+   - Successful: 0
+   - Failed: 2082
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2083
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2083
+   - Successful: 0
+   - Failed: 2083
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2084
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2084
+   - Successful: 0
+   - Failed: 2084
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2085
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2085
+   - Successful: 0
+   - Failed: 2085
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2086
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2086
+   - Successful: 0
+   - Failed: 2086
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2087
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2087
+   - Successful: 0
+   - Failed: 2087
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2088
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2088
+   - Successful: 0
+   - Failed: 2088
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2089
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2089
+   - Successful: 0
+   - Failed: 2089
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2090
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2090
+   - Successful: 0
+   - Failed: 2090
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2091
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2091
+   - Successful: 0
+   - Failed: 2091
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2092
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2092
+   - Successful: 0
+   - Failed: 2092
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2093
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2093
+   - Successful: 0
+   - Failed: 2093
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2094
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2094
+   - Successful: 0
+   - Failed: 2094
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2095
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2095
+   - Successful: 0
+   - Failed: 2095
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2096
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2096
+   - Successful: 0
+   - Failed: 2096
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2097
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2097
+   - Successful: 0
+   - Failed: 2097
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2098
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2098
+   - Successful: 0
+   - Failed: 2098
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2099
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2099
+   - Successful: 0
+   - Failed: 2099
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2100
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2100
+   - Successful: 0
+   - Failed: 2100
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2101
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2101
+   - Successful: 0
+   - Failed: 2101
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2102
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2102
+   - Successful: 0
+   - Failed: 2102
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2103
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2103
+   - Successful: 0
+   - Failed: 2103
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2104
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2104
+   - Successful: 0
+   - Failed: 2104
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2105
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2105
+   - Successful: 0
+   - Failed: 2105
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2106
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2106
+   - Successful: 0
+   - Failed: 2106
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2107
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2107
+   - Successful: 0
+   - Failed: 2107
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2108
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2108
+   - Successful: 0
+   - Failed: 2108
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2109
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2109
+   - Successful: 0
+   - Failed: 2109
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2110
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2110
+   - Successful: 0
+   - Failed: 2110
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2111
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2111
+   - Successful: 0
+   - Failed: 2111
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2112
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2112
+   - Successful: 0
+   - Failed: 2112
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2113
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2113
+   - Successful: 0
+   - Failed: 2113
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2114
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2114
+   - Successful: 0
+   - Failed: 2114
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2115
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2115
+   - Successful: 0
+   - Failed: 2115
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2116
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2116
+   - Successful: 0
+   - Failed: 2116
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2117
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2117
+   - Successful: 0
+   - Failed: 2117
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2118
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2118
+   - Successful: 0
+   - Failed: 2118
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2119
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2119
+   - Successful: 0
+   - Failed: 2119
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2120
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2120
+   - Successful: 0
+   - Failed: 2120
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2121
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2121
+   - Successful: 0
+   - Failed: 2121
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2122
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2122
+   - Successful: 0
+   - Failed: 2122
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2123
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2123
+   - Successful: 0
+   - Failed: 2123
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2124
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2124
+   - Successful: 0
+   - Failed: 2124
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2125
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2125
+   - Successful: 0
+   - Failed: 2125
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2126
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2126
+   - Successful: 0
+   - Failed: 2126
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2127
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2127
+   - Successful: 0
+   - Failed: 2127
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2128
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2128
+   - Successful: 0
+   - Failed: 2128
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2129
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2129
+   - Successful: 0
+   - Failed: 2129
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2130
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2130
+   - Successful: 0
+   - Failed: 2130
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2131
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2131
+   - Successful: 0
+   - Failed: 2131
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2132
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2132
+   - Successful: 0
+   - Failed: 2132
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2133
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2133
+   - Successful: 0
+   - Failed: 2133
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2134
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2134
+   - Successful: 0
+   - Failed: 2134
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2135
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2135
+   - Successful: 0
+   - Failed: 2135
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2136
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2136
+   - Successful: 0
+   - Failed: 2136
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2137
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2137
+   - Successful: 0
+   - Failed: 2137
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2138
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2138
+   - Successful: 0
+   - Failed: 2138
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2139
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2139
+   - Successful: 0
+   - Failed: 2139
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2140
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2140
+   - Successful: 0
+   - Failed: 2140
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2141
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2141
+   - Successful: 0
+   - Failed: 2141
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2142
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2142
+   - Successful: 0
+   - Failed: 2142
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2143
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2143
+   - Successful: 0
+   - Failed: 2143
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2144
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2144
+   - Successful: 0
+   - Failed: 2144
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2145
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2145
+   - Successful: 0
+   - Failed: 2145
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2146
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2146
+   - Successful: 0
+   - Failed: 2146
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2147
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2147
+   - Successful: 0
+   - Failed: 2147
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2148
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2148
+   - Successful: 0
+   - Failed: 2148
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2149
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2149
+   - Successful: 0
+   - Failed: 2149
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2150
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2150
+   - Successful: 0
+   - Failed: 2150
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2151
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2151
+   - Successful: 0
+   - Failed: 2151
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2152
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2152
+   - Successful: 0
+   - Failed: 2152
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2153
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2153
+   - Successful: 0
+   - Failed: 2153
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2154
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2154
+   - Successful: 0
+   - Failed: 2154
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2155
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2155
+   - Successful: 0
+   - Failed: 2155
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2156
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2156
+   - Successful: 0
+   - Failed: 2156
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2157
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2157
+   - Successful: 0
+   - Failed: 2157
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2158
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2158
+   - Successful: 0
+   - Failed: 2158
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2159
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2159
+   - Successful: 0
+   - Failed: 2159
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2160
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2160
+   - Successful: 0
+   - Failed: 2160
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2161
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2161
+   - Successful: 0
+   - Failed: 2161
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2162
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2162
+   - Successful: 0
+   - Failed: 2162
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2163
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2163
+   - Successful: 0
+   - Failed: 2163
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2164
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2164
+   - Successful: 0
+   - Failed: 2164
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2165
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2165
+   - Successful: 0
+   - Failed: 2165
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2166
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2166
+   - Successful: 0
+   - Failed: 2166
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2167
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2167
+   - Successful: 0
+   - Failed: 2167
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2168
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2168
+   - Successful: 0
+   - Failed: 2168
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2169
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+❌ No deployment started within timeout
+⚠️  No deployment detected, skipping iteration
+
+📊 Test Summary:
+   - Total tests: 2169
+   - Successful: 0
+   - Failed: 2169
+
+🐛 Unique errors found:
+   - Operation timed out - may need to increase timeout or optimize
+
+⏳ Waiting 30 seconds before next test...
+💡 Tip: Use this time to deploy fixes if needed
+
+######################################################################
+# 🧪 Test Iteration 2170
+# 🔧 Current version: 2.3.37
+# 🤖 Puppeteer MCP: Manual Mode
+######################################################################
+
+⏳ Waiting for deployment to start (timeout: 60s)...
+💡 Please click 'Deploy Infrastructure' in the browser
+✓ Found deployment: 330a99b2-b687-4b24-9fde-26eb9c4a26f5
+
+======================================================================
+📊 Monitoring deployment: 330a99b2-b687-4b24-9fde-26eb9c4a26f5
+🕐 Started at: 2025-07-15 20:45:23
+======================================================================
+
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED
+✓ Status: ENABLING_APIS
+✓ Status: SCANNING_EXISTING_RESOURCES
+✓ Status: SETTING_PERMISSIONS
+✓ Status: PREPARING_TERRAFORM
+✓ Status: TERRAFORM_INIT
+✓ Status: DEPLOYMENT_STARTED

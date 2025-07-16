@@ -19,6 +19,11 @@ class CameraDiscoveryService {
     ipcMain.handle('quick-scan-camera', async (event, ip, username = 'root', password = 'pass') => {
       return this.quickScanSpecificCamera(ip, username, password);
     });
+    
+    ipcMain.handle('test-camera-credentials', async (event, cameraId, ip, username, password) => {
+      console.log(`=== Testing credentials for camera ${cameraId} at ${ip} ===`);
+      return this.testCameraCredentials(ip, username, password);
+    });
   }
 
   async quickScanSpecificCamera(ip, username = 'root', password = 'pass') {
@@ -55,6 +60,38 @@ class CameraDiscoveryService {
     } catch (error) {
       console.error(`❌ Error quick scanning camera at ${ip}:`, error);
       return [];
+    }
+  }
+
+  async testCameraCredentials(ip, username, password) {
+    try {
+      console.log(`Testing credentials ${username}:${password} for ${ip}`);
+      
+      // Test with digest auth on a simple endpoint
+      const result = await this.digestAuth(ip, username, password, '/axis-cgi/param.cgi?action=list&group=Brand');
+      
+      if (result && result.includes('Brand=AXIS')) {
+        console.log(`✅ Credentials work for ${ip}`);
+        return {
+          success: true,
+          authenticated: true,
+          message: 'Authentication successful'
+        };
+      } else {
+        console.log(`❌ Credentials failed for ${ip}`);
+        return {
+          success: false,
+          authenticated: false,
+          message: 'Authentication failed'
+        };
+      }
+    } catch (error) {
+      console.error(`Error testing credentials for ${ip}:`, error.message);
+      return {
+        success: false,
+        authenticated: false,
+        message: `Error: ${error.message}`
+      };
     }
   }
 
