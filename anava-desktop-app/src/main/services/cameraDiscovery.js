@@ -152,11 +152,44 @@ class CameraDiscoveryService {
       const batch = scanPromises.slice(i, i + batchSize);
       const results = await Promise.allSettled(batch);
       
-      results.forEach((result, index) => {
+      // Process detection results and validate Axis devices
+      const validationPromises = [];
+      
+      for (const result of results) {
         if (result.status === 'fulfilled' && result.value) {
-          cameras.push(result.value);
+          const detectedCamera = result.value;
+          
+          // If this is an Axis device that needs validation, validate it now
+          if (detectedCamera.manufacturer === 'Axis Communications' && detectedCamera.needsValidation) {
+            console.log(`🔍 Validating detected Axis device at ${detectedCamera.ip}...`);
+            
+            validationPromises.push(
+              this.checkAxisCamera(detectedCamera.ip, 'root', 'pass')
+                .then(validatedCamera => {
+                  if (validatedCamera) {
+                    console.log(`✅ Successfully validated camera at ${detectedCamera.ip}`);
+                    return validatedCamera;
+                  } else {
+                    console.log(`❌ Failed to validate device at ${detectedCamera.ip}, adding as unknown`);
+                    return detectedCamera;
+                  }
+                })
+                .catch(error => {
+                  console.log(`❌ Error validating device at ${detectedCamera.ip}:`, error.message);
+                  return detectedCamera;
+                })
+            );
+          } else {
+            cameras.push(detectedCamera);
+          }
         }
-      });
+      }
+      
+      // Wait for all validations in this batch to complete
+      if (validationPromises.length > 0) {
+        const validatedCameras = await Promise.all(validationPromises);
+        cameras.push(...validatedCameras);
+      }
     }
     
     return cameras;

@@ -28,7 +28,7 @@ app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-change-in-prod')
 CORS(app, origins=['https://anava.ai', 'http://localhost:5000'])
 
 # Version info
-VERSION = "2.3.37"  # FIXED: Improved API Gateway discovery with fallback logic
+VERSION = "2.3.38"  # FIXED: API Gateway URL now comes directly from Terraform - no discovery needed
 COMMIT_SHA = os.environ.get('COMMIT_SHA', 'dev')
 BUILD_TIME = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
@@ -1114,74 +1114,8 @@ output "firebase_web_app_id" {{
             if not output_data.get('firebaseConfig') or output_data['firebaseConfig'] == {}:
                 log("INFO: Firebase config not in Terraform state, will provide link to Firebase console")
             
-            # If API Gateway URL not found, try to discover it with timeout
-            if output_data.get('apiGatewayUrl') == 'Not found':
-                log("INFO: API Gateway URL not in Terraform state, discovering...")
-                try:
-                    # List API Gateways with timeout
-                    list_cmd = [
-                        'gcloud', 'api-gateway', 'gateways', 'list',
-                        '--filter', f'displayName~{prefix}',
-                        '--format=json', f'--project={project_id}'
-                    ]
-                    result = subprocess.run(list_cmd, capture_output=True, text=True, env=env, timeout=30)
-                    
-                    if result.returncode == 0 and result.stdout:
-                        gateways = json.loads(result.stdout)
-                        if gateways and len(gateways) > 0:
-                            gateway = gateways[0]  # Use the first matching gateway
-                            gateway_name = gateway.get('name', '').split('/')[-1]
-                            location = gateway.get('name', '').split('/')[3]
-                            
-                            # Get the gateway details to find the URL with timeout
-                            describe_cmd = [
-                                'gcloud', 'api-gateway', 'gateways', 'describe', gateway_name,
-                                f'--location={location}', f'--project={project_id}',
-                                '--format=json'
-                            ]
-                            desc_result = subprocess.run(describe_cmd, capture_output=True, text=True, env=env, timeout=30)
-                            
-                            if desc_result.returncode == 0 and desc_result.stdout:
-                                gateway_details = json.loads(desc_result.stdout)
-                                default_hostname = gateway_details.get('defaultHostname', '')
-                                if default_hostname:
-                                    output_data['apiGatewayUrl'] = f"https://{default_hostname}"
-                                    log(f"SUCCESS: Discovered API Gateway URL: {output_data['apiGatewayUrl']}")
-                        else:
-                            # Fallback: list all gateways and search for matching ones
-                            log("INFO: No filtered results, checking all gateways...")
-                            all_cmd = [
-                                'gcloud', 'api-gateway', 'gateways', 'list',
-                                '--format=json', f'--project={project_id}'
-                            ]
-                            all_result = subprocess.run(all_cmd, capture_output=True, text=True, env=env, timeout=30)
-                            
-                            if all_result.returncode == 0 and all_result.stdout:
-                                all_gateways = json.loads(all_result.stdout)
-                                for gateway in all_gateways:
-                                    gateway_name = gateway.get('name', '').split('/')[-1]
-                                    if prefix in gateway_name:
-                                        location = gateway.get('name', '').split('/')[3]
-                                        
-                                        # Get the gateway details to find the URL with timeout
-                                        describe_cmd = [
-                                            'gcloud', 'api-gateway', 'gateways', 'describe', gateway_name,
-                                            f'--location={location}', f'--project={project_id}',
-                                            '--format=json'
-                                        ]
-                                        desc_result = subprocess.run(describe_cmd, capture_output=True, text=True, env=env, timeout=30)
-                                        
-                                        if desc_result.returncode == 0 and desc_result.stdout:
-                                            gateway_details = json.loads(desc_result.stdout)
-                                            default_hostname = gateway_details.get('defaultHostname', '')
-                                            if default_hostname:
-                                                output_data['apiGatewayUrl'] = f"https://{default_hostname}"
-                                                log(f"SUCCESS: Discovered API Gateway URL: {output_data['apiGatewayUrl']}")
-                                                break
-                except subprocess.TimeoutExpired:
-                    log("WARNING: API Gateway discovery timed out after 30 seconds")
-                except Exception as e:
-                    log(f"WARNING: Could not discover API Gateway URL: {str(e)[:200]}")
+            # API Gateway URL should now come directly from Terraform outputs
+            # No discovery needed - Terraform provides the actual URL
             
             # If API Key not found, try to discover it
             if output_data.get('apiKey') == 'Not found' or output_data.get('apiGatewayKey') == 'Not found':
