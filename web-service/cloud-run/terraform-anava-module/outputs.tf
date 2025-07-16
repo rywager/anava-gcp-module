@@ -1,6 +1,6 @@
 output "api_gateway_url" {
   description = "The URL of the deployed API Gateway"
-  value       = "https://${data.google_api_gateway_gateway.anava_gateway_data.default_hostname}"
+  value       = "https://${google_api_gateway_gateway.anava_gateway.default_hostname}"
 }
 
 output "api_key" {
