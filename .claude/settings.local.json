@@ -70,7 +70,24 @@
       "Bash(npx:*)",
       "mcp__multi-ai-collab__gemini_think_deep",
       "mcp__multi-ai-collab__openai_architecture",
-      "WebFetch(domain:docs.google.com)"
+      "WebFetch(domain:docs.google.com)",
+      "mcp__multi-ai-collab__collaborative_solve",
+      "Bash(--source . )",
+      "Bash(--region us-central1 )",
+      "Bash(--allow-unauthenticated )",
+      "Bash(--project anava-ai )",
+      "Bash(--quiet)",
+      "mcp__puppeteer__puppeteer_navigate",
+      "mcp__puppeteer__puppeteer_connect_active_tab",
+      "Bash(--source . )",
+      "Bash(--region us-central1 )",
+      "Bash(--allow-unauthenticated )",
+      "Bash(--project anava-ai )",
+      "Bash(gcloud api-gateway gateways list:*)",
+      "Bash(gcloud api-gateway apis list:*)",
+      "Bash(gcloud api-gateway api-configs list:*)",
+      "Bash(gcloud api-gateway apis delete:*)",
+      "Bash(gcloud services list:*)"
     ],
     "deny": []
   }

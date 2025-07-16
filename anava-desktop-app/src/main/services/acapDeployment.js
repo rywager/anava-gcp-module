@@ -1,6 +1,24 @@
 const { ipcMain } = require('electron');
 const axios = require('axios');
-const FormData = require('form-data');
+const log = require('electron-log');
+
+// Configure electron-log
+log.transports.file.level = 'debug';
+log.transports.console.level = 'debug';
+
+let FormData;
+try {
+  FormData = require('form-data');
+  log.info('[ACAPDeploymentService] form-data loaded successfully');
+  console.log('[ACAPDeploymentService] form-data loaded successfully');
+} catch (err) {
+  log.error('[ACAPDeploymentService] Failed to load form-data:', err);
+  console.error('[ACAPDeploymentService] Failed to load form-data:', err);
+  // Fallback to axios's FormData if available
+  FormData = axios.FormData || global.FormData;
+  log.info('[ACAPDeploymentService] Using fallback FormData');
+  console.log('[ACAPDeploymentService] Using fallback FormData');
+}
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -8,12 +26,19 @@ const https = require('https');
 
 class ACAPDeploymentService {
   constructor() {
+    console.log('[ACAPDeploymentService] Initializing service');
     this.deployments = new Map();
     this.setupIPC();
   }
 
   // Helper method for digest authentication
   async digestAuth(ip, username, password, method, uri, data = null, options = {}) {
+    console.log('[digestAuth] Starting digest auth');
+    console.log('[digestAuth] URL:', `http://${ip}${uri}`);
+    console.log('[digestAuth] Method:', method);
+    console.log('[digestAuth] Has data:', !!data);
+    console.log('[digestAuth] Options:', JSON.stringify(options, null, 2));
+    
     try {
       const url = `http://${ip}${uri}`;
       const httpsAgent = new https.Agent({ rejectUnauthorized: false });
@@ -32,6 +57,7 @@ class ACAPDeploymentService {
         config1.data = data;
       }
 
+      console.log('[digestAuth] Making first request for challenge...');
       const response1 = await axios(config1);
 
       if (response1.status === 401) {
@@ -164,7 +190,22 @@ class ACAPDeploymentService {
   }
 
   async uploadACAPFile(cameraIp, acapFilePath, credentials, progressCallback) {
-    const formData = new FormData();
+    console.log('[uploadACAPFile] Starting upload process');
+    console.log('[uploadACAPFile] Camera IP:', cameraIp);
+    console.log('[uploadACAPFile] ACAP file path:', acapFilePath);
+    console.log('[uploadACAPFile] File exists:', fs.existsSync(acapFilePath));
+    console.log('[uploadACAPFile] Credentials username:', credentials.username);
+    
+    let formData;
+    try {
+      formData = new FormData();
+      console.log('[uploadACAPFile] FormData instance created:', !!formData);
+      console.log('[uploadACAPFile] FormData type:', formData.constructor.name);
+    } catch (err) {
+      console.error('[uploadACAPFile] Failed to create FormData:', err);
+      throw new Error(`Failed to create FormData: ${err.message}`);
+    }
+    
     const fileStream = fs.createReadStream(acapFilePath);
     
     // Axis cameras expect the field name to be 'packfil'
@@ -173,6 +214,8 @@ class ACAPDeploymentService {
       contentType: 'application/octet-stream'
     });
     
+    console.log('[uploadACAPFile] FormData prepared with file');
+    
     try {
       progressCallback({ 
         stage: 'uploading', 
@@ -180,6 +223,8 @@ class ACAPDeploymentService {
         message: 'Uploading ACAP file...' 
       });
 
+      console.log('[uploadACAPFile] Calling digestAuth...');
+      
       // Use digest auth for upload
       const response = await this.digestAuth(
         cameraIp,
@@ -206,7 +251,7 @@ class ACAPDeploymentService {
         }
       );
       
-      console.log('Upload response:', response.data);
+      console.log('[uploadACAPFile] Upload response:', response.data);
       
       // Parse response to get package name
       // Response format: "OK package=<packagename> version=<version>"
@@ -229,11 +274,21 @@ class ACAPDeploymentService {
       };
       
     } catch (error) {
+      console.error('[uploadACAPFile] Upload error:', error);
+      console.error('[uploadACAPFile] Error type:', error.constructor.name);
+      console.error('[uploadACAPFile] Error message:', error.message);
+      console.error('[uploadACAPFile] Error stack:', error.stack);
+      
       if (error.response) {
+        console.error('[uploadACAPFile] Response error - status:', error.response.status);
+        console.error('[uploadACAPFile] Response error - data:', error.response.data);
         throw new Error(`Upload failed: ${error.response.status} ${error.response.data}`);
       } else if (error.request) {
+        console.error('[uploadACAPFile] Request made but no response received');
+        console.error('[uploadACAPFile] Request details:', error.request);
         throw new Error('Upload failed: No response from camera');
       } else {
+        console.error('[uploadACAPFile] Error setting up request:', error.message);
         throw new Error(`Upload failed: ${error.message}`);
       }
     }

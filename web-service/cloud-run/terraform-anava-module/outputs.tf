@@ -1,6 +1,18 @@
+locals {
+  # Try to get the gateway URL from the resource, fallback to gcloud command if needed
+  gateway_url_from_file = try(
+    trimspace(file("/tmp/anava-gateway-url-${var.project_id}.txt")),
+    ""
+  )
+}
+
 output "api_gateway_url" {
   description = "The URL of the deployed API Gateway"
-  value       = "https://${google_api_gateway_gateway.anava_gateway.default_hostname}"
+  value = try(
+    "https://${google_api_gateway_gateway.anava_gateway.default_hostname}",
+    local.gateway_url_from_file != "" ? "https://${local.gateway_url_from_file}" : "Not found - check logs"
+  )
+  depends_on  = [null_resource.gateway_readiness_check]
 }
 
 output "api_key" {

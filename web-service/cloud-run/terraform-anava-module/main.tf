@@ -372,13 +372,83 @@ resource "random_id" "api_suffix" {
   byte_length = 4
 }
 
+# Pre-deployment cleanup of existing API Gateway resources
+resource "null_resource" "api_cleanup" {
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Checking for existing API Gateway resources..."
+      
+      # Check if API exists
+      if gcloud api-gateway apis describe "${var.solution_prefix}-api" --project="${var.project_id}" &>/dev/null; then
+        echo "Found existing API. Checking for gateways..."
+        
+        # List and delete any existing gateways
+        GATEWAYS=$(gcloud api-gateway gateways list --project="${var.project_id}" --filter="apiConfig:${var.solution_prefix}-api" --format="value(name)")
+        if [ -n "$GATEWAYS" ]; then
+          echo "Deleting existing gateways..."
+          for gw in $GATEWAYS; do
+            gcloud api-gateway gateways delete "$gw" --location="${var.region}" --project="${var.project_id}" --quiet || true
+          done
+          sleep 10
+        fi
+        
+        # Delete the API
+        echo "Deleting existing API..."
+        gcloud api-gateway apis delete "${var.solution_prefix}-api" --project="${var.project_id}" --quiet || true
+        
+        # Wait for deletion to propagate
+        sleep 30
+      fi
+      
+      echo "Cleanup complete."
+    EOT
+  }
+  
+  triggers = {
+    always_run = timestamp()
+  }
+}
+
 # API Gateway API
 resource "google_api_gateway_api" "anava_api" {
   provider = google-beta
   project  = var.project_id
   api_id   = "${var.solution_prefix}-api"
   
-  depends_on = [google_project_service.required_apis]
+  depends_on = [
+    google_project_service.required_apis,
+    null_resource.api_cleanup
+  ]
+}
+
+# CRITICAL: Enable the dynamically created managed service
+# This is the key missing piece that caused silent failures
+resource "google_project_service" "api_gateway_managed_service" {
+  provider = google-beta
+  project  = var.project_id
+  service  = google_api_gateway_api.anava_api.managed_service
+  
+  disable_on_destroy = false
+  
+  depends_on = [google_api_gateway_api.anava_api]
+}
+
+# Time delay after API creation (matching shell script)
+resource "time_sleep" "after_api_creation" {
+  create_duration = "30s"
+  depends_on = [google_api_gateway_api.anava_api]
+}
+
+# Time delay before service enablement (matching shell script)
+resource "time_sleep" "before_service_enablement" {
+  create_duration = "10s"
+  depends_on = [time_sleep.after_api_creation]
+}
+
+# Time delay after service enablement (matching shell script)
+resource "time_sleep" "after_service_enablement" {
+  create_duration = "30s"
+  depends_on = [google_project_service.api_gateway_managed_service]
 }
 
 # OpenAPI specification for API Gateway
@@ -414,8 +484,47 @@ resource "google_api_gateway_api_config" "anava_config" {
   depends_on = [
     google_api_gateway_api.anava_api,
     google_cloudfunctions2_function.device_auth,
-    google_cloudfunctions2_function.tvm
+    google_cloudfunctions2_function.tvm,
+    time_sleep.after_service_enablement
   ]
+}
+
+# API Config polling logic (matching shell script MAX_CONFIG_CHECKS=12, 10s intervals)
+resource "null_resource" "api_config_polling" {
+  triggers = {
+    api_config_id = google_api_gateway_api_config.anava_config.id
+  }
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Waiting for API Config to become ACTIVE..."
+      MAX_CONFIG_CHECKS=12
+      CONFIG_READY=false
+      
+      for ((cfg_chk=1; cfg_chk<=MAX_CONFIG_CHECKS; cfg_chk++)); do
+        CONFIG_STATE=$(gcloud api-gateway api-configs describe "${var.solution_prefix}-config-${random_id.api_suffix.hex}" \
+          --api="${var.solution_prefix}-api" \
+          --project="${var.project_id}" \
+          --format="value(state)" 2>/dev/null || echo "UNKNOWN")
+        
+        if [ "$CONFIG_STATE" == "ACTIVE" ]; then
+          CONFIG_READY=true
+          echo "API Config is ACTIVE after $cfg_chk checks"
+          break
+        fi
+        
+        echo "API Config not active yet (State: $CONFIG_STATE). Waiting 10s... ($cfg_chk/$MAX_CONFIG_CHECKS)"
+        sleep 10
+      done
+      
+      if [ "$CONFIG_READY" = "false" ]; then
+        echo "ERROR: API Config did not become ACTIVE within $(($MAX_CONFIG_CHECKS * 10)) seconds"
+        exit 1
+      fi
+    EOT
+  }
+  
+  depends_on = [google_api_gateway_api_config.anava_config]
 }
 
 # API Gateway
@@ -424,13 +533,73 @@ resource "google_api_gateway_gateway" "anava_gateway" {
   project    = var.project_id
   gateway_id = "${var.solution_prefix}-gateway"
   api_config = google_api_gateway_api_config.anava_config.id
-  region     = var.region
+  region     = var.region  # Correct parameter name
   
-  depends_on = [google_api_gateway_api_config.anava_config]
+  depends_on = [
+    google_api_gateway_api_config.anava_config,
+    null_resource.api_config_polling
+  ]
 }
 
+# Extended wait after gateway creation (minimum 90s, but can take up to 15 minutes)
+resource "time_sleep" "after_gateway_creation" {
+  create_duration = "90s"
+  depends_on = [google_api_gateway_gateway.anava_gateway]
+}
 
-# API Key for API Gateway
+# Gateway readiness verification with extended timeout
+resource "null_resource" "gateway_readiness_check" {
+  triggers = {
+    gateway_id = google_api_gateway_gateway.anava_gateway.id
+  }
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Verifying Gateway readiness (can take up to 15 minutes)..."
+      MAX_GATEWAY_CHECKS=90  # 90 * 10s = 15 minutes
+      GATEWAY_READY=false
+      
+      # First check if gateway exists at all
+      if ! gcloud api-gateway gateways describe "${var.solution_prefix}-gateway" \
+        --location="${var.region}" \
+        --project="${var.project_id}" &>/dev/null; then
+        echo "ERROR: Gateway was not created successfully"
+        exit 1
+      fi
+      
+      for ((gw_chk=1; gw_chk<=MAX_GATEWAY_CHECKS; gw_chk++)); do
+        GATEWAY_URL=$(gcloud api-gateway gateways describe "${var.solution_prefix}-gateway" \
+          --location="${var.region}" \
+          --project="${var.project_id}" \
+          --format="value(defaultHostname)" 2>/dev/null || echo "")
+        
+        if [ -n "$GATEWAY_URL" ] && [ "$GATEWAY_URL" != "" ]; then
+          GATEWAY_READY=true
+          echo "Gateway URL ready: https://$GATEWAY_URL (after $gw_chk checks)"
+          
+          # Store the URL for recovery in case of partial failures
+          echo "$GATEWAY_URL" > /tmp/anava-gateway-url-${var.project_id}.txt
+          break
+        fi
+        
+        echo "Gateway not ready yet. Waiting 10s... ($gw_chk/$MAX_GATEWAY_CHECKS)"
+        sleep 10
+      done
+      
+      if [ "$GATEWAY_READY" = "false" ]; then
+        echo "ERROR: Gateway URL not available within $(($MAX_GATEWAY_CHECKS * 10)) seconds (15 minutes)"
+        exit 1
+      fi
+    EOT
+  }
+  
+  depends_on = [time_sleep.after_gateway_creation]
+}
+
+# API Gateway URL is now properly handled through Terraform with waiting logic
+
+
+# API Key for API Gateway (created after gateway is ready)
 resource "google_apikeys_key" "api_gateway_key" {
   project      = var.project_id
   name         = "${var.solution_prefix}-api-key"
@@ -442,7 +611,13 @@ resource "google_apikeys_key" "api_gateway_key" {
     }
   }
 
-  depends_on = [google_api_gateway_gateway.anava_gateway]
+  depends_on = [null_resource.gateway_readiness_check]
+}
+
+# API Key propagation delay (matching shell script)
+resource "time_sleep" "after_api_key_creation" {
+  create_duration = "30s"
+  depends_on = [google_apikeys_key.api_gateway_key]
 }
 
 # Firebase Web App

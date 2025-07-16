@@ -1,6 +1,6 @@
 {
   "name": "anava-vision-desktop",
-  "version": "1.0.8",
+  "version": "1.0.10",
   "description": "Anava Vision Desktop App - Beautiful native app for camera management and WebRTC orchestration",
   "main": "src/main/main.js",
   "homepage": ".",
@@ -65,6 +65,7 @@
     "electron-store": "^8.1.0",
     "electron-updater": "^6.1.1",
     "express": "^4.18.2",
+    "form-data": "^4.0.0",
     "node-arp": "^1.0.6",
     "node-nmap": "^4.0.0",
     "ping": "^0.4.4",
