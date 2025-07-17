@@ -14,7 +14,7 @@
     "build-mac": "npm run build-renderer && electron-builder --mac",
     "build-win": "npm run build-renderer && electron-builder --win",
     "build-linux": "npm run build-renderer && electron-builder --linux",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "electron-builder install-app-deps && node scripts/setup-terraform.js",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"
   },
@@ -28,6 +28,8 @@
       "src/main/**/*",
       "src/renderer/build/**/*",
       "assets/**/*",
+      "bin/**/*",
+      "terraform-module/**/*",
       "!src/renderer/src",
       "!src/renderer/public",
       "!src/renderer/node_modules"
@@ -66,6 +68,8 @@
     "electron-updater": "^6.1.1",
     "express": "^4.18.2",
     "form-data": "^4.0.0",
+    "google-auth-library": "^10.1.0",
+    "googleapis": "^153.0.0",
     "node-arp": "^1.0.6",
     "node-nmap": "^4.0.0",
     "ping": "^0.4.4",

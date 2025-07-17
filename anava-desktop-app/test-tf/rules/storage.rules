@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service firebase.storage {
+  // This rule applies to any bucket linked to Firebase Storage for this project.
+  // {bucket} will be the actual GCS bucket name being accessed.
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      // Allow client-side read/write access if the user is authenticated via Firebase Auth.
+      // This means your React app can manage files if users are signed in.
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+      
+      // For production, refine write access, e.g.:
+      // allow write: if request.auth != null && request.resource.size < 10 * 1024 * 1024; // Max 10MB
+      // allow write: if request.auth != null && request.resource.contentType.matches('image/.*'); // Only images
+    }
+  }
+}

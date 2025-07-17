@@ -1,6 +1,18 @@
+locals {
+  # Try to get the gateway URL from the resource, fallback to gcloud command if needed
+  gateway_url_from_file = try(
+    trimspace(file("/tmp/anava-gateway-url-${var.project_id}.txt")),
+    ""
+  )
+}
+
 output "api_gateway_url" {
   description = "The URL of the deployed API Gateway"
-  value       = "https://${google_api_gateway_gateway.anava_gateway.gateway_id}-${random_id.api_suffix.hex}.apigateway.${var.region}.run.app"
+  value = try(
+    "https://${google_api_gateway_gateway.anava_gateway.default_hostname}",
+    local.gateway_url_from_file != "" ? "https://${local.gateway_url_from_file}" : "Not found - check logs"
+  )
+  depends_on  = [null_resource.gateway_readiness_check]
 }
 
 output "api_key" {
@@ -44,10 +56,6 @@ output "firebase_storage_bucket" {
   value       = google_firebase_storage_bucket.default.name
 }
 
-output "firestore_database_id" {
-  description = "Firestore database ID"
-  value       = google_firestore_database.anava.name
-}
 
 output "firebase_web_app_id" {
   description = "Firebase Web App ID"

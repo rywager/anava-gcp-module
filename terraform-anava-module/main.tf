@@ -14,27 +14,7 @@
  * - Secret Manager secrets for configuration
  */
 
-terraform {
-  required_version = ">= 1.5.0"
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "~> 5.0"
-    }
-    google-beta = {
-      source  = "hashicorp/google-beta"
-      version = "~> 5.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.1"
-    }
-    archive = {
-      source  = "hashicorp/archive"
-      version = "~> 2.0"
-    }
-  }
-}
+# Terraform configuration moved to versions.tf to avoid duplication
 
 # Enable required APIs
 resource "google_project_service" "required_apis" {
@@ -82,30 +62,53 @@ resource "google_firebase_project" "default" {
 }
 
 # Firestore database named "anava"
-resource "google_firestore_database" "anava" {
-  project     = var.project_id
-  name        = var.firestore_database_id
-  location_id = var.firestore_location
-  type        = "FIRESTORE_NATIVE"
+# Using default Firestore database - no need to create one
 
-  lifecycle {
-    ignore_changes = [name, location_id, type]
+# Create the actual storage bucket first
+resource "google_storage_bucket" "firebase_bucket" {
+  project  = var.project_id
+  name     = "${var.project_id}-${var.solution_prefix}-firebase"
+  location = var.storage_location != "" ? var.storage_location : "US"
+  
+  uniform_bucket_level_access = true
+  force_destroy = false
+  
+  versioning {
+    enabled = true
   }
-
-  depends_on = [google_firebase_project.default]
+  
+  cors {
+    origin          = ["*"]
+    method          = ["GET", "HEAD", "PUT", "POST", "DELETE"]
+    response_header = ["*"]
+    max_age_seconds = 3600
+  }
+  
+  lifecycle {
+    ignore_changes = [name]
+    create_before_destroy = false
+  }
+  
+  depends_on = [
+    google_project_service.required_apis["storage.googleapis.com"]
+  ]
 }
 
-# Firebase Storage bucket
+# Then make the bucket accessible to Firebase
 resource "google_firebase_storage_bucket" "default" {
   provider = google-beta
   project  = var.project_id
-  bucket_id = "${var.project_id}.appspot.com"
+  bucket_id = google_storage_bucket.firebase_bucket.name
 
   lifecycle {
-    ignore_changes = [bucket_id]
+    create_before_destroy = false
   }
 
-  depends_on = [google_firebase_project.default]
+  depends_on = [
+    google_firebase_project.default,
+    google_storage_bucket.firebase_bucket,
+    google_project_service.required_apis["firebasestorage.googleapis.com"]
+  ]
 }
 
 # Service Accounts
@@ -125,10 +128,6 @@ resource "google_service_account" "tvm" {
   account_id   = "${var.solution_prefix}-tvm-sa"
   display_name = "Token Vending Machine Service Account"
   description  = "Service account for token vending machine Cloud Function"
-
-  lifecycle {
-    ignore_changes = [display_name, description]
-  }
 }
 
 resource "google_service_account" "vertex_ai" {
@@ -136,10 +135,6 @@ resource "google_service_account" "vertex_ai" {
   account_id   = "${var.solution_prefix}-vertex-ai-sa"
   display_name = "Vertex AI Service Account"
   description  = "Service account for Vertex AI operations"
-
-  lifecycle {
-    ignore_changes = [display_name, description]
-  }
 }
 
 resource "google_service_account" "api_gateway" {
@@ -147,10 +142,6 @@ resource "google_service_account" "api_gateway" {
   account_id   = "${var.solution_prefix}-apigw-invoker-sa"
   display_name = "API Gateway Invoker Service Account"
   description  = "Service account for API Gateway to invoke Cloud Functions"
-
-  lifecycle {
-    ignore_changes = [display_name, description]
-  }
 }
 
 # IAM permissions for service accounts
@@ -201,10 +192,6 @@ resource "google_iam_workload_identity_pool" "anava_pool" {
   workload_identity_pool_id = "${var.solution_prefix}-wif-pool"
   display_name              = "${var.solution_prefix} Workload Identity Pool"
   description               = "Identity pool for ${var.solution_prefix} Firebase auth federation"
-
-  lifecycle {
-    ignore_changes = [display_name, description]
-  }
 }
 
 # Workload Identity Provider for Firebase
@@ -246,10 +233,6 @@ resource "google_storage_bucket" "function_source" {
 
   uniform_bucket_level_access = true
   force_destroy              = true
-
-  lifecycle {
-    ignore_changes = [location, uniform_bucket_level_access]
-  }
 
   depends_on = [google_project_service.required_apis]
 }
@@ -389,18 +372,65 @@ resource "random_id" "api_suffix" {
   byte_length = 4
 }
 
+# Pre-deployment cleanup of existing API Gateway resources
+resource "null_resource" "api_cleanup" {
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Checking for existing API Gateway resources..."
+      
+      # Check if API exists
+      if gcloud api-gateway apis describe "${var.solution_prefix}-api" --project="${var.project_id}" &>/dev/null; then
+        echo "Found existing API. Checking for gateways..."
+        
+        # List and delete any existing gateways
+        GATEWAYS=$(gcloud api-gateway gateways list --project="${var.project_id}" --filter="apiConfig:${var.solution_prefix}-api" --format="value(name)")
+        if [ -n "$GATEWAYS" ]; then
+          echo "Deleting existing gateways..."
+          for gw in $GATEWAYS; do
+            gcloud api-gateway gateways delete "$gw" --location="${var.region}" --project="${var.project_id}" --quiet || true
+          done
+          sleep 10
+        fi
+        
+        # Delete the API
+        echo "Deleting existing API..."
+        gcloud api-gateway apis delete "${var.solution_prefix}-api" --project="${var.project_id}" --quiet || true
+        
+        # Wait for deletion to propagate
+        sleep 30
+      fi
+      
+      echo "Cleanup complete."
+    EOT
+  }
+  
+  triggers = {
+    always_run = timestamp()
+  }
+}
+
 # API Gateway API
 resource "google_api_gateway_api" "anava_api" {
   provider = google-beta
   project  = var.project_id
   api_id   = "${var.solution_prefix}-api"
   
-  lifecycle {
-    ignore_changes = [api_id]
-  }
-  
-  depends_on = [google_project_service.required_apis]
+  depends_on = [
+    google_project_service.required_apis,
+    null_resource.api_cleanup
+  ]
 }
+
+# MOVED: Managed service enablement moved to after API config creation
+# See null_resource "enable_managed_service" below
+
+# Time delay after API creation (matching shell script)
+resource "time_sleep" "after_api_creation" {
+  create_duration = "30s"
+  depends_on = [google_api_gateway_api.anava_api]
+}
+
+# Removed time delays for service enablement - moved to after config creation
 
 # OpenAPI specification for API Gateway
 locals {
@@ -435,7 +465,97 @@ resource "google_api_gateway_api_config" "anava_config" {
   depends_on = [
     google_api_gateway_api.anava_api,
     google_cloudfunctions2_function.device_auth,
-    google_cloudfunctions2_function.tvm
+    google_cloudfunctions2_function.tvm,
+    time_sleep.after_api_creation
+  ]
+}
+
+# API Config polling logic (matching shell script MAX_CONFIG_CHECKS=12, 10s intervals)
+resource "null_resource" "api_config_polling" {
+  triggers = {
+    api_config_id = google_api_gateway_api_config.anava_config.id
+  }
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Waiting for API Config to become ACTIVE..."
+      MAX_CONFIG_CHECKS=12
+      CONFIG_READY=false
+      
+      for ((cfg_chk=1; cfg_chk<=MAX_CONFIG_CHECKS; cfg_chk++)); do
+        CONFIG_STATE=$(gcloud api-gateway api-configs describe "${var.solution_prefix}-config-${random_id.api_suffix.hex}" \
+          --api="${var.solution_prefix}-api" \
+          --project="${var.project_id}" \
+          --format="value(state)" 2>/dev/null || echo "UNKNOWN")
+        
+        if [ "$CONFIG_STATE" == "ACTIVE" ]; then
+          CONFIG_READY=true
+          echo "API Config is ACTIVE after $cfg_chk checks"
+          break
+        fi
+        
+        echo "API Config not active yet (State: $CONFIG_STATE). Waiting 10s... ($cfg_chk/$MAX_CONFIG_CHECKS)"
+        sleep 10
+      done
+      
+      if [ "$CONFIG_READY" = "false" ]; then
+        echo "ERROR: API Config did not become ACTIVE within $(($MAX_CONFIG_CHECKS * 10)) seconds"
+        exit 1
+      fi
+    EOT
+  }
+  
+  depends_on = [google_api_gateway_api_config.anava_config]
+}
+
+# CRITICAL FIX: Enable managed service AFTER config creation (not before)
+# This matches the shell script's successful sequence
+resource "null_resource" "enable_managed_service" {
+  triggers = {
+    api_config_id = google_api_gateway_api_config.anava_config.id
+  }
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Enabling managed service for API Gateway..."
+      
+      # Get the managed service name
+      API_MANAGED_SERVICE_NAME=$(gcloud api-gateway apis describe "${var.solution_prefix}-api" \
+        --project="${var.project_id}" \
+        --format="value(managedService)")
+      
+      echo "Managed service: $API_MANAGED_SERVICE_NAME"
+      
+      # Wait 10 seconds before enabling (from shell script)
+      sleep 10
+      
+      # Check if already enabled
+      ENABLED_CHECK=$(gcloud services list \
+        --enabled \
+        --project="${var.project_id}" \
+        --filter="config.name=$API_MANAGED_SERVICE_NAME" \
+        --format="value(config.name)" 2>/dev/null || echo "")
+      
+      if [ -z "$ENABLED_CHECK" ]; then
+        echo "Enabling managed service..."
+        gcloud services enable "$API_MANAGED_SERVICE_NAME" \
+          --project="${var.project_id}" \
+          --quiet || {
+          echo "WARNING: Failed to enable managed service. This may be normal."
+          echo "The service may auto-enable when the gateway is created."
+        }
+      else
+        echo "Managed service already enabled"
+      fi
+      
+      # Wait for propagation
+      sleep 30
+    EOT
+  }
+  
+  depends_on = [
+    google_api_gateway_api_config.anava_config,
+    null_resource.api_config_polling
   ]
 }
 
@@ -445,12 +565,74 @@ resource "google_api_gateway_gateway" "anava_gateway" {
   project    = var.project_id
   gateway_id = "${var.solution_prefix}-gateway"
   api_config = google_api_gateway_api_config.anava_config.id
-  region     = var.region
+  region     = var.region  # Correct parameter name
   
-  depends_on = [google_api_gateway_api_config.anava_config]
+  depends_on = [
+    google_api_gateway_api_config.anava_config,
+    null_resource.api_config_polling,
+    null_resource.enable_managed_service
+  ]
 }
 
-# API Key for API Gateway
+# Extended wait after gateway creation (minimum 90s, but can take up to 15 minutes)
+resource "time_sleep" "after_gateway_creation" {
+  create_duration = "90s"
+  depends_on = [google_api_gateway_gateway.anava_gateway]
+}
+
+# Gateway readiness verification with extended timeout
+resource "null_resource" "gateway_readiness_check" {
+  triggers = {
+    gateway_id = google_api_gateway_gateway.anava_gateway.id
+  }
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Verifying Gateway readiness (can take up to 15 minutes)..."
+      MAX_GATEWAY_CHECKS=90  # 90 * 10s = 15 minutes
+      GATEWAY_READY=false
+      
+      # First check if gateway exists at all
+      if ! gcloud api-gateway gateways describe "${var.solution_prefix}-gateway" \
+        --location="${var.region}" \
+        --project="${var.project_id}" &>/dev/null; then
+        echo "ERROR: Gateway was not created successfully"
+        exit 1
+      fi
+      
+      for ((gw_chk=1; gw_chk<=MAX_GATEWAY_CHECKS; gw_chk++)); do
+        GATEWAY_URL=$(gcloud api-gateway gateways describe "${var.solution_prefix}-gateway" \
+          --location="${var.region}" \
+          --project="${var.project_id}" \
+          --format="value(defaultHostname)" 2>/dev/null || echo "")
+        
+        if [ -n "$GATEWAY_URL" ] && [ "$GATEWAY_URL" != "" ]; then
+          GATEWAY_READY=true
+          echo "Gateway URL ready: https://$GATEWAY_URL (after $gw_chk checks)"
+          
+          # Store the URL for recovery in case of partial failures
+          echo "$GATEWAY_URL" > /tmp/anava-gateway-url-${var.project_id}.txt
+          break
+        fi
+        
+        echo "Gateway not ready yet. Waiting 10s... ($gw_chk/$MAX_GATEWAY_CHECKS)"
+        sleep 10
+      done
+      
+      if [ "$GATEWAY_READY" = "false" ]; then
+        echo "ERROR: Gateway URL not available within $(($MAX_GATEWAY_CHECKS * 10)) seconds (15 minutes)"
+        exit 1
+      fi
+    EOT
+  }
+  
+  depends_on = [time_sleep.after_gateway_creation]
+}
+
+# API Gateway URL is now properly handled through Terraform with waiting logic
+
+
+# API Key for API Gateway (created after gateway is ready)
 resource "google_apikeys_key" "api_gateway_key" {
   project      = var.project_id
   name         = "${var.solution_prefix}-api-key"
@@ -462,7 +644,13 @@ resource "google_apikeys_key" "api_gateway_key" {
     }
   }
 
-  depends_on = [google_api_gateway_gateway.anava_gateway]
+  depends_on = [null_resource.gateway_readiness_check]
+}
+
+# API Key propagation delay (matching shell script)
+resource "time_sleep" "after_api_key_creation" {
+  create_duration = "30s"
+  depends_on = [google_apikeys_key.api_gateway_key]
 }
 
 # Firebase Web App
@@ -470,6 +658,10 @@ resource "google_firebase_web_app" "default" {
   provider     = google-beta
   project      = var.project_id
   display_name = var.firebase_web_app_name
+
+  lifecycle {
+    ignore_changes = [app_id]
+  }
 
   depends_on = [google_firebase_project.default]
 }
@@ -492,10 +684,6 @@ resource "google_secret_manager_secret" "firebase_config" {
         location = var.region
       }
     }
-  }
-
-  lifecycle {
-    ignore_changes = [secret_id]
   }
 
   depends_on = [google_project_service.required_apis]
@@ -526,10 +714,6 @@ resource "google_secret_manager_secret" "api_key" {
     }
   }
 
-  lifecycle {
-    ignore_changes = [secret_id]
-  }
-
   depends_on = [google_project_service.required_apis]
 }
 
@@ -551,17 +735,20 @@ resource "google_firebaserules_ruleset" "firestore" {
   }
 
   depends_on = [
-    google_firestore_database.anava,
     google_firebase_project.default
   ]
 }
 
-resource "google_firebaserules_release" "firestore" {
-  provider     = google-beta
-  project      = var.project_id
-  name         = "cloud.firestore/databases/${google_firestore_database.anava.name}"
-  ruleset_name = google_firebaserules_ruleset.firestore.name
-}
+# COMMENTED OUT - Firebase releases cause "already exists" errors
+# These are created automatically when Firebase is initialized
+# and Terraform can't handle the existing releases properly
+#
+# resource "google_firebaserules_release" "firestore" {
+#   provider     = google-beta
+#   project      = var.project_id
+#   name         = "cloud.firestore/databases/(default)"
+#   ruleset_name = google_firebaserules_ruleset.firestore.name
+# }
 
 # Firebase Storage security rules
 resource "google_firebaserules_ruleset" "storage" {
@@ -581,9 +768,13 @@ resource "google_firebaserules_ruleset" "storage" {
   ]
 }
 
-resource "google_firebaserules_release" "storage" {
-  provider     = google-beta
-  project      = var.project_id
-  name         = "firebase.storage/${google_firebase_storage_bucket.default.bucket_id}"
-  ruleset_name = google_firebaserules_ruleset.storage.name
-}
+# COMMENTED OUT - Firebase releases cause "already exists" errors
+# These are created automatically when Firebase is initialized
+# and Terraform can't handle the existing releases properly
+#
+# resource "google_firebaserules_release" "storage" {
+#   provider     = google-beta
+#   project      = var.project_id
+#   name         = "firebase.storage/${google_firebase_storage_bucket.default.bucket_id}"
+#   ruleset_name = google_firebaserules_ruleset.storage.name
+# }

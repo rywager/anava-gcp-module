@@ -1,0 +1,67 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Common function to check if the request has valid authentication
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Function to check if the authenticated user is the device owner
+    function isDeviceOwner(deviceId) {
+      return isAuthenticated() && request.auth.uid == deviceId;
+    }
+    
+    // Function to validate timestamp fields
+    function isValidTimestamp(field) {
+      return field is timestamp;
+    }
+    
+    // Rules for the 'devices' collection
+    match /devices/{deviceId} {
+      // Allow read if authenticated and the user is the device owner
+      allow read: if isDeviceOwner(deviceId);
+      
+      // Allow create if authenticated and creating own device document
+      allow create: if isAuthenticated() 
+                   && request.auth.uid == deviceId
+                   && request.resource.data.deviceId == deviceId
+                   && isValidTimestamp(request.resource.data.updatedAt);
+      
+      // Allow update if authenticated and updating own device document
+      allow update: if isDeviceOwner(deviceId)
+                    && request.resource.data.deviceId == deviceId
+                    && request.resource.data.status is string
+                    && isValidTimestamp(request.resource.data.updatedAt);
+      
+      // Don't allow delete - devices should be deactivated, not deleted
+      allow delete: if false;
+    }
+    
+    // Rules for the 'sessions' collection (subcollection of devices)
+    match /devices/{deviceId}/sessions/{sessionId} {
+      // Allow read if authenticated and the user is the device owner
+      allow read: if isDeviceOwner(deviceId);
+      
+      // Allow create if authenticated and creating session for own device
+      allow create: if isDeviceOwner(deviceId)
+                   && request.resource.data.deviceId == deviceId
+                   && request.resource.data.sessionId == sessionId
+                   && isValidTimestamp(request.resource.data.updatedAt);
+      
+      // Allow update if authenticated and updating own device's session
+      allow update: if isDeviceOwner(deviceId)
+                    && request.resource.data.deviceId == deviceId
+                    && request.resource.data.sessionId == sessionId
+                    && isValidTimestamp(request.resource.data.updatedAt);
+      
+      // Allow delete if authenticated and deleting own device's session
+      allow delete: if isDeviceOwner(deviceId);
+    }
+    
+    // Default deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -51,5 +51,31 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dockerLogs: (service) => ipcRenderer.invoke('docker-logs', service),
   
   // Remove all listeners
-  removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel)
+  removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
+  
+  // Event listeners
+  on: (channel, callback) => ipcRenderer.on(channel, callback),
+  
+  // Google Cloud Platform APIs
+  gcpAPI: {
+    login: () => ipcRenderer.invoke('gcp:login'),
+    logout: () => ipcRenderer.invoke('gcp:logout'),
+    getAuthStatus: () => ipcRenderer.invoke('gcp:auth-status'),
+    listProjects: () => ipcRenderer.invoke('gcp:list-projects'),
+    setProject: (projectId) => ipcRenderer.invoke('gcp:set-project', projectId),
+    onAuthStateChange: (callback) => ipcRenderer.on('gcp:auth-state-change', callback)
+  },
+  
+  // Terraform deployment APIs
+  terraformAPI: {
+    deploy: (projectId) => ipcRenderer.invoke('terraform:deploy', projectId),
+    deployInfrastructure: (projectId) => ipcRenderer.invoke('terraform:deploy', projectId),
+    getDeploymentStatus: () => ipcRenderer.invoke('terraform:status'),
+    getOutputs: () => ipcRenderer.invoke('terraform:outputs'),
+    destroy: () => ipcRenderer.invoke('terraform:destroy'),
+    destroyInfrastructure: () => ipcRenderer.invoke('terraform:destroy'),
+    onProgress: (callback) => ipcRenderer.on('terraform:progress', callback),
+    onComplete: (callback) => ipcRenderer.on('terraform:complete', callback),
+    onError: (callback) => ipcRenderer.on('terraform:error', callback)
+  }
 });

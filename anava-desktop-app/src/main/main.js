@@ -11,6 +11,8 @@ const ACAPDeploymentService = require('./services/acapDeployment');
 const WebRTCOrchestrator = require('./services/webrtcOrchestrator');
 const QRCodeService = require('./services/qrCodeService');
 const AcapDownloaderService = require('./services/acapDownloader');
+const GCPAuthService = require('./services/gcpAuthService');
+const TerraformService = require('./services/terraformService');
 
 // Configure logging
 log.transports.file.level = 'info';
@@ -29,6 +31,8 @@ let acapDeploymentService;
 let webrtcOrchestrator;
 let qrCodeService;
 let acapDownloaderService;
+let gcpAuthService;
+let terraformService;
 
 // Auto-updater configuration
 if (!isDev) {
@@ -86,10 +90,8 @@ function createMainWindow() {
     }
     mainWindow.show();
     
-    // Open DevTools in development
-    if (isDev) {
-      mainWindow.webContents.openDevTools();
-    }
+    // Always open DevTools to see errors
+    mainWindow.webContents.openDevTools();
   });
 
   // Handle window closed
@@ -206,6 +208,8 @@ function initializeServices() {
     webrtcOrchestrator = new WebRTCOrchestrator();
     qrCodeService = new QRCodeService();
     acapDownloaderService = new AcapDownloaderService();
+    gcpAuthService = new GCPAuthService(store);
+    terraformService = new TerraformService();
     
     log.info('All services initialized successfully');
   } catch (error) {
@@ -267,6 +271,165 @@ ipcMain.handle('show-save-dialog', async (event, options) => {
 ipcMain.handle('show-open-dialog', async (event, options) => {
   const result = await dialog.showOpenDialog(mainWindow, options);
   return result;
+});
+
+// Google Cloud Platform IPC handlers
+ipcMain.handle('gcp:login', async () => {
+  try {
+    const result = await gcpAuthService.authenticate();
+    mainWindow.webContents.send('gcp:auth-state-change', { 
+      isAuthenticated: true, 
+      user: result.user 
+    });
+    return result;
+  } catch (error) {
+    log.error('GCP login error:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('gcp:logout', async () => {
+  try {
+    // Clear stored credentials
+    store.delete('gcpTokens');
+    store.delete('gcpUser');
+    mainWindow.webContents.send('gcp:auth-state-change', { 
+      isAuthenticated: false 
+    });
+    return { success: true };
+  } catch (error) {
+    log.error('GCP logout error:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('gcp:auth-status', async () => {
+  try {
+    // Check if gcloud is authenticated
+    const { execSync } = require('child_process');
+    const result = execSync('gcloud auth list --format=json', { encoding: 'utf8' });
+    const accounts = JSON.parse(result);
+    const activeAccount = accounts.find(a => a.status === 'ACTIVE');
+    
+    return {
+      isAuthenticated: !!activeAccount,
+      user: activeAccount ? { email: activeAccount.account, name: activeAccount.account } : null
+    };
+  } catch (error) {
+    return {
+      isAuthenticated: false,
+      user: null
+    };
+  }
+});
+
+ipcMain.handle('gcp:list-projects', async () => {
+  try {
+    // Use gcloud CLI instead of OAuth tokens
+    const { execSync } = require('child_process');
+    const result = execSync('gcloud projects list --format=json', { encoding: 'utf8' });
+    const projects = JSON.parse(result);
+    return projects.map(p => ({
+      projectId: p.projectId,
+      name: p.name,
+      lifecycleState: p.lifecycleState
+    }));
+  } catch (error) {
+    log.error('List projects error:', error);
+    throw new Error('Run: gcloud auth login');
+  }
+});
+
+ipcMain.handle('gcp:set-project', async (event, projectId) => {
+  try {
+    store.set('gcpProjectId', projectId);
+    return await gcpAuthService.setProject(projectId);
+  } catch (error) {
+    log.error('Set project error:', error);
+    throw error;
+  }
+});
+
+// Terraform deployment IPC handlers
+ipcMain.handle('terraform:deploy', async (event, projectId) => {
+  try {
+    // Initialize Terraform with the project
+    await terraformService.initialize(projectId);
+    
+    // Run terraform init
+    mainWindow.webContents.send('terraform:progress', { 
+      stage: 'init', 
+      message: 'Initializing Terraform...' 
+    });
+    await terraformService.init((progress) => {
+      mainWindow.webContents.send('terraform:progress', progress);
+    });
+    
+    // Run terraform plan
+    mainWindow.webContents.send('terraform:progress', { 
+      stage: 'plan', 
+      message: 'Planning infrastructure...' 
+    });
+    await terraformService.plan((progress) => {
+      mainWindow.webContents.send('terraform:progress', progress);
+    });
+    
+    // Run terraform apply
+    mainWindow.webContents.send('terraform:progress', { 
+      stage: 'apply', 
+      message: 'Deploying infrastructure...' 
+    });
+    await terraformService.apply((progress) => {
+      mainWindow.webContents.send('terraform:progress', progress);
+    });
+    
+    // Get outputs
+    const outputs = await terraformService.getOutputs();
+    
+    // Store outputs for later use
+    store.set('terraformOutputs', outputs);
+    
+    mainWindow.webContents.send('terraform:complete', { outputs });
+    return { success: true, outputs };
+  } catch (error) {
+    log.error('Terraform deploy error:', error);
+    mainWindow.webContents.send('terraform:error', error.message);
+    throw error;
+  }
+});
+
+ipcMain.handle('terraform:status', async () => {
+  return store.get('terraformOutputs') || null;
+});
+
+ipcMain.handle('terraform:outputs', async () => {
+  try {
+    return await terraformService.getOutputs();
+  } catch (error) {
+    return store.get('terraformOutputs') || null;
+  }
+});
+
+ipcMain.handle('terraform:destroy', async () => {
+  try {
+    mainWindow.webContents.send('terraform:progress', { 
+      stage: 'destroy', 
+      message: 'Destroying infrastructure...' 
+    });
+    
+    await terraformService.destroy((progress) => {
+      mainWindow.webContents.send('terraform:progress', progress);
+    });
+    
+    store.delete('terraformOutputs');
+    
+    mainWindow.webContents.send('terraform:complete', { destroyed: true });
+    return { success: true };
+  } catch (error) {
+    log.error('Terraform destroy error:', error);
+    mainWindow.webContents.send('terraform:error', error.message);
+    throw error;
+  }
 });
 
 // Auto-updater events
