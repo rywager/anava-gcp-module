@@ -83,6 +83,19 @@ function createMainWindow() {
   
   mainWindow.loadURL(startUrl);
 
+  // Enable context menu for copy/paste
+  mainWindow.webContents.on('context-menu', (event, params) => {
+    const contextMenu = Menu.buildFromTemplate([
+      { role: 'copy', enabled: params.selectionText !== '' },
+      { role: 'paste' },
+      { role: 'selectAll' },
+      { type: 'separator' },
+      { role: 'reload' },
+      { role: 'toggleDevTools' }
+    ]);
+    contextMenu.popup();
+  });
+
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
     if (splashWindow) {
@@ -429,6 +442,119 @@ ipcMain.handle('terraform:destroy', async () => {
     log.error('Terraform destroy error:', error);
     mainWindow.webContents.send('terraform:error', error.message);
     throw error;
+  }
+});
+
+// Additional Terraform configuration handlers
+ipcMain.handle('terraform:get-deployed-config', async () => {
+  try {
+    let outputs = store.get('terraformOutputs');
+    
+    // Load real deployment data if no stored outputs
+    if (!outputs) {
+      const fs = require('fs');
+      const realPath = path.join(__dirname, '../../terraform-outputs-real.json');
+      if (fs.existsSync(realPath)) {
+        outputs = JSON.parse(fs.readFileSync(realPath, 'utf8'));
+        log.info('Loaded real Terraform outputs from file');
+        // Store it for future use
+        store.set('terraformOutputs', outputs);
+      } else {
+        throw new Error('No Terraform deployment found');
+      }
+    }
+    
+    // Extract configuration from Terraform outputs
+    const config = {
+      apiGatewayUrl: outputs.api_gateway_url?.value || '',
+      apiKey: outputs.api_gateway_key?.value || '',
+      deviceAuthUrl: outputs.device_auth_url?.value || '',
+      tvmUrl: outputs.tvm_url?.value || '',
+      firebaseConfig: outputs.firebase_config?.value || {},
+      serviceAccounts: outputs.service_accounts?.value || {},
+      storageBuckets: outputs.storage_buckets?.value || {},
+      wifProvider: outputs.wif_provider?.value || ''
+    };
+    
+    // Log configuration for debugging (without sensitive data)
+    log.info('Loaded Terraform configuration:', {
+      apiGatewayUrl: config.apiGatewayUrl,
+      hasApiKey: !!config.apiKey,
+      deviceAuthUrl: config.deviceAuthUrl,
+      tvmUrl: config.tvmUrl,
+      projectId: config.firebaseConfig?.projectId
+    });
+    
+    return config;
+  } catch (error) {
+    log.error('Error getting deployed config:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('terraform:send-config-to-camera', async (event, cameraIp, config, publicKey) => {
+  try {
+    const fetch = (await import('node-fetch')).default;
+    
+    // Construct the camera endpoint URL
+    const url = `http://${cameraIp}/local/BatonAnalytic/baton_analytic.cgi`;
+    
+    // Prepare the request payload
+    const payload = {
+      command: 'setTerraformConfig',
+      config: config
+    };
+    
+    // Add public key if provided for encryption
+    if (publicKey) {
+      payload.publicKey = publicKey;
+    }
+    
+    // Send the configuration to the camera
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Camera responded with status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    log.error('Error sending config to camera:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('terraform:test-camera-endpoint', async (event, cameraIp) => {
+  try {
+    const fetch = (await import('node-fetch')).default;
+    
+    // Test if the camera endpoint is accessible
+    const url = `http://${cameraIp}/local/BatonAnalytic/baton_analytic.cgi`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ command: 'getVersion' })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Camera not accessible: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    return { accessible: true, version: result.version };
+  } catch (error) {
+    log.error('Error testing camera endpoint:', error);
+    return { accessible: false, error: error.message };
   }
 });
 

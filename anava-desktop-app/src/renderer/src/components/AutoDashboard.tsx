@@ -9,8 +9,18 @@ import {
   LinearProgress,
   Paper,
   Grid,
-  CircularProgress
+  CircularProgress,
+  Tabs,
+  Tab,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
+import DeploymentConfig from './DeploymentConfig';
+import SetupGuide from './SetupGuide';
+import GoogleIcon from '@mui/icons-material/Google';
+import CloudIcon from '@mui/icons-material/Cloud';
 
 interface AppState {
   isLoadingAuth: boolean;
@@ -20,6 +30,8 @@ interface AppState {
   deploymentLogs: string[];
   error: string | null;
   deploymentSuccess: boolean | null;
+  projects: any[];
+  user: any | null;
 }
 
 const AutoDashboard: React.FC = () => {
@@ -30,8 +42,11 @@ const AutoDashboard: React.FC = () => {
     selectedProject: '',
     deploymentLogs: [],
     error: null,
-    deploymentSuccess: null
+    deploymentSuccess: null,
+    projects: [],
+    user: null
   });
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     initializeApp();
@@ -48,32 +63,66 @@ const AutoDashboard: React.FC = () => {
 
   const initializeApp = async () => {
     try {
-      // Check auth status
+      // Check for existing deployment first
+      try {
+        const deployedConfig = await window.electronAPI.terraformAPI.getDeployedConfig();
+        if (deployedConfig) {
+          // Check if user wants to keep existing deployment
+          const savedProject = await window.electronAPI.store.get('gcpProjectId');
+          if (savedProject) {
+            setState(prev => ({ 
+              ...prev, 
+              isAuthenticated: true, 
+              isLoadingAuth: false,
+              deploymentSuccess: true,
+              selectedProject: savedProject
+            }));
+            addLog('✅ Found existing Terraform deployment');
+            setActiveTab(1); // Switch to Configuration tab
+            return;
+          }
+        }
+      } catch (e) {
+        console.log('No deployment found, continuing...');
+      }
+
+      // Check auth status - actual GCP authentication
       const authStatus = await window.electronAPI.gcpAPI.getAuthStatus();
       
       if (authStatus.isAuthenticated) {
         setState(prev => ({ 
           ...prev, 
           isAuthenticated: true, 
-          isLoadingAuth: false 
+          isLoadingAuth: false,
+          user: authStatus.user
         }));
 
-        // Auto-select project
-        let projectId = await window.electronAPI.store.get('gcpProjectId');
-        if (!projectId) {
-          projectId = 'ryanclean';
-          await window.electronAPI.store.set('gcpProjectId', projectId);
+        // Load projects
+        try {
+          const projectList = await window.electronAPI.gcpAPI.listProjects();
+          setState(prev => ({ 
+            ...prev, 
+            projects: projectList 
+          }));
+          
+          // Check for saved project
+          let projectId = await window.electronAPI.store.get('gcpProjectId');
+          if (projectId && projectList.find(p => p.projectId === projectId)) {
+            setState(prev => ({ 
+              ...prev, 
+              selectedProject: projectId 
+            }));
+          } else if (projectList.length > 0) {
+            // No saved project, don't auto-select
+            addLog('Please select a Google Cloud project to continue');
+          }
+        } catch (err) {
+          console.error('Failed to load projects:', err);
+          setState(prev => ({ 
+            ...prev, 
+            error: 'Failed to load Google Cloud projects' 
+          }));
         }
-        
-        setState(prev => ({ 
-          ...prev, 
-          selectedProject: projectId 
-        }));
-
-        // Auto-start deployment after 2 seconds
-        setTimeout(() => {
-          startDeployment(projectId);
-        }, 2000);
 
       } else {
         setState(prev => ({ 
@@ -151,6 +200,55 @@ const AutoDashboard: React.FC = () => {
     }));
   };
 
+  const handleProjectSelect = async (projectId: string) => {
+    setState(prev => ({ 
+      ...prev, 
+      selectedProject: projectId,
+      error: null
+    }));
+    await window.electronAPI.store.set('gcpProjectId', projectId);
+    await window.electronAPI.gcpAPI.setProject(projectId);
+    addLog(`Selected project: ${projectId}`);
+  };
+
+  const handleLogin = async () => {
+    setState(prev => ({ ...prev, error: null }));
+    try {
+      await window.electronAPI.gcpAPI.login();
+      // Re-initialize after login
+      setTimeout(() => initializeApp(), 1000);
+    } catch (err) {
+      setState(prev => ({ 
+        ...prev, 
+        error: 'Login failed. Please try running: gcloud auth login'
+      }));
+    }
+  };
+
+  const handleReset = async () => {
+    if (window.confirm('This will clear the stored project and deployment data. Continue?')) {
+      // Clear stored data
+      await window.electronAPI.store.set('gcpProjectId', null);
+      await window.electronAPI.store.set('terraformOutputs', null);
+      
+      // Reset state
+      setState({
+        isLoadingAuth: true,
+        isDeploying: false,
+        isAuthenticated: null,
+        selectedProject: '',
+        deploymentLogs: [],
+        error: null,
+        deploymentSuccess: null,
+        projects: [],
+        user: null
+      });
+      
+      // Re-initialize
+      setTimeout(() => initializeApp(), 100);
+    }
+  };
+
   if (state.isLoadingAuth) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
@@ -160,13 +258,82 @@ const AutoDashboard: React.FC = () => {
     );
   }
 
+  // Show authentication screen if not authenticated
+  if (state.isAuthenticated === false) {
+    return (
+      <Box sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
+        <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <GoogleIcon /> Google Cloud Authentication
+        </Typography>
+        
+        <Card sx={{ mt: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Authentication Required
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Please authenticate with Google Cloud to continue.
+            </Typography>
+            
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Run the following command in your terminal:
+              <br />
+              <code>gcloud auth login && gcloud auth application-default login</code>
+            </Alert>
+            
+            {state.error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {state.error}
+              </Alert>
+            )}
+            
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button 
+                variant="contained" 
+                onClick={handleLogin}
+                startIcon={<GoogleIcon />}
+              >
+                Login with Google Cloud
+              </Button>
+              <Button 
+                variant="outlined" 
+                onClick={initializeApp}
+              >
+                Check Again
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Anava Infrastructure Deployment
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4">
+          Anava Infrastructure Management
+        </Typography>
+        <Button 
+          variant="outlined" 
+          color="secondary"
+          onClick={handleReset}
+          size="small"
+        >
+          Reset Project
+        </Button>
+      </Box>
 
-      <Grid container spacing={3}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+          <Tab label="Deploy Infrastructure" />
+          <Tab label="Configuration" disabled={!state.deploymentSuccess} />
+          <Tab label="Setup Guide" />
+        </Tabs>
+      </Box>
+
+      {activeTab === 0 && (
+        <Grid container spacing={3}>
         <Grid item xs={12}>
           <Card>
             <CardContent>
@@ -174,16 +341,38 @@ const AutoDashboard: React.FC = () => {
                 Status
               </Typography>
               
-              {state.isAuthenticated === false && (
-                <Alert severity="error">
-                  Not authenticated with GCP. Run: gcloud auth login && gcloud auth application-default login
-                </Alert>
-              )}
-              
               {state.isAuthenticated === true && (
-                <Alert severity="success">
-                  ✅ Authenticated with GCP. Project: {state.selectedProject}
-                </Alert>
+                <>
+                  <Alert severity="success" sx={{ mb: 2 }}>
+                    ✅ Authenticated as {state.user?.email || 'user'}
+                  </Alert>
+                  
+                  <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel>Google Cloud Project</InputLabel>
+                    <Select
+                      value={state.selectedProject}
+                      onChange={(e) => handleProjectSelect(e.target.value)}
+                      displayEmpty
+                    >
+                      {state.projects.length === 0 && (
+                        <MenuItem disabled value="">
+                          No projects available
+                        </MenuItem>
+                      )}
+                      {state.projects.map((project) => (
+                        <MenuItem key={project.projectId} value={project.projectId}>
+                          {project.name} ({project.projectId})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  
+                  {state.selectedProject && (
+                    <Alert severity="info">
+                      Selected project: <strong>{state.selectedProject}</strong>
+                    </Alert>
+                  )}
+                </>
               )}
               
               {state.error && (
@@ -225,13 +414,22 @@ const AutoDashboard: React.FC = () => {
                 )}
                 
                 {!state.isDeploying && !state.deploymentSuccess && (
-                  <Button 
-                    variant="contained" 
-                    onClick={() => startDeployment(state.selectedProject)}
-                    disabled={!state.selectedProject}
-                  >
-                    Deploy Infrastructure
-                  </Button>
+                  <Box>
+                    {!state.selectedProject && (
+                      <Alert severity="warning" sx={{ mb: 2 }}>
+                        Please select a Google Cloud project above before deploying.
+                      </Alert>
+                    )}
+                    <Button 
+                      variant="contained" 
+                      onClick={() => startDeployment(state.selectedProject)}
+                      disabled={!state.selectedProject}
+                      size="large"
+                      sx={{ minWidth: 200 }}
+                    >
+                      Deploy Anava Infrastructure
+                    </Button>
+                  </Box>
                 )}
               </CardContent>
             </Card>
@@ -263,6 +461,15 @@ const AutoDashboard: React.FC = () => {
           </Paper>
         </Grid>
       </Grid>
+      )}
+
+      {activeTab === 1 && (
+        <DeploymentConfig />
+      )}
+
+      {activeTab === 2 && (
+        <SetupGuide projectId={state.selectedProject || 'your-project'} />
+      )}
     </Box>
   );
 };

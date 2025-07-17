@@ -43,8 +43,16 @@ def token_vendor_machine(request):
         
         # The TVM function's own SA makes this call to STS
         # It needs roles/iam.serviceAccountTokenCreator on ITSELF
+        print(f"TVMFn: Making STS request with audience: {sts_aud}")
+        print(f"TVMFn: Firebase ID token (first 50 chars): {fb_id_token[:50]}...")
+        
         sts_r = requests.post(STS_ENDPOINT, json=sts_p)
-        sts_r.raise_for_status()
+        
+        if not sts_r.ok:
+            print(f"TVMFn STS ERROR: Status {sts_r.status_code}")
+            print(f"TVMFn STS ERROR: Response body: {sts_r.text}")
+            sts_r.raise_for_status()
+        
         sts_j = sts_r.json()
         fed_at = sts_j.get("access_token")
         

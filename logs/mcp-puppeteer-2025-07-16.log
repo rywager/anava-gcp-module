@@ -138,3 +138,11 @@
 {"arguments":{"debugPort":9222},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-07-16 19:34:21.562","tool":"puppeteer_connect_active_tab"}
 {"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-07-16 19:34:21.563"}
 {"level":"info","message":"Browser launched successfully","service":"mcp-puppeteer","timestamp":"2025-07-16 19:34:23.565"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-07-16 22:33:27.056"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-07-16 22:33:27.057"}
+{"arguments":{"height":800,"name":"electron-app-state","width":1200},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-07-16 23:00:42.190","tool":"puppeteer_screenshot"}
+{"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-07-16 23:00:42.191"}
+{"level":"info","message":"Browser launched successfully","service":"mcp-puppeteer","timestamp":"2025-07-16 23:00:44.388"}
+{"arguments":{"url":"http://localhost:3000"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-07-16 23:01:32.057","tool":"puppeteer_navigate"}
+{"level":"info","message":"Navigating to URL","service":"mcp-puppeteer","timestamp":"2025-07-16 23:01:32.057","url":"http://localhost:3000"}
+{"error":"net::ERR_CONNECTION_REFUSED at http://localhost:3000","level":"error","message":"Navigation failed","service":"mcp-puppeteer","timestamp":"2025-07-16 23:01:32.065","url":"http://localhost:3000"}

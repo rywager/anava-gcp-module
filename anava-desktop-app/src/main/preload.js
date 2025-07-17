@@ -74,6 +74,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getOutputs: () => ipcRenderer.invoke('terraform:outputs'),
     destroy: () => ipcRenderer.invoke('terraform:destroy'),
     destroyInfrastructure: () => ipcRenderer.invoke('terraform:destroy'),
+    getDeployedConfig: () => ipcRenderer.invoke('terraform:get-deployed-config'),
+    sendConfigToCamera: (cameraIp, config, publicKey) => ipcRenderer.invoke('terraform:send-config-to-camera', cameraIp, config, publicKey),
+    testCameraEndpoint: (cameraIp) => ipcRenderer.invoke('terraform:test-camera-endpoint', cameraIp),
     onProgress: (callback) => ipcRenderer.on('terraform:progress', callback),
     onComplete: (callback) => ipcRenderer.on('terraform:complete', callback),
     onError: (callback) => ipcRenderer.on('terraform:error', callback)

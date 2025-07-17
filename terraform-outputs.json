@@ -1,0 +1,12 @@
+{
+  "firebase_web_app_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "1:193450426403:web:568b397e8f3dd62e3df196"
+  },
+  "vertex_ai_service_account_email": {
+    "sensitive": false,
+    "type": "string",
+    "value": "anava-vertex-ai-sa@ryanclean.iam.gserviceaccount.com"
+  }
+}
