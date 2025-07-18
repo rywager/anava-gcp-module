@@ -200,14 +200,28 @@ const SetupWizard: React.FC = () => {
   };
 
   const handleLogin = async () => {
+    console.log('Sign-in button clicked');
     setState(prev => ({ ...prev, error: null, isLoadingAuth: true }));
+    
     try {
-      await window.electronAPI.gcpAPI.login();
-      setTimeout(() => initializeApp(), 1000);
+      console.log('Calling gcpAPI.login()...');
+      const result = await window.electronAPI.gcpAPI.login();
+      console.log('Login result:', result);
+      
+      // Give time for the authentication to complete
+      setTimeout(() => {
+        console.log('Re-initializing app after login...');
+        initializeApp();
+      }, 1000);
     } catch (err) {
+      console.error('Login error:', err);
+      const errorMessage = err instanceof Error ? err.message : 
+                          typeof err === 'string' ? err : 
+                          'Login failed. Please try running: gcloud auth login';
+      
       setState(prev => ({ 
         ...prev, 
-        error: 'Login failed. Please try running: gcloud auth login',
+        error: errorMessage,
         isLoadingAuth: false
       }));
     }
@@ -483,7 +497,13 @@ const SetupWizard: React.FC = () => {
               size="large"
               fullWidth
               startIcon={<GoogleIcon />}
-              onClick={handleLogin}
+              onClick={() => {
+                console.log('Button onClick triggered');
+                handleLogin().catch(err => {
+                  console.error('handleLogin error caught in onClick:', err);
+                  alert(`Authentication failed: ${err.message || 'Unknown error'}`);
+                });
+              }}
               disabled={state.isLoadingAuth}
               sx={{
                 py: 1.5,

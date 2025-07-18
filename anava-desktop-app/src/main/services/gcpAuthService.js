@@ -32,13 +32,21 @@ class GCPAuthService {
   }
 
   async loadOAuthConfig() {
+    const log = require('electron-log');
     try {
       // First try app directory
       let configPath = path.join(app.getAppPath(), 'oauth-config.json');
+      log.info('Checking for OAuth config at:', configPath);
       
       // If not found, try development path
       if (!await this.fileExists(configPath)) {
         configPath = path.join(__dirname, '../../../oauth-config.json');
+        log.info('Checking development path:', configPath);
+      }
+      
+      // Check if file exists
+      if (!await this.fileExists(configPath)) {
+        throw new Error(`OAuth config file not found at: ${configPath}`);
       }
       
       const configData = await fs.readFile(configPath, 'utf8');
@@ -159,13 +167,20 @@ class GCPAuthService {
   }
 
   async authenticate() {
+    const log = require('electron-log');
+    log.info('GCPAuthService.authenticate() called');
+    
     if (!this.oauth2Client) {
-      throw new Error('OAuth client not initialized. Check oauth-config.json');
+      const error = 'OAuth client not initialized. Check oauth-config.json';
+      log.error(error);
+      throw new Error(error);
     }
 
     // Check if we have valid tokens
+    log.info('Checking for valid stored tokens...');
     const isValid = await this.validateStoredTokens();
     if (isValid) {
+      log.info('Valid tokens found, getting current user...');
       const user = await this.getCurrentUser();
       return {
         success: true,
@@ -175,6 +190,7 @@ class GCPAuthService {
     }
 
     // Start new authentication flow
+    log.info('No valid tokens, starting new authentication flow...');
     return this.startAuthFlow();
   }
 
@@ -225,10 +241,14 @@ class GCPAuthService {
   }
 
   async startAuthFlow() {
+    const log = require('electron-log');
+    log.info('Starting OAuth authentication flow...');
+    
     return new Promise((resolve, reject) => {
       // Generate PKCE parameters for added security
       this.codeVerifier = this.generateCodeVerifier();
       const codeChallenge = this.generateCodeChallenge(this.codeVerifier);
+      log.info('Generated PKCE parameters');
 
       // Create local server to handle callback
       this.server = http.createServer(async (req, res) => {
@@ -285,7 +305,7 @@ class GCPAuthService {
       // Start server
       const port = this.getPort();
       this.server.listen(port, () => {
-        console.log(`Auth server listening on port ${port}`);
+        log.info(`Auth server listening on port ${port}`);
         
         // Generate auth URL with PKCE
         const authUrl = this.oauth2Client.generateAuthUrl({
@@ -300,8 +320,13 @@ class GCPAuthService {
           code_challenge: codeChallenge
         });
         
+        log.info('Opening authentication URL in browser:', authUrl);
+        
         // Open in system browser
-        shell.openExternal(authUrl);
+        shell.openExternal(authUrl).catch(error => {
+          log.error('Failed to open browser:', error);
+          reject(new Error('Failed to open authentication URL in browser'));
+        });
       });
 
       // Set timeout

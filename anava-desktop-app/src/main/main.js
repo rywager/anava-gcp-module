@@ -291,8 +291,17 @@ ipcMain.handle('show-open-dialog', async (event, options) => {
 
 // Google Cloud Platform IPC handlers
 ipcMain.handle('gcp:login', async () => {
+  log.info('IPC: gcp:login handler called');
   try {
+    if (!gcpAuthService) {
+      const error = 'GCP Auth Service not initialized';
+      log.error(error);
+      throw new Error(error);
+    }
+    
+    log.info('Calling gcpAuthService.authenticate()...');
     const result = await gcpAuthService.authenticate();
+    log.info('Authentication result:', result ? 'Success' : 'Failed');
     
     // Save user info to store
     if (result.user) {
@@ -306,7 +315,11 @@ ipcMain.handle('gcp:login', async () => {
     return result;
   } catch (error) {
     log.error('GCP login error:', error);
-    throw error;
+    log.error('Error stack:', error.stack);
+    
+    // Return a more detailed error message
+    const errorMessage = error.message || 'Authentication failed';
+    throw new Error(errorMessage);
   }
 });
 
