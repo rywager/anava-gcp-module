@@ -107,6 +107,9 @@ function createMainWindow() {
     
     // Always open DevTools to see errors
     mainWindow.webContents.openDevTools();
+    
+    // Log menu visibility
+    log.info('Application menu set. On macOS, check the top menu bar.');
   });
 
   // Handle window closed

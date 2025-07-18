@@ -969,14 +969,24 @@ const SetupWizard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Reset option */}
-        <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-            Need to reconfigure or deploy to a different project?
+        {/* Reset option - make it prominent */}
+        <Paper elevation={3} sx={{ 
+          mt: 4, 
+          p: 3, 
+          bgcolor: 'background.paper',
+          border: '2px solid',
+          borderColor: 'error.main'
+        }}>
+          <Typography variant="h6" gutterBottom color="error">
+            Need to Start Over?
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 3 }}>
+            You can sign out to switch accounts or completely reset the application.
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
             <Button 
-              variant="outlined" 
+              variant="contained"
+              size="large"
               onClick={async () => {
                 try {
                   // Sign out but keep deployment data
@@ -990,8 +1000,9 @@ const SetupWizard: React.FC = () => {
               Sign Out
             </Button>
             <Button 
-              variant="outlined" 
-              color="warning"
+              variant="contained" 
+              color="error"
+              size="large"
               onClick={async () => {
                 if (window.confirm('This will reset the application and clear all stored data. Continue?')) {
                   try {
@@ -999,6 +1010,8 @@ const SetupWizard: React.FC = () => {
                     await window.electronAPI.store.delete('terraformOutputs');
                     await window.electronAPI.store.delete('deployedProjectId');
                     await window.electronAPI.store.delete('gcpProjectId');
+                    await window.electronAPI.store.delete('gcpTokens');
+                    await window.electronAPI.store.delete('gcpUser');
                     
                     // Reload the app to start fresh
                     window.location.reload();
@@ -1012,7 +1025,7 @@ const SetupWizard: React.FC = () => {
               Reset Application
             </Button>
           </Box>
-        </Box>
+        </Paper>
       </Box>
     </Fade>
   );
@@ -1026,7 +1039,40 @@ const SetupWizard: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4, position: 'relative' }}>
+      {/* Always visible reset button */}
+      <Button
+        variant="contained"
+        size="small"
+        color="error"
+        onClick={async () => {
+          if (window.confirm('Reset the application and start over?')) {
+            try {
+              // Clear all stored data
+              await window.electronAPI.store.delete('terraformOutputs');
+              await window.electronAPI.store.delete('deployedProjectId');
+              await window.electronAPI.store.delete('gcpProjectId');
+              await window.electronAPI.store.delete('gcpTokens');
+              await window.electronAPI.store.delete('gcpUser');
+              
+              // Reload the app to start fresh
+              window.location.reload();
+            } catch (error) {
+              console.error('Failed to reset:', error);
+              alert('Failed to reset application. Please restart the app manually.');
+            }
+          }
+        }}
+        sx={{ 
+          position: 'fixed', 
+          top: 20, 
+          right: 20,
+          zIndex: 9999
+        }}
+      >
+        RESET APP
+      </Button>
+      
       <WorkflowStepper
         currentStep={state.currentStep}
         steps={WORKFLOW_STEPS}
