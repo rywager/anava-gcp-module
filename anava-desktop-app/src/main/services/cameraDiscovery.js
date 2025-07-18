@@ -329,6 +329,8 @@ class CameraDiscoveryService {
           type: validationResults.type || 'IP Camera',
           model: validationResults.model || 'Unknown Model',
           manufacturer: validationResults.manufacturer || 'Unknown',
+          architecture: validationResults.architecture || 'unknown',
+          firmwareVersion: validationResults.firmwareVersion || 'unknown',
           mac: await this.getMACAddress(ip),
           capabilities: validationResults.capabilities || ['HTTP'],
           discoveredAt: new Date().toISOString(),
@@ -418,6 +420,22 @@ class CameraDiscoveryService {
           rtspUrl = axisResult.rtspUrl;
           capabilities.push('RTSP');
         }
+        // Pass along architecture and firmware info
+        if (axisResult.architecture) {
+          console.log(`  Architecture: ${axisResult.architecture}`);
+          return {
+            isCamera,
+            score,
+            type,
+            model,
+            manufacturer,
+            capabilities,
+            rtspUrl,
+            architecture: axisResult.architecture,
+            firmwareVersion: axisResult.firmwareVersion,
+            authenticated: true
+          };
+        }
       } else {
         console.log('  ❌ Axis check failed');
       }
@@ -473,6 +491,8 @@ class CameraDiscoveryService {
       manufacturer,
       capabilities,
       rtspUrl,
+      architecture: 'unknown',
+      firmwareVersion: 'unknown',
       authenticated: isCamera && score >= 40 // Successfully authenticated if we got good validation
     };
   }
@@ -584,11 +604,52 @@ class CameraDiscoveryService {
           return { isAxis: false };
         }
         
+        // Get additional system information including architecture
+        let architecture = 'unknown';
+        let firmwareVersion = 'unknown';
+        
+        try {
+          // Get system properties for architecture
+          const sysResponse = await this.digestAuth(ip, username, password, '/axis-cgi/param.cgi?action=list&group=Properties.System.Architecture');
+          if (sysResponse) {
+            const archMatch = sysResponse.match(/Properties\.System\.Architecture=([^\\r\\n]+)/);
+            if (archMatch) {
+              architecture = archMatch[1].toLowerCase();
+              console.log(`  ✅ Architecture: ${architecture}`);
+            }
+          }
+          
+          // Get firmware version
+          const fwResponse = await this.digestAuth(ip, username, password, '/axis-cgi/param.cgi?action=list&group=Properties.Firmware');
+          if (fwResponse) {
+            const fwMatch = fwResponse.match(/Properties\.Firmware\.Version=([^\\r\\n]+)/);
+            if (fwMatch) {
+              firmwareVersion = fwMatch[1];
+              console.log(`  ✅ Firmware: ${firmwareVersion}`);
+            }
+          }
+          
+          // Try basicdeviceinfo.cgi as alternative
+          if (architecture === 'unknown') {
+            const deviceInfo = await this.digestAuth(ip, username, password, '/axis-cgi/basicdeviceinfo.cgi');
+            if (deviceInfo) {
+              const archMatch2 = deviceInfo.match(/architecture[=>]([^<\\r\\n]+)/);
+              if (archMatch2) {
+                architecture = archMatch2[1].toLowerCase();
+              }
+            }
+          }
+        } catch (err) {
+          console.log('  ⚠️  Could not fetch architecture info:', err.message);
+        }
+        
         console.log(`  ✅ Axis camera model: ${modelMatch ? modelMatch[1] : 'Unknown'}`);
         return {
           isAxis: true,
           model: modelMatch ? modelMatch[1] : 'Unknown Axis Model',
           productType: productType,
+          architecture: architecture,
+          firmwareVersion: firmwareVersion,
           rtspUrl: `rtsp://${username}:${password}@${ip}:554/axis-media/media.amp`
         };
       }

@@ -16,31 +16,13 @@
 
 # Terraform configuration moved to versions.tf to avoid duplication
 
-# Import blocks for resilient handling of existing resources
-import {
-  to = google_storage_bucket.firebase_bucket
-  id = "${var.project_id}-${var.solution_prefix}-firebase"
-}
-
-import {
-  to = google_storage_bucket.function_source
-  id = "${var.project_id}-${var.solution_prefix}-function-source"
-}
-
-import {
-  to = google_iam_workload_identity_pool.anava_pool
-  id = "projects/${var.project_id}/locations/global/workloadIdentityPools/${var.solution_prefix}-wif-pool"
-}
-
-import {
-  to = google_secret_manager_secret.firebase_config
-  id = "projects/${var.project_id}/secrets/${var.solution_prefix}-firebase-config"
-}
-
-import {
-  to = google_secret_manager_secret.api_key
-  id = "projects/${var.project_id}/secrets/${var.solution_prefix}-api-key"
-}
+# Import blocks removed - Terraform doesn't allow variables in import blocks
+# If you need to import existing resources, use the terraform import command manually:
+# terraform import google_storage_bucket.firebase_bucket "${PROJECT_ID}-${SOLUTION_PREFIX}-firebase"
+# terraform import google_storage_bucket.function_source "${PROJECT_ID}-${SOLUTION_PREFIX}-function-source"
+# terraform import google_iam_workload_identity_pool.anava_pool "projects/${PROJECT_ID}/locations/global/workloadIdentityPools/${SOLUTION_PREFIX}-wif-pool"
+# terraform import google_secret_manager_secret.firebase_config "projects/${PROJECT_ID}/secrets/${SOLUTION_PREFIX}-firebase-config"
+# terraform import google_secret_manager_secret.api_key "projects/${PROJECT_ID}/secrets/${SOLUTION_PREFIX}-api-key"
 
 # Enable required APIs
 resource "google_project_service" "required_apis" {

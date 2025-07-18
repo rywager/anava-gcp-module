@@ -1,186 +1,409 @@
 const { OAuth2Client } = require('google-auth-library');
 const { google } = require('googleapis');
-const { BrowserWindow } = require('electron');
+const { shell, app } = require('electron');
 const path = require('path');
+const http = require('http');
+const fs = require('fs').promises;
+const crypto = require('crypto');
+const os = require('os');
 
 class GCPAuthService {
   constructor(store) {
     this.store = store;
+    this.oauth2Client = null;
+    this.server = null;
+    this.authConfig = null;
+    this.codeVerifier = null; // For PKCE
     
-    // OAuth2 configuration for desktop app
-    this.clientId = '764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com';
-    this.redirectUri = 'http://localhost:8085/';
-    this.scopes = [
-      'https://www.googleapis.com/auth/cloud-platform',
-      'https://www.googleapis.com/auth/userinfo.email'
-    ];
-    
-    this.oauth2Client = new OAuth2Client(
-      this.clientId,
-      null, // No client secret for desktop apps
-      this.redirectUri
-    );
-    
-    this.authWindow = null;
-    this.tokens = null;
-    
-    // Load stored tokens on startup
-    this.loadStoredTokens();
+    // Initialize the service
+    this.initialize();
   }
 
-  async loadStoredTokens() {
+  async initialize() {
     try {
-      const storedTokens = this.store.get('gcpTokens');
-      if (storedTokens && storedTokens.access_token) {
-        this.tokens = storedTokens;
-        this.oauth2Client.setCredentials(storedTokens);
-        console.log('Loaded stored GCP tokens');
+      // Load OAuth configuration from file
+      await this.loadOAuthConfig();
+      
+      // Try to restore saved tokens
+      await this.restoreTokens();
+    } catch (error) {
+      console.error('Failed to initialize GCPAuthService:', error);
+    }
+  }
+
+  async loadOAuthConfig() {
+    try {
+      // First try app directory
+      let configPath = path.join(app.getAppPath(), 'oauth-config.json');
+      
+      // If not found, try development path
+      if (!await this.fileExists(configPath)) {
+        configPath = path.join(__dirname, '../../../oauth-config.json');
       }
-    } catch (err) {
-      console.log('No stored tokens found');
+      
+      const configData = await fs.readFile(configPath, 'utf8');
+      const config = JSON.parse(configData);
+      
+      if (!config.installed) {
+        throw new Error('Invalid OAuth config: missing "installed" section');
+      }
+      
+      this.authConfig = config.installed;
+      
+      // Create OAuth2 client
+      this.oauth2Client = new OAuth2Client(
+        this.authConfig.client_id,
+        this.authConfig.client_secret,
+        this.authConfig.redirect_uris[0]
+      );
+      
+      console.log('OAuth configuration loaded successfully');
+    } catch (error) {
+      console.error('Failed to load OAuth config:', error);
+      throw new Error('OAuth configuration not found. Please ensure oauth-config.json exists.');
+    }
+  }
+
+  async fileExists(filePath) {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async restoreTokens() {
+    try {
+      const tokens = this.store.get('gcpTokens');
+      if (tokens && tokens.refresh_token) {
+        this.oauth2Client.setCredentials(tokens);
+        
+        // Check if access token is expired
+        if (this.isTokenExpired(tokens)) {
+          console.log('Access token expired, refreshing...');
+          await this.refreshAccessToken();
+        } else {
+          console.log('Restored valid tokens from storage');
+        }
+      }
+    } catch (error) {
+      console.log('No valid stored tokens found');
+    }
+  }
+
+  isTokenExpired(tokens) {
+    if (!tokens.expiry_date) return true;
+    return Date.now() >= tokens.expiry_date;
+  }
+
+  async refreshAccessToken() {
+    try {
+      const { credentials } = await this.oauth2Client.refreshAccessToken();
+      await this.saveTokens(credentials);
+      console.log('Access token refreshed successfully');
+      return credentials;
+    } catch (error) {
+      console.error('Failed to refresh access token:', error);
+      
+      // Check if this is a RAPT error (reauth required)
+      if (error.message && error.message.includes('invalid_rapt')) {
+        console.log('RAPT reauth required - need to perform full authentication');
+        // Return special error to trigger full reauth
+        throw new Error('REAUTH_REQUIRED');
+      }
+      
+      // Clear invalid tokens
+      this.store.delete('gcpTokens');
+      this.store.delete('gcpUser');
+      throw error;
     }
   }
 
   async saveTokens(tokens) {
-    this.tokens = tokens;
     this.store.set('gcpTokens', tokens);
     this.oauth2Client.setCredentials(tokens);
-    console.log('Saved GCP tokens');
+    
+    // Also set up Application Default Credentials for terraform
+    await this.setupApplicationDefaultCredentials(tokens);
+  }
+  
+  async setupApplicationDefaultCredentials(tokens) {
+    try {
+      // Create ADC file in the standard location
+      const adcPath = path.join(os.homedir(), '.config', 'gcloud', 'application_default_credentials.json');
+      const adcDir = path.dirname(adcPath);
+      
+      // Ensure directory exists
+      await fs.mkdir(adcDir, { recursive: true });
+      
+      // Create ADC format credentials
+      const adcCredentials = {
+        client_id: this.authConfig.client_id,
+        client_secret: this.authConfig.client_secret,
+        refresh_token: tokens.refresh_token,
+        type: 'authorized_user'
+      };
+      
+      // Write ADC file
+      await fs.writeFile(adcPath, JSON.stringify(adcCredentials, null, 2));
+      
+      // Set environment variable
+      process.env.GOOGLE_APPLICATION_CREDENTIALS = adcPath;
+      
+      console.log('Application Default Credentials configured successfully');
+    } catch (error) {
+      console.error('Failed to set up ADC:', error);
+      // Non-fatal error - terraform might still work with gcloud auth
+    }
   }
 
   async authenticate() {
-    // Check if we already have valid tokens
-    if (this.tokens && this.tokens.access_token) {
-      try {
-        // Test if tokens are still valid
-        const auth = google.auth.fromJSON({
-          type: 'authorized_user',
-          client_id: this.clientId,
-          refresh_token: this.tokens.refresh_token,
-          access_token: this.tokens.access_token
-        });
-        
-        // Try a simple API call to verify tokens work
-        const oauth2 = google.oauth2({ version: 'v2', auth });
-        await oauth2.userinfo.get();
-        
-        console.log('Using existing valid tokens');
-        return {
-          success: true,
-          tokens: this.tokens
-        };
-      } catch (err) {
-        console.log('Stored tokens are invalid, need to re-authenticate');
-        this.tokens = null;
-        this.store.delete('gcpTokens');
-      }
+    if (!this.oauth2Client) {
+      throw new Error('OAuth client not initialized. Check oauth-config.json');
     }
 
-    return new Promise((resolve, reject) => {
-      // Generate auth URL
-      const authUrl = this.oauth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: this.scopes,
-        prompt: 'consent'
-      });
+    // Check if we have valid tokens
+    const isValid = await this.validateStoredTokens();
+    if (isValid) {
+      const user = await this.getCurrentUser();
+      return {
+        success: true,
+        tokens: this.oauth2Client.credentials,
+        user
+      };
+    }
 
-      // Create auth window
-      this.authWindow = new BrowserWindow({
-        width: 600,
-        height: 800,
-        webPreferences: {
-          nodeIntegration: false,
-          contextIsolation: true
+    // Start new authentication flow
+    return this.startAuthFlow();
+  }
+
+  async validateStoredTokens() {
+    try {
+      const tokens = this.store.get('gcpTokens');
+      if (!tokens || !tokens.refresh_token) {
+        return false;
+      }
+
+      this.oauth2Client.setCredentials(tokens);
+
+      // If access token is expired, try to refresh
+      if (this.isTokenExpired(tokens)) {
+        try {
+          await this.refreshAccessToken();
+        } catch (error) {
+          if (error.message === 'REAUTH_REQUIRED') {
+            console.log('Full reauthentication required');
+            return false;
+          }
+          throw error;
         }
-      });
+      }
 
-      // Handle auth callback
-      this.authWindow.webContents.on('will-redirect', async (event, url) => {
-        if (url.startsWith(this.redirectUri)) {
-          event.preventDefault();
+      // Validate by making a simple API call
+      const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client });
+      await oauth2.userinfo.get();
+      
+      return true;
+    } catch (error) {
+      console.log('Token validation failed:', error.message);
+      // Clear invalid tokens
+      this.store.delete('gcpTokens');
+      this.store.delete('gcpUser');
+      return false;
+    }
+  }
+
+  generateCodeVerifier() {
+    // Generate a secure random string for PKCE
+    return crypto.randomBytes(32).toString('base64url');
+  }
+
+  generateCodeChallenge(verifier) {
+    // Generate SHA256 hash of the verifier for PKCE
+    return crypto.createHash('sha256').update(verifier).digest('base64url');
+  }
+
+  async startAuthFlow() {
+    return new Promise((resolve, reject) => {
+      // Generate PKCE parameters for added security
+      this.codeVerifier = this.generateCodeVerifier();
+      const codeChallenge = this.generateCodeChallenge(this.codeVerifier);
+
+      // Create local server to handle callback
+      this.server = http.createServer(async (req, res) => {
+        const url = new URL(req.url, `http://localhost:${this.getPort()}`);
+        
+        if (url.pathname === '/' && url.searchParams.has('code')) {
+          const code = url.searchParams.get('code');
+          
+          // Send success page to browser
+          res.writeHead(200, { 'Content-Type': 'text/html' });
+          res.end(this.getSuccessHTML());
+          
+          // Close server
+          this.server.close();
           
           try {
-            const urlParams = new URL(url);
-            const code = urlParams.searchParams.get('code');
+            // Exchange code for tokens
+            const { tokens } = await this.oauth2Client.getToken({
+              code,
+              codeVerifier: this.codeVerifier
+            });
             
-            if (code) {
-              // Exchange code for tokens
-              const { tokens } = await this.oauth2Client.getToken(code);
-              
-              // Save tokens persistently
-              await this.saveTokens(tokens);
-              
-              // Get user info
-              const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client });
-              const { data } = await oauth2.userinfo.get();
-              
-              this.authWindow.close();
-              
-              resolve({
-                success: true,
-                tokens,
-                user: {
-                  email: data.email,
-                  name: data.name,
-                  picture: data.picture
-                }
-              });
-            } else {
-              reject(new Error('No authorization code received'));
-            }
+            // Save tokens
+            await this.saveTokens(tokens);
+            
+            // Get user info
+            const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client });
+            const { data: user } = await oauth2.userinfo.get();
+            
+            // Save user info
+            this.store.set('gcpUser', user);
+            
+            resolve({
+              success: true,
+              tokens,
+              user: {
+                email: user.email,
+                name: user.name,
+                picture: user.picture
+              }
+            });
           } catch (error) {
-            this.authWindow.close();
+            console.error('Token exchange failed:', error);
             reject(error);
           }
+        } else if (url.searchParams.has('error')) {
+          res.writeHead(200, { 'Content-Type': 'text/html' });
+          res.end(this.getErrorHTML(url.searchParams.get('error')));
+          this.server.close();
+          reject(new Error(`Authentication failed: ${url.searchParams.get('error')}`));
         }
       });
 
-      // Handle window closed
-      this.authWindow.on('closed', () => {
-        this.authWindow = null;
-        reject(new Error('Authentication cancelled'));
+      // Start server
+      const port = this.getPort();
+      this.server.listen(port, () => {
+        console.log(`Auth server listening on port ${port}`);
+        
+        // Generate auth URL with PKCE
+        const authUrl = this.oauth2Client.generateAuthUrl({
+          access_type: 'offline',
+          scope: [
+            'https://www.googleapis.com/auth/cloud-platform',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile'
+          ],
+          prompt: 'consent',
+          code_challenge_method: 'S256',
+          code_challenge: codeChallenge
+        });
+        
+        // Open in system browser
+        shell.openExternal(authUrl);
       });
 
-      // Load auth URL
-      this.authWindow.loadURL(authUrl);
+      // Set timeout
+      setTimeout(() => {
+        if (this.server && this.server.listening) {
+          this.server.close();
+          reject(new Error('Authentication timeout'));
+        }
+      }, 5 * 60 * 1000); // 5 minutes
     });
   }
 
-  async refreshToken(refreshToken) {
-    this.oauth2Client.setCredentials({ refresh_token: refreshToken });
-    const { credentials } = await this.oauth2Client.refreshAccessToken();
-    return credentials;
+  getPort() {
+    // Extract port from redirect URI
+    const redirectUri = this.authConfig?.redirect_uris?.[0] || 'http://localhost:8085';
+    const url = new URL(redirectUri);
+    return parseInt(url.port) || 8085;
   }
 
-  setCredentials(tokens) {
-    this.oauth2Client.setCredentials(tokens);
+  getSuccessHTML() {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Authentication Successful</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+          }
+          .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          }
+          h1 { color: #1a73e8; }
+          p { color: #5f6368; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Authentication Successful</h1>
+          <p>You can close this window and return to the Anava app.</p>
+          <p>This window will close automatically in 3 seconds...</p>
+        </div>
+        <script>
+          setTimeout(() => window.close(), 3000);
+        </script>
+      </body>
+      </html>
+    `;
   }
 
-  getAuthClient() {
-    return this.oauth2Client;
-  }
-
-  async isAuthenticated() {
-    if (!this.tokens || !this.tokens.access_token) {
-      return false;
-    }
-    
-    try {
-      // Test if tokens are still valid
-      const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client });
-      await oauth2.userinfo.get();
-      return true;
-    } catch (err) {
-      console.log('Stored tokens are invalid');
-      this.tokens = null;
-      this.store.delete('gcpTokens');
-      return false;
-    }
+  getErrorHTML(error) {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Authentication Failed</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+          }
+          .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          }
+          h1 { color: #d93025; }
+          p { color: #5f6368; margin: 20px 0; }
+          .error { font-family: monospace; background: #f8f8f8; padding: 10px; border-radius: 4px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>✗ Authentication Failed</h1>
+          <p>There was an error during authentication:</p>
+          <p class="error">${error}</p>
+          <p>Please close this window and try again.</p>
+        </div>
+      </body>
+      </html>
+    `;
   }
 
   async getCurrentUser() {
-    if (!this.tokens) return null;
-    
     try {
       const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client });
       const { data } = await oauth2.userinfo.get();
@@ -189,25 +412,55 @@ class GCPAuthService {
         name: data.name,
         picture: data.picture
       };
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to get user info:', error);
       return null;
     }
   }
 
   async listProjects() {
-    const cloudResourceManager = google.cloudresourcemanager({ 
-      version: 'v1', 
-      auth: this.oauth2Client 
-    });
-    
-    const { data } = await cloudResourceManager.projects.list();
-    return data.projects || [];
+    if (!this.oauth2Client || !this.oauth2Client.credentials) {
+      throw new Error('Not authenticated');
+    }
+
+    try {
+      const cloudResourceManager = google.cloudresourcemanager('v1');
+      const auth = this.oauth2Client;
+      
+      const response = await cloudResourceManager.projects.list({
+        auth,
+        pageSize: 100,
+        filter: 'lifecycleState:ACTIVE'
+      });
+      
+      return response.data.projects || [];
+    } catch (error) {
+      console.error('Failed to list projects:', error);
+      throw error;
+    }
   }
 
-  async setProject(projectId) {
-    // Store the selected project
-    this.currentProject = projectId;
-    return projectId;
+  async logout() {
+    // Clear stored tokens and user info
+    this.store.delete('gcpTokens');
+    this.store.delete('gcpUser');
+    
+    // Clear OAuth client credentials
+    if (this.oauth2Client) {
+      this.oauth2Client.setCredentials({});
+    }
+    
+    console.log('Logged out successfully');
+  }
+
+  isAuthenticated() {
+    return !!(this.oauth2Client && 
+             this.oauth2Client.credentials && 
+             this.oauth2Client.credentials.refresh_token);
+  }
+
+  getCredentials() {
+    return this.oauth2Client?.credentials || null;
   }
 }
 

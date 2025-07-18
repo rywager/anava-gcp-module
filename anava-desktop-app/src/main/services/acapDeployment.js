@@ -105,10 +105,29 @@ class ACAPDeploymentService {
   }
 
   setupIPC() {
-    ipcMain.handle('deploy-acap', async (event, cameraIp, acapFile, credentials) => {
-      return this.deployACAP(cameraIp, acapFile, credentials, (progress) => {
-        event.sender.send('acap-deployment-progress', { cameraIp, progress });
-      });
+    ipcMain.handle('deploy-acap', async (event, params) => {
+      const { cameraIp, username, password, acapFile, acapFileName } = params;
+      
+      // Convert the acap file array back to a buffer and save to temp file
+      const tempDir = require('os').tmpdir();
+      const tempPath = path.join(tempDir, acapFileName);
+      const buffer = Buffer.from(acapFile);
+      await fs.promises.writeFile(tempPath, buffer);
+      
+      try {
+        const result = await this.deployACAP(cameraIp, tempPath, { username, password }, (progress) => {
+          event.sender.send('acap-deployment-progress', { cameraIp, progress });
+        });
+        
+        // Clean up temp file
+        await fs.promises.unlink(tempPath).catch(() => {});
+        
+        return result;
+      } catch (error) {
+        // Clean up temp file on error
+        await fs.promises.unlink(tempPath).catch(() => {});
+        throw error;
+      }
     });
 
     ipcMain.handle('get-acap-status', async (event, cameraIp, packageName) => {

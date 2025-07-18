@@ -116,3 +116,8 @@ user-data/
 # Environment specific files
 .env.production
 .env.staging
+
+# OAuth credentials - NEVER commit these!
+oauth-config.json
+client_secret.json
+**/client_secret*.json

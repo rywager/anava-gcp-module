@@ -25,12 +25,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMenuSettings: (callback) => ipcRenderer.on('menu-settings', callback),
   
   // Camera discovery
+  scanNetworkCameras: () => ipcRenderer.invoke('scan-network-cameras'),
   scanNetworkForCameras: () => ipcRenderer.invoke('scan-network-cameras'),
   quickScanCamera: (ip, username, password) => ipcRenderer.invoke('quick-scan-camera', ip, username, password),
   testCameraCredentials: (cameraId, ip, username, password) => ipcRenderer.invoke('test-camera-credentials', cameraId, ip, username, password),
   
   // ACAP deployment
-  deployACAP: (cameraIp, acapFile, progress) => ipcRenderer.invoke('deploy-acap', cameraIp, acapFile, progress),
+  deployACAP: (params) => ipcRenderer.invoke('deploy-acap-vapix', params),
   
   // ACAP downloader
   getLatestAcaps: () => ipcRenderer.invoke('get-latest-acaps'),
@@ -54,7 +55,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
   
   // Event listeners
-  on: (channel, callback) => ipcRenderer.on(channel, callback),
+  on: (channel, callback) => {
+    // Wrap callback to ensure proper error handling for terraform:error
+    if (channel === 'terraform:error') {
+      ipcRenderer.on(channel, (event, error) => {
+        // Ensure error is always a string
+        const errorMessage = typeof error === 'string' ? error : 
+                           (error && error.message) ? error.message : 
+                           (error && error.toString) ? error.toString() : 
+                           'Unknown error';
+        callback(errorMessage);
+      });
+    } else {
+      ipcRenderer.on(channel, (event, ...args) => callback(...args));
+    }
+  },
   
   // Google Cloud Platform APIs
   gcpAPI: {
