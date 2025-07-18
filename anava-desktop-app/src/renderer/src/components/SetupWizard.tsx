@@ -551,8 +551,10 @@ const SetupWizard: React.FC = () => {
                 title="Authentication Error"
                 message={state.error}
                 action={{
-                  label: 'Learn More',
-                  onClick: () => console.log('Show help')
+                  label: 'Try Again',
+                  onClick: () => {
+                    setState(prev => ({ ...prev, error: null }));
+                  }
                 }}
               />
             )}
@@ -948,7 +950,7 @@ const SetupWizard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card elevation={2}>
+        <Card elevation={2} sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               What's Next?
@@ -966,6 +968,51 @@ const SetupWizard: React.FC = () => {
             </Box>
           </CardContent>
         </Card>
+
+        {/* Reset option */}
+        <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+            Need to reconfigure or deploy to a different project?
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Button 
+              variant="outlined" 
+              onClick={async () => {
+                try {
+                  // Sign out but keep deployment data
+                  await window.electronAPI.gcpAPI.logout();
+                  window.location.reload();
+                } catch (error) {
+                  console.error('Failed to sign out:', error);
+                }
+              }}
+            >
+              Sign Out
+            </Button>
+            <Button 
+              variant="outlined" 
+              color="warning"
+              onClick={async () => {
+                if (window.confirm('This will reset the application and clear all stored data. Continue?')) {
+                  try {
+                    // Clear all stored data
+                    await window.electronAPI.store.delete('terraformOutputs');
+                    await window.electronAPI.store.delete('deployedProjectId');
+                    await window.electronAPI.store.delete('gcpProjectId');
+                    
+                    // Reload the app to start fresh
+                    window.location.reload();
+                  } catch (error) {
+                    console.error('Failed to reset:', error);
+                    alert('Failed to reset application. Please restart the app manually.');
+                  }
+                }
+              }}
+            >
+              Reset Application
+            </Button>
+          </Box>
+        </Box>
       </Box>
     </Fade>
   );

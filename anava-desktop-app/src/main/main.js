@@ -158,6 +158,28 @@ function createMenu() {
         },
         { type: 'separator' },
         {
+          label: 'Reset Application',
+          click: async () => {
+            const result = await dialog.showMessageBox(mainWindow, {
+              type: 'warning',
+              title: 'Reset Application',
+              message: 'This will clear all stored data and reset the application to its initial state.',
+              detail: 'You will need to sign in again and redeploy your infrastructure.',
+              buttons: ['Cancel', 'Reset'],
+              defaultId: 0,
+              cancelId: 0
+            });
+            
+            if (result.response === 1) {
+              // Clear all stored data
+              store.clear();
+              // Reload the window
+              mainWindow.reload();
+            }
+          }
+        },
+        { type: 'separator' },
+        {
           label: 'Quit',
           accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
           click: () => {
