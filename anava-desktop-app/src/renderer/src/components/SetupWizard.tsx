@@ -96,6 +96,7 @@ const SetupWizard: React.FC = () => {
     showLogs: false,
     deploymentLogs: []
   });
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     initializeApp();
@@ -224,6 +225,18 @@ const SetupWizard: React.FC = () => {
 
   const handleNextStep = () => {
     setState(prev => ({ ...prev, currentStep: prev.currentStep + 1 }));
+  };
+
+  const handleRefreshProjects = async () => {
+    setRefreshing(true);
+    try {
+      const projects = await window.electronAPI.gcpAPI.listProjects();
+      setState(prev => ({ ...prev, projects }));
+    } catch (error) {
+      console.error('Failed to refresh projects:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const handlePreviousStep = () => {
@@ -530,19 +543,7 @@ const SetupWizard: React.FC = () => {
   );
 
   const renderProjectSelectionStep = () => {
-    const [refreshing, setRefreshing] = React.useState(false);
-    
-    const handleRefreshProjects = async () => {
-      setRefreshing(true);
-      try {
-        const projects = await window.electronAPI.gcpAPI.listProjects();
-        setState(prev => ({ ...prev, projects }));
-      } catch (error) {
-        console.error('Failed to refresh projects:', error);
-      } finally {
-        setRefreshing(false);
-      }
-    };
+    // Note: refreshing state is managed at component level
     
     return (
       <Fade in timeout={500}>
