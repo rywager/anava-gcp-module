@@ -151,7 +151,22 @@ const AutoDashboard: React.FC = () => {
 
     // Listen for real-time progress updates
     window.electronAPI.on('terraform:progress', (data) => {
-      addLog(`📝 ${data.stage}: ${data.message}`);
+      // Handle both formats: {stage, message} and {type, data}
+      if (data.stage && data.message) {
+        addLog(`📝 ${data.stage}: ${data.message}`);
+      } else if (data.type && data.data) {
+        // Format terraform output properly
+        const logMessage = data.data.trim();
+        if (logMessage && logMessage !== 'undefined') {
+          if (data.type === 'progress') {
+            addLog(`🔧 ${data.resource || 'Resource'} ${data.action || 'processing'}...`);
+          } else if (data.type === 'stderr' && !logMessage.includes('[INFO]') && !logMessage.includes('[DEBUG]')) {
+            addLog(`⚠️  ${logMessage}`);
+          } else if (data.type === 'stdout') {
+            addLog(`📋 ${logMessage}`);
+          }
+        }
+      }
     });
 
     window.electronAPI.on('terraform:error', (error) => {

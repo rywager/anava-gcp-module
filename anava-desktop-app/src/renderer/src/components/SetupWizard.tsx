@@ -278,11 +278,31 @@ const SetupWizard: React.FC = () => {
 
     // Setup event listeners
     window.electronAPI.on('terraform:progress', (data) => {
-      const log = `${data.stage}: ${data.message}`;
-      setState(prev => ({ 
-        ...prev, 
-        deploymentLogs: [...prev.deploymentLogs, log]
-      }));
+      let log = '';
+      
+      // Handle both formats: {stage, message} and {type, data}
+      if (data.stage && data.message) {
+        log = `${data.stage}: ${data.message}`;
+      } else if (data.type && data.data) {
+        // Format terraform output properly
+        const logMessage = data.data.trim();
+        if (logMessage && logMessage !== 'undefined') {
+          if (data.type === 'progress') {
+            log = `${data.resource || 'Resource'} ${data.action || 'processing'}...`;
+          } else if (data.type === 'stderr' && !logMessage.includes('[INFO]') && !logMessage.includes('[DEBUG]')) {
+            log = `Error: ${logMessage}`;
+          } else if (data.type === 'stdout') {
+            log = logMessage;
+          }
+        }
+      }
+      
+      if (log) {
+        setState(prev => ({ 
+          ...prev, 
+          deploymentLogs: [...prev.deploymentLogs, log]
+        }));
+      }
 
       // Update task status based on progress
       if (data.type === 'progress' && data.resource) {

@@ -115,7 +115,11 @@ class GCPAuthService {
       console.error('Failed to refresh access token:', error);
       
       // Check if this is a RAPT error (reauth required)
-      if (error.message && error.message.includes('invalid_rapt')) {
+      if (error.message && (
+        error.message.includes('invalid_rapt') ||
+        error.message.includes('rapt_required') ||
+        error.message.includes('invalid_grant')
+      )) {
         console.log('RAPT reauth required - need to perform full authentication');
         // Return special error to trigger full reauth
         throw new Error('REAUTH_REQUIRED');
@@ -317,7 +321,9 @@ class GCPAuthService {
           ],
           prompt: 'consent',
           code_challenge_method: 'S256',
-          code_challenge: codeChallenge
+          code_challenge: codeChallenge,
+          // CRITICAL: Force re-authentication to prevent RAPT errors
+          max_age: 0
         });
         
         log.info('Opening authentication URL in browser:', authUrl);
