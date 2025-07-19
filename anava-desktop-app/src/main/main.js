@@ -192,6 +192,20 @@ function createMenu() {
       ]
     },
     {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo', accelerator: 'CmdOrCtrl+Z' },
+        { role: 'redo', accelerator: process.platform === 'darwin' ? 'Cmd+Shift+Z' : 'Ctrl+Y' },
+        { type: 'separator' },
+        { role: 'cut', accelerator: 'CmdOrCtrl+X' },
+        { role: 'copy', accelerator: 'CmdOrCtrl+C' },
+        { role: 'paste', accelerator: 'CmdOrCtrl+V' },
+        { role: 'pasteandmatchstyle' },
+        { role: 'delete' },
+        { role: 'selectall', accelerator: 'CmdOrCtrl+A' }
+      ]
+    },
+    {
       label: 'View',
       submenu: [
         { role: 'reload' },
@@ -421,6 +435,16 @@ ipcMain.handle('gcp:set-project', async (event, projectId) => {
   }
 });
 
+// Billing check IPC handler
+ipcMain.handle('gcp:check-billing', async (event, projectId) => {
+  try {
+    return await gcpAuthService.checkBillingEnabled(projectId);
+  } catch (error) {
+    log.error('Error checking billing:', error);
+    throw error;
+  }
+});
+
 // Terraform deployment IPC handlers
 ipcMain.handle('terraform:deploy', async (event, projectId) => {
   log.info('Terraform deploy handler called with projectId:', projectId);
@@ -447,6 +471,33 @@ ipcMain.handle('terraform:deploy', async (event, projectId) => {
       const authError = new Error('Google Cloud authentication expired. Please sign in again.');
       mainWindow.webContents.send('terraform:error', authError.message);
       throw authError;
+    }
+
+    // Check if billing is enabled
+    mainWindow.webContents.send('terraform:progress', { 
+      stage: 'billing', 
+      message: 'Checking project billing status...' 
+    });
+    
+    try {
+      const billingStatus = await gcpAuthService.checkBillingEnabled(projectId);
+      if (!billingStatus.enabled) {
+        const billingError = new Error(`Billing is not enabled for project ${projectId}. Please enable billing in the Google Cloud Console.`);
+        billingError.code = 'BILLING_NOT_ENABLED';
+        mainWindow.webContents.send('terraform:error', billingError.message);
+        throw billingError;
+      }
+      
+      mainWindow.webContents.send('terraform:progress', { 
+        stage: 'billing', 
+        message: 'Billing verified ✓' 
+      });
+    } catch (error) {
+      if (error.code === 'BILLING_NOT_ENABLED') {
+        throw error;
+      }
+      // If billing check fails for other reasons, log but continue
+      log.warn('Billing check failed, continuing deployment:', error);
     }
     
     // Check if this is the project with existing infrastructure

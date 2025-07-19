@@ -21,6 +21,9 @@ import DeploymentConfig from './DeploymentConfig';
 import SetupGuide from './SetupGuide';
 import GoogleIcon from '@mui/icons-material/Google';
 import CloudIcon from '@mui/icons-material/Cloud';
+import WarningIcon from '@mui/icons-material/Warning';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 interface AppState {
   isLoadingAuth: boolean;
@@ -32,6 +35,7 @@ interface AppState {
   deploymentSuccess: boolean | null;
   projects: any[];
   user: any | null;
+  showBillingError: boolean;
 }
 
 const AutoDashboard: React.FC = () => {
@@ -44,7 +48,8 @@ const AutoDashboard: React.FC = () => {
     error: null,
     deploymentSuccess: null,
     projects: [],
-    user: null
+    user: null,
+    showBillingError: false
   });
   const [activeTab, setActiveTab] = useState(0);
 
@@ -170,11 +175,18 @@ const AutoDashboard: React.FC = () => {
     });
 
     window.electronAPI.on('terraform:error', (error) => {
+      // Check if it's a billing error
+      const errorMessage = typeof error === 'string' ? error : error.message || 'Unknown error';
+      const isBillingError = errorMessage.includes('Billing is not enabled') || 
+                             errorMessage.includes('Billing account') ||
+                             errorMessage.includes('billing must be enabled');
+      
       setState(prev => ({ 
         ...prev, 
-        error: `Deployment error: ${error}`,
+        error: errorMessage,
         isDeploying: false,
-        deploymentSuccess: false
+        deploymentSuccess: false,
+        showBillingError: isBillingError
       }));
     });
 
@@ -219,7 +231,9 @@ const AutoDashboard: React.FC = () => {
     setState(prev => ({ 
       ...prev, 
       selectedProject: projectId,
-      error: null
+      error: null,
+      showBillingError: false,
+      deploymentSuccess: null
     }));
     await window.electronAPI.store.set('gcpProjectId', projectId);
     await window.electronAPI.gcpAPI.setProject(projectId);
@@ -390,9 +404,40 @@ const AutoDashboard: React.FC = () => {
                 </>
               )}
               
-              {state.error && (
+              {state.error && !state.showBillingError && (
                 <Alert severity="error" sx={{ mt: 2 }}>
                   {state.error}
+                </Alert>
+              )}
+              
+              {state.showBillingError && (
+                <Alert 
+                  severity="warning" 
+                  icon={<AccountBalanceWalletIcon />}
+                  sx={{ mt: 2 }}
+                  action={
+                    <Button
+                      color="inherit"
+                      size="small"
+                      endIcon={<OpenInNewIcon />}
+                      onClick={() => {
+                        const projectUrl = state.selectedProject 
+                          ? `https://console.cloud.google.com/billing/linkedaccount?project=${state.selectedProject}`
+                          : 'https://console.cloud.google.com/billing';
+                        window.open(projectUrl, '_blank');
+                      }}
+                    >
+                      Enable Billing
+                    </Button>
+                  }
+                >
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Billing is not enabled for this project</strong>
+                  </Typography>
+                  <Typography variant="body2">
+                    To deploy infrastructure, you need to enable billing for project "{state.selectedProject}".
+                    Click "Enable Billing" to open the Google Cloud Console and link a billing account.
+                  </Typography>
                 </Alert>
               )}
             </CardContent>

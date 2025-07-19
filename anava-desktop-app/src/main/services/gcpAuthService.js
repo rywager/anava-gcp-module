@@ -493,6 +493,46 @@ class GCPAuthService {
   getCredentials() {
     return this.oauth2Client?.credentials || null;
   }
+
+  // Check if billing is enabled for a project
+  async checkBillingEnabled(projectId) {
+    try {
+      log.info(`Checking billing status for project: ${projectId}`);
+      
+      // Ensure we have valid authentication
+      await this.ensureValidToken();
+      
+      const { google } = require('googleapis');
+      const cloudbilling = google.cloudbilling('v1');
+      
+      // Get billing info for the project
+      const billingInfo = await cloudbilling.projects.getBillingInfo({
+        name: `projects/${projectId}`,
+        auth: this.oauth2Client
+      });
+      
+      const isBillingEnabled = billingInfo.data.billingEnabled || false;
+      
+      log.info(`Billing status for project ${projectId}: ${isBillingEnabled ? 'enabled' : 'disabled'}`);
+      
+      return {
+        enabled: isBillingEnabled,
+        billingAccountName: billingInfo.data.billingAccountName || null
+      };
+    } catch (error) {
+      log.error('Error checking billing status:', error);
+      
+      // If it's a permission error, assume billing is not enabled
+      if (error.code === 403) {
+        return {
+          enabled: false,
+          error: 'Permission denied. You may need to enable the Cloud Billing API.'
+        };
+      }
+      
+      throw error;
+    }
+  }
 }
 
 module.exports = GCPAuthService;
