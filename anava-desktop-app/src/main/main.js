@@ -481,13 +481,9 @@ ipcMain.handle('terraform:deploy', async (event, projectId) => {
     
     const billingStatus = await gcpAuthService.checkBillingEnabled(projectId);
     
-    if (!billingStatus.enabled) {
-      let errorMessage;
-      if (billingStatus.requiresManualCheck) {
-        errorMessage = `Cannot automatically verify billing for project ${projectId}. Please ensure billing is enabled before continuing. ${billingStatus.error || ''}`;
-      } else {
-        errorMessage = `Billing is not enabled for project ${projectId}. Please enable billing in the Google Cloud Console to deploy infrastructure.`;
-      }
+    if (!billingStatus.enabled && !billingStatus.requiresManualCheck) {
+      // Only fail if we're certain billing is NOT enabled
+      const errorMessage = `Billing is not enabled for project ${projectId}. Please enable billing in the Google Cloud Console to deploy infrastructure.`;
       
       const billingError = new Error(errorMessage);
       billingError.code = 'BILLING_NOT_ENABLED';
@@ -500,6 +496,13 @@ ipcMain.handle('terraform:deploy', async (event, projectId) => {
       });
       
       throw billingError;
+    } else if (billingStatus.requiresManualCheck) {
+      // If we can't verify billing (e.g., Cloud Billing API not enabled), warn but continue
+      mainWindow.webContents.send('terraform:progress', { 
+        stage: 'billing', 
+        message: `Warning: Cannot verify billing status. Proceeding with deployment...` 
+      });
+      log.warn(`Cannot verify billing for project ${projectId}, proceeding anyway`);
     }
     
     mainWindow.webContents.send('terraform:progress', { 
