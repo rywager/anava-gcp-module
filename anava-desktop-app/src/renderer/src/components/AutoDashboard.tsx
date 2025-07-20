@@ -280,6 +280,37 @@ const AutoDashboard: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    if (window.confirm('This will log you out of Google Cloud. Continue?')) {
+      try {
+        await window.electronAPI.gcpAPI.logout();
+        
+        // Reset state
+        setState({
+          isLoadingAuth: true,
+          isDeploying: false,
+          isAuthenticated: null,
+          selectedProject: '',
+          deploymentLogs: [],
+          error: null,
+          deploymentSuccess: null,
+          projects: [],
+          user: null,
+          showBillingError: false,
+          showFirebaseSetup: false
+        });
+        
+        // Re-initialize
+        setTimeout(() => initializeApp(), 100);
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to logout. Please try again.'
+        }));
+      }
+    }
+  };
+
   const handleReset = async () => {
     if (window.confirm('This will clear the stored project and deployment data. Continue?')) {
       // Clear stored data
@@ -296,7 +327,9 @@ const AutoDashboard: React.FC = () => {
         error: null,
         deploymentSuccess: null,
         projects: [],
-        user: null
+        user: null,
+        showBillingError: false,
+        showFirebaseSetup: false
       });
       
       // Re-initialize

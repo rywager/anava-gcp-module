@@ -71,6 +71,8 @@ interface SetupWizardState {
   deploymentLogs: string[];
   authError?: boolean;
   existingResourcesError?: boolean;
+  billingEnabled?: boolean;
+  checkingBilling?: boolean;
 }
 
 interface DeploymentTask {
@@ -231,10 +233,31 @@ const SetupWizard: React.FC = () => {
     setState(prev => ({ 
       ...prev, 
       selectedProject: projectId,
-      error: null
+      error: null,
+      checkingBilling: true,
+      billingEnabled: undefined
     }));
+    
     await window.electronAPI.store.set('gcpProjectId', projectId);
     await window.electronAPI.gcpAPI.setProject(projectId);
+    
+    // Check billing status
+    try {
+      const billingStatus = await window.electronAPI.gcpAPI.checkBilling(projectId);
+      setState(prev => ({ 
+        ...prev, 
+        billingEnabled: billingStatus.enabled,
+        checkingBilling: false
+      }));
+    } catch (error) {
+      console.error('Error checking billing:', error);
+      // If we can't check billing, assume it's not enabled to be safe
+      setState(prev => ({ 
+        ...prev, 
+        billingEnabled: false,
+        checkingBilling: false
+      }));
+    }
   };
 
   const handleNextStep = () => {
@@ -260,9 +283,33 @@ const SetupWizard: React.FC = () => {
   const startDeployment = async () => {
     console.log('Starting deployment for project:', state.selectedProject);
     
+    // First check if billing is enabled
+    setState(prev => ({ 
+      ...prev, 
+      checkingBilling: true
+    }));
+    
+    try {
+      const billingStatus = await window.electronAPI.gcpAPI.checkBilling(state.selectedProject);
+      if (!billingStatus.enabled) {
+        setState(prev => ({ 
+          ...prev, 
+          checkingBilling: false,
+          billingEnabled: false,
+          error: `Billing is not enabled for project ${state.selectedProject}. Please enable billing before deploying.`,
+          isDeploying: false
+        }));
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking billing:', error);
+      // Continue anyway but warn the user
+    }
+    
     setState(prev => ({ 
       ...prev, 
       isDeploying: true,
+      checkingBilling: false,
       deploymentProgress: 0,
       deploymentTasks: [
         { name: 'Project validation', status: 'running' },
@@ -680,25 +727,55 @@ const SetupWizard: React.FC = () => {
                     Selected: {state.selectedProject}
                   </Typography>
                   <Box sx={{ mt: 1 }}>
-                    <Chip
-                      size="small"
-                      icon={<CheckIcon />}
-                      label="Billing Active"
-                      color="success"
-                      sx={{ mr: 1 }}
-                    />
+                    {state.checkingBilling ? (
+                      <Chip
+                        size="small"
+                        icon={<CircularProgress size={14} />}
+                        label="Checking billing..."
+                        sx={{ mr: 1 }}
+                      />
+                    ) : (
+                      <Chip
+                        size="small"
+                        icon={state.billingEnabled ? <CheckIcon /> : <WarningIcon />}
+                        label={state.billingEnabled ? "Billing Active" : "Billing Not Enabled"}
+                        color={state.billingEnabled ? "success" : "error"}
+                        sx={{ mr: 1 }}
+                      />
+                    )}
                     <Chip
                       size="small"
                       icon={<WarningIcon />}
-                      label="3 of 5 APIs enabled"
+                      label="APIs will be enabled during deploy"
                       color="warning"
                     />
                   </Box>
-                  <StatusBanner
-                    type="info"
-                    title="Required APIs will be enabled automatically during deployment"
-                    show={true}
-                  />
+                  {!state.billingEnabled && !state.checkingBilling && (
+                    <Box sx={{ mt: 2 }}>
+                      <StatusBanner
+                        type="error"
+                        title="Billing must be enabled before deployment"
+                        show={true}
+                      />
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        startIcon={<OpenInNewIcon />}
+                        onClick={() => window.open(`https://console.cloud.google.com/billing/linkedaccount?project=${state.selectedProject}`, '_blank')}
+                      >
+                        Enable Billing for This Project
+                      </Button>
+                    </Box>
+                  )}
+                  {state.billingEnabled && (
+                    <StatusBanner
+                      type="info"
+                      title="Required APIs will be enabled automatically during deployment"
+                      show={true}
+                    />
+                  )}
                 </Paper>
               )}
             </CardContent>
@@ -865,6 +942,11 @@ const SetupWizard: React.FC = () => {
                       isDeploying: false
                     }));
                     setTimeout(() => handleNextStep(), 1000);
+                  }
+                } : (state.error.includes('Billing is not enabled') || state.error.includes('billing')) ? {
+                  label: 'Enable Billing',
+                  onClick: () => {
+                    window.open(`https://console.cloud.google.com/billing/linkedaccount?project=${state.selectedProject}`, '_blank');
                   }
                 } : {
                   label: 'Retry',
