@@ -40,10 +40,7 @@ function App() {
             <AppBar position="static" elevation={0}>
               <Toolbar>
                 <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 500 }}>
-                  Anava Personal Cloud
-                </Typography>
-                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                  v{appVersion}
+                  Anava Personal Cloud <span style={{ fontSize: '0.8em', opacity: 0.7 }}>v{appVersion}</span>
                 </Typography>
               </Toolbar>
             </AppBar>

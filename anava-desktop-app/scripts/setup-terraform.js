@@ -8,7 +8,7 @@ const { pipeline } = require('stream');
 const { promisify } = require('util');
 const streamPipeline = promisify(pipeline);
 
-const TERRAFORM_VERSION = '1.5.7';
+const TERRAFORM_VERSION = '1.12.2';
 const TERRAFORM_BASE_URL = 'https://releases.hashicorp.com/terraform';
 
 async function downloadFile(url, destination) {

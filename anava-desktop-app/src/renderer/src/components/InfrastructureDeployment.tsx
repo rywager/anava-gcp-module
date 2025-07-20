@@ -59,6 +59,7 @@ const InfrastructureDeployment: React.FC = () => {
   const [projectId, setProjectId] = useState('');
 
   const steps: DeploymentStep[] = [
+    { label: 'Validate Authentication', status: 'pending' },
     { label: 'Initialize Terraform', status: 'pending' },
     { label: 'Plan Infrastructure', status: 'pending' },
     { label: 'Deploy Resources', status: 'pending' },
@@ -66,12 +67,13 @@ const InfrastructureDeployment: React.FC = () => {
   ];
 
   const [deploymentSteps, setDeploymentSteps] = useState(steps);
+  const [progressPercentage, setProgressPercentage] = useState(0);
 
   useEffect(() => {
     loadExistingDeployment();
 
     // Listen for deployment progress
-    window.electronAPI.terraformAPI.onProgress((event, progress) => {
+    window.electronAPI.terraformAPI.onProgress((progress) => {
       addLog(progress.data);
       
       if (progress.stage) {
@@ -79,7 +81,7 @@ const InfrastructureDeployment: React.FC = () => {
       }
     });
 
-    window.electronAPI.terraformAPI.onComplete((event, result) => {
+    window.electronAPI.terraformAPI.onComplete((result) => {
       setDeploymentComplete(true);
       setIsDeploying(false);
       if (result.outputs) {
@@ -88,7 +90,7 @@ const InfrastructureDeployment: React.FC = () => {
       updateStepStatus('complete');
     });
 
-    window.electronAPI.terraformAPI.onError((event, error) => {
+    window.electronAPI.terraformAPI.onError((error) => {
       setDeploymentError(error);
       setIsDeploying(false);
       updateStepStatus('error');
@@ -116,16 +118,24 @@ const InfrastructureDeployment: React.FC = () => {
 
   const updateStepStatus = (stage: string) => {
     const stepMap: Record<string, number> = {
-      'init': 0,
-      'plan': 1,
-      'apply': 2,
-      'configure': 3,
-      'complete': 4
+      'auth': 0,      // Validate Authentication
+      'init': 1,      // Initialize Terraform
+      'plan': 2,      // Plan Infrastructure
+      'apply': 3,     // Deploy Resources
+      'configure': 4, // Configure Services
+      'complete': 5,  // Completion (past all steps)
+      'existing': 5,  // Using existing infrastructure
+      'destroy': -1   // Special case for destroy
     };
 
     const stepIndex = stepMap[stage];
-    if (stepIndex !== undefined) {
+    if (stepIndex !== undefined && stepIndex >= 0) {
       setActiveStep(stepIndex);
+      
+      // Calculate progress percentage based on step
+      const totalSteps = steps.length;
+      const progressPercent = (stepIndex / totalSteps) * 100;
+      setProgressPercentage(progressPercent);
       
       setDeploymentSteps(prev => prev.map((step, index) => ({
         ...step,
@@ -133,6 +143,17 @@ const InfrastructureDeployment: React.FC = () => {
                 index === stepIndex ? 'active' : 
                 stage === 'error' && index === stepIndex ? 'error' : 'pending'
       })));
+    } else if (stage === 'error') {
+      // Mark current step as error
+      setDeploymentSteps(prev => prev.map((step, index) => ({
+        ...step,
+        status: index === activeStep ? 'error' : step.status
+      })));
+    }
+    
+    // Set to 100% when complete
+    if (stage === 'complete' || stage === 'existing') {
+      setProgressPercentage(100);
     }
   };
 
@@ -144,8 +165,9 @@ const InfrastructureDeployment: React.FC = () => {
     try {
       setIsDeploying(true);
       setDeploymentError(null);
-      setLogs([]);
+      // Don't clear logs, just add to them
       setActiveStep(0);
+      setProgressPercentage(0);
       
       addLog('Starting infrastructure deployment...');
       
@@ -165,7 +187,7 @@ const InfrastructureDeployment: React.FC = () => {
       setConfirmDialog(false);
       setIsDeploying(true);
       setDeploymentError(null);
-      setLogs([]);
+      // Don't clear logs, just add to them
       
       addLog('Destroying infrastructure...');
       
@@ -225,7 +247,11 @@ const InfrastructureDeployment: React.FC = () => {
                   </StepLabel>
                   <StepContent>
                     {step.status === 'active' && (
-                      <LinearProgress sx={{ mb: 2 }} />
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={progressPercentage} 
+                        sx={{ mb: 2 }} 
+                      />
                     )}
                     {step.message && (
                       <Typography variant="body2" color="textSecondary">

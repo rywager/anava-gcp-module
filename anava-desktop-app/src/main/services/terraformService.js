@@ -267,8 +267,27 @@ storage_location = "US"`;
   }
 
   async getOutputs() {
-    const output = await this.runCommand(this.terraformPath, ['output', '-json']);
-    return JSON.parse(output);
+    try {
+      const output = await this.runCommand(this.terraformPath, ['output', '-json']);
+      const parsed = JSON.parse(output);
+      
+      // Check if we got empty outputs
+      if (!parsed || Object.keys(parsed).length === 0) {
+        log.warn('Terraform output returned empty, attempting state refresh...');
+        
+        // Try refreshing the state
+        await this.runCommand(this.terraformPath, ['refresh']);
+        
+        // Try again
+        const refreshedOutput = await this.runCommand(this.terraformPath, ['output', '-json']);
+        return JSON.parse(refreshedOutput);
+      }
+      
+      return parsed;
+    } catch (error) {
+      log.error('Failed to get Terraform outputs:', error);
+      throw error;
+    }
   }
 
   async destroy(onProgress) {

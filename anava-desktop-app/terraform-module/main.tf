@@ -152,6 +152,36 @@ resource "google_service_account" "api_gateway" {
   description  = "Service account for API Gateway to invoke Cloud Functions"
 }
 
+# CRITICAL: Grant Cloud Build service account permissions to build functions
+# This fixes the "missing permission on the build service account" error
+resource "google_project_iam_member" "cloud_build_permissions" {
+  for_each = toset([
+    "roles/cloudbuild.builds.builder",
+    "roles/logging.logWriter",
+    "roles/artifactregistry.writer",
+    "roles/storage.objectAdmin"
+  ])
+
+  project = var.project_id
+  role    = each.value
+  member  = "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
+  
+  depends_on = [google_project_service.required_apis]
+}
+
+# Grant Cloud Build service account ability to act as the function service accounts
+resource "google_service_account_iam_member" "cloud_build_act_as_device_auth" {
+  service_account_id = google_service_account.device_auth.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
+}
+
+resource "google_service_account_iam_member" "cloud_build_act_as_tvm" {
+  service_account_id = google_service_account.tvm.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
+}
+
 # IAM permissions for service accounts
 resource "google_project_iam_member" "device_auth_permissions" {
   for_each = toset([
@@ -325,7 +355,9 @@ resource "google_cloudfunctions2_function" "device_auth" {
 
   depends_on = [
     google_project_service.required_apis,
-    google_project_iam_member.device_auth_permissions
+    google_project_iam_member.device_auth_permissions,
+    google_project_iam_member.cloud_build_permissions,
+    google_service_account_iam_member.cloud_build_act_as_device_auth
   ]
 }
 
@@ -362,7 +394,9 @@ resource "google_cloudfunctions2_function" "tvm" {
 
   depends_on = [
     google_project_service.required_apis,
-    google_project_iam_member.tvm_permissions
+    google_project_iam_member.tvm_permissions,
+    google_project_iam_member.cloud_build_permissions,
+    google_service_account_iam_member.cloud_build_act_as_tvm
   ]
 }
 

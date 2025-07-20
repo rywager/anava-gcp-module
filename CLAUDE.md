@@ -158,11 +158,56 @@ terraform destroy             # Tear down infrastructure
 - Pure software licensing business model viable
 - Enterprise white-label opportunities available
 
+## Critical Implementation Details (DO NOT REGRESS)
+
+### Billing Detection
+- **NEVER use Cloud Billing API** - It requires the API to be enabled first
+- **ALWAYS use storage bucket creation** to test billing (creates temporary test bucket)
+- Implementation: `anava-desktop-app/src/main/services/gcpAuthService.js` - `checkBillingEnabled()` method
+
+### Cloud Build Permissions
+- **New GCP projects REQUIRE explicit permissions** for Cloud Build service account
+- Without these, Cloud Functions v2 deployment fails with "missing permission on build service account"
+- Fix is in `anava-desktop-app/terraform-module/main.tf` - `cloud_build_permissions` resources
+
+### Deployment Validation
+- **ALWAYS validate Terraform outputs** before declaring success
+- **ATTEMPT RECOVERY** when outputs are missing (use gcloud commands or placeholders)
+- **DO NOT fail completely** for partial deployments - allow continuation with warnings
+- Implementation: `anava-desktop-app/src/main/services/outputValidator.js`
+
+### Development Environment
+- **Git Worktrees**: This project uses worktrees - verify you're in `/worktrees/auth-fix/`
+- **React Development**: Use `NODE_ENV=development npm run dev` or changes won't reflect
+- **Multiple File Versions**: Check for duplicate files in different directories
+
+### Known Working Projects
+- `ryanclean`: Has complete working authentication infrastructure
+- `thiswillwork-463601`: Has existing infrastructure that can be reused
+
+### API Gateway Deployment Timing (CRITICAL)
+- **API Gateway creation takes 10-15 minutes** - DO NOT timeout early
+- Recovery mechanism waits up to 15 minutes with progress updates
+- Implementation: `outputValidator.js` - 30 retries × 30 seconds
+- Always check for API configurations first to detect deployment in progress
+
+### UI/UX Critical Fixes
+- **Logs MUST remain visible during errors** - separated from deployment progress
+- Progress tracking uses actual Terraform stages: auth, init, plan, apply, configure
+- Version number shown inline with app title for easy verification
+- ACAP scanning is manual, not automatic on component mount
+
+### Latest Stable Version
+- v1.0.22: Fixed API Gateway timeout, logs visibility, progress tracking
+- Terraform updated to 1.12.2 (from 1.5.7) for better stability
+
 ## Critical Files for Future Sessions
 
 - `AUTHENTICATION_WORKING.md` - Complete working configuration status
 - `ARCHITECTURE_ANALYSIS.md` - Business model and autonomy assessment  
 - `test-firebase-exchange.sh` - End-to-end authentication flow validation
-- `anava-desktop-app/src/renderer/src/components/AutoDashboard.tsx` - Main UI component
+- `anava-desktop-app/src/renderer/src/components/SetupWizard.tsx` - Main setup flow UI
+- `anava-desktop-app/src/main/services/gcpAuthService.js` - Billing detection logic
+- `anava-desktop-app/src/main/services/outputValidator.js` - Deployment validation
 - `functions/token-vending-machine/main.py` - Core WIF token exchange logic
 - `main.tf` - Complete infrastructure definition

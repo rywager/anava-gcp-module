@@ -14,6 +14,7 @@ const QRCodeService = require('./services/qrCodeService');
 const AcapDownloaderService = require('./services/acapDownloader');
 const GCPAuthService = require('./services/gcpAuthService');
 const TerraformService = require('./services/terraformService');
+const OutputValidator = require('./services/outputValidator');
 
 // Configure logging
 log.transports.file.level = 'info';
@@ -83,6 +84,7 @@ function createMainWindow() {
     ? 'http://localhost:3000' 
     : `file://${path.join(__dirname, '../renderer/build/index.html')}`;
   
+  log.info(`Loading URL: ${startUrl} (isDev: ${isDev})`);
   mainWindow.loadURL(startUrl);
 
   // Enable context menu for copy/paste
@@ -438,9 +440,20 @@ ipcMain.handle('gcp:set-project', async (event, projectId) => {
 // Billing check IPC handler
 ipcMain.handle('gcp:check-billing', async (event, projectId) => {
   try {
-    return await gcpAuthService.checkBillingEnabled(projectId);
+    log.info('🔍 IPC: CHECK-BILLING CALLED FOR PROJECT:', projectId);
+    
+    // Also log to console for immediate visibility
+    console.log('🔍 [MAIN] CHECK-BILLING CALLED FOR PROJECT:', projectId);
+    
+    const result = await gcpAuthService.checkBillingEnabled(projectId);
+    
+    log.info('✅ IPC: BILLING CHECK RESULT:', result);
+    console.log('✅ [MAIN] BILLING CHECK RESULT:', result);
+    
+    return result;
   } catch (error) {
-    log.error('Error checking billing:', error);
+    log.error('❌ IPC: ERROR CHECKING BILLING:', error);
+    console.error('❌ [MAIN] ERROR CHECKING BILLING:', error);
     throw error;
   }
 });
@@ -544,6 +557,13 @@ ipcMain.handle('terraform:deploy', async (event, projectId) => {
       return { success: true, outputs: knownOutputs, existing: true };
     }
     
+    // Signal that deployment has started - this moves UI to step 3 (Deploy Infrastructure)
+    mainWindow.webContents.send('terraform:progress', { 
+      stage: 'deployment_started', 
+      message: 'Starting infrastructure deployment...',
+      step: 2  // Move to "Deploy Infrastructure" step in UI
+    });
+    
     // Initialize Terraform with the project
     await terraformService.initialize(projectId);
     
@@ -592,6 +612,24 @@ ipcMain.handle('terraform:deploy', async (event, projectId) => {
         // Try direct output command
         const outputs = await terraformService.getOutputs();
         
+        // Validate outputs even for existing infrastructure
+        let validation = OutputValidator.validateOutputs(outputs);
+        if (!validation.isValid) {
+          log.warn('Existing infrastructure has missing outputs, attempting recovery...');
+          
+          // Try to recover missing outputs
+          const recoveredOutputs = await OutputValidator.attemptRecovery(outputs, projectId);
+          validation = OutputValidator.validateOutputs(recoveredOutputs);
+          
+          if (validation.isValid) {
+            log.info('Successfully recovered missing outputs for existing infrastructure');
+            outputs = recoveredOutputs;
+          } else {
+            log.error('Could not recover all outputs:', validation.errors);
+            throw new Error('Existing infrastructure validation failed: ' + validation.errors.join(', '));
+          }
+        }
+        
         // Store outputs and mark as successful
         store.set('terraformOutputs', outputs);
         store.set('deployedProjectId', projectId);
@@ -629,14 +667,65 @@ ipcMain.handle('terraform:deploy', async (event, projectId) => {
       stage: 'apply', 
       message: 'Deploying infrastructure...' 
     });
-    await terraformService.apply((progress) => {
-      mainWindow.webContents.send('terraform:progress', progress);
-    });
+    
+    let applyFailed = false;
+    try {
+      await terraformService.apply((progress) => {
+        mainWindow.webContents.send('terraform:progress', progress);
+      });
+    } catch (applyError) {
+      log.error('Terraform apply encountered errors:', applyError.message);
+      applyFailed = true;
+      // Continue to try to get outputs from whatever was created
+      mainWindow.webContents.send('terraform:progress', { 
+        stage: 'partial_deployment', 
+        message: 'Deployment partially failed, attempting to recover outputs...'
+      });
+    }
     
     // Get outputs
+    mainWindow.webContents.send('terraform:progress', { 
+      stage: 'outputs', 
+      message: 'Retrieving deployment outputs...' 
+    });
+    
     const outputs = await terraformService.getOutputs();
     
-    // Store outputs for later use
+    // Validate outputs before declaring success
+    let validation = OutputValidator.validateOutputs(outputs);
+    const validationReport = OutputValidator.formatValidationReport(validation);
+    log.info(validationReport);
+    
+    if (!validation.isValid) {
+      // Send validation errors to UI
+      mainWindow.webContents.send('terraform:progress', { 
+        stage: 'recovery', 
+        message: 'Some outputs are missing, attempting to recover...'
+      });
+      
+      // Attempt recovery
+      const recoveredOutputs = await OutputValidator.attemptRecovery(outputs, projectId, mainWindow);
+      
+      // Re-validate with recovered outputs
+      validation = OutputValidator.validateOutputs(recoveredOutputs);
+      
+      if (validation.isValid) {
+        log.info('Successfully recovered all missing outputs!');
+        outputs = recoveredOutputs;
+      } else {
+        // Still missing some fields after recovery
+        const errorMessage = `Deployment completed but some configuration is still missing after recovery.\n\n` +
+          `Missing fields: ${validation.missingFields.join(', ')}\n\n` +
+          `Please check the GCP Console and Firebase Console to verify all resources were created.`;
+        
+        mainWindow.webContents.send('terraform:error', errorMessage);
+        
+        // Don't store invalid outputs
+        throw new Error('Deployment validation failed after recovery: ' + validation.errors.join(', '));
+      }
+    }
+    
+    // Only store outputs if they're valid
     store.set('terraformOutputs', outputs);
     store.set('deployedProjectId', projectId);
     
@@ -721,7 +810,7 @@ ipcMain.handle('terraform:get-deployed-config', async () => {
     };
     
     // Log configuration for debugging (without sensitive data)
-    log.info('Loaded Terraform configuration:', {
+    log.info('[Config Retrieval] Loaded stored Terraform outputs:', {
       apiGatewayUrl: config.apiGatewayUrl,
       hasApiKey: !!config.apiKey,
       deviceAuthUrl: config.deviceAuthUrl,

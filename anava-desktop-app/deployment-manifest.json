@@ -1,0 +1,194 @@
+{
+  "deploymentSteps": [
+    {
+      "id": "enable_apis",
+      "name": "Enable Required APIs",
+      "description": "Enable all necessary Google Cloud APIs",
+      "resource": "google_project_service.required_apis",
+      "checkCommand": "gcloud services list --enabled --project=${PROJECT_ID}",
+      "canSkipIfExists": true,
+      "critical": true
+    },
+    {
+      "id": "firebase_project",
+      "name": "Initialize Firebase Project",
+      "description": "Set up Firebase for the GCP project",
+      "resource": "google_firebase_project.default",
+      "checkCommand": "gcloud firebase projects describe ${PROJECT_ID}",
+      "canSkipIfExists": true,
+      "critical": true
+    },
+    {
+      "id": "firebase_storage_bucket",
+      "name": "Create Firebase Storage Bucket",
+      "description": "Create storage bucket for Firebase",
+      "resource": "google_storage_bucket.firebase_bucket",
+      "checkCommand": "gsutil ls -b gs://${PROJECT_ID}-${SOLUTION_PREFIX}-firebase",
+      "canSkipIfExists": true,
+      "critical": false,
+      "alternativeAction": "import_existing"
+    },
+    {
+      "id": "firebase_storage_config",
+      "name": "Configure Firebase Storage",
+      "description": "Make storage bucket accessible to Firebase",
+      "resource": "google_firebase_storage_bucket.default",
+      "checkCommand": null,
+      "canSkipIfExists": true,
+      "critical": false
+    },
+    {
+      "id": "service_accounts",
+      "name": "Create Service Accounts",
+      "description": "Create all required service accounts",
+      "resources": [
+        "google_service_account.device_auth",
+        "google_service_account.tvm",
+        "google_service_account.vertex_ai",
+        "google_service_account.api_gateway"
+      ],
+      "checkCommand": "gcloud iam service-accounts list --project=${PROJECT_ID}",
+      "canSkipIfExists": true,
+      "critical": true
+    },
+    {
+      "id": "iam_permissions",
+      "name": "Configure IAM Permissions",
+      "description": "Grant necessary permissions to service accounts",
+      "resources": [
+        "google_project_iam_member.device_auth_permissions",
+        "google_project_iam_member.tvm_permissions",
+        "google_project_iam_member.vertex_ai_permissions",
+        "google_project_iam_member.api_gateway_permissions"
+      ],
+      "checkCommand": null,
+      "canSkipIfExists": true,
+      "critical": true
+    },
+    {
+      "id": "wif_pool",
+      "name": "Create Workload Identity Pool",
+      "description": "Set up WIF for Firebase authentication",
+      "resource": "google_iam_workload_identity_pool.anava_pool",
+      "checkCommand": "gcloud iam workload-identity-pools describe ${SOLUTION_PREFIX}-wif-pool --location=global --project=${PROJECT_ID}",
+      "canSkipIfExists": true,
+      "critical": true
+    },
+    {
+      "id": "wif_provider",
+      "name": "Configure WIF Provider",
+      "description": "Set up Firebase as identity provider",
+      "resource": "google_iam_workload_identity_pool_provider.firebase_provider",
+      "checkCommand": null,
+      "canSkipIfExists": true,
+      "critical": true
+    },
+    {
+      "id": "function_source_bucket",
+      "name": "Create Function Source Bucket",
+      "description": "Storage for Cloud Function source code",
+      "resource": "google_storage_bucket.function_source",
+      "checkCommand": "gsutil ls -b gs://${PROJECT_ID}-${SOLUTION_PREFIX}-function-source",
+      "canSkipIfExists": true,
+      "critical": false
+    },
+    {
+      "id": "cloud_functions",
+      "name": "Deploy Cloud Functions",
+      "description": "Deploy device-auth and token-vending-machine functions",
+      "resources": [
+        "google_cloudfunctions2_function.device_auth",
+        "google_cloudfunctions2_function.tvm"
+      ],
+      "checkCommand": "gcloud functions list --project=${PROJECT_ID}",
+      "canSkipIfExists": false,
+      "critical": true
+    },
+    {
+      "id": "api_gateway",
+      "name": "Create API Gateway",
+      "description": "Set up API Gateway for public endpoints",
+      "resources": [
+        "google_api_gateway_api.anava_api",
+        "google_api_gateway_api_config.anava_config",
+        "google_api_gateway_gateway.anava_gateway"
+      ],
+      "checkCommand": "gcloud api-gateway apis describe ${SOLUTION_PREFIX}-api --project=${PROJECT_ID}",
+      "canSkipIfExists": false,
+      "critical": true
+    },
+    {
+      "id": "api_key",
+      "name": "Create API Key",
+      "description": "Generate API key for gateway access",
+      "resource": "google_apikeys_key.api_gateway_key",
+      "checkCommand": null,
+      "canSkipIfExists": false,
+      "critical": true
+    },
+    {
+      "id": "firebase_webapp",
+      "name": "Create Firebase Web App",
+      "description": "Set up Firebase web application",
+      "resource": "google_firebase_web_app.default",
+      "checkCommand": null,
+      "canSkipIfExists": true,
+      "critical": false
+    },
+    {
+      "id": "secrets",
+      "name": "Store Configuration in Secret Manager",
+      "description": "Save Firebase config and API keys",
+      "resources": [
+        "google_secret_manager_secret.firebase_config",
+        "google_secret_manager_secret.api_key"
+      ],
+      "checkCommand": "gcloud secrets list --project=${PROJECT_ID}",
+      "canSkipIfExists": true,
+      "critical": false
+    },
+    {
+      "id": "security_rules",
+      "name": "Deploy Security Rules",
+      "description": "Configure Firestore and Storage security rules",
+      "resources": [
+        "google_firebaserules_ruleset.firestore",
+        "google_firebaserules_ruleset.storage"
+      ],
+      "checkCommand": null,
+      "canSkipIfExists": true,
+      "critical": false
+    }
+  ],
+  "errorHandling": {
+    "409_conflict": {
+      "description": "Resource already exists",
+      "action": "skip_and_continue",
+      "log": "Resource already exists, continuing with next step"
+    },
+    "403_permission": {
+      "description": "Permission denied",
+      "action": "check_authentication",
+      "log": "Permission issue detected, verify authentication and project permissions"
+    },
+    "400_invalid": {
+      "description": "Invalid request",
+      "action": "validate_inputs",
+      "log": "Invalid configuration, check input parameters"
+    }
+  },
+  "recoveryOptions": {
+    "partial_deployment": {
+      "description": "Continue from last successful step",
+      "implementation": "terraform apply -target=<next_resource>"
+    },
+    "import_existing": {
+      "description": "Import existing resources into Terraform state",
+      "implementation": "terraform import <resource_type>.<resource_name> <resource_id>"
+    },
+    "force_recreate": {
+      "description": "Delete and recreate problematic resources",
+      "implementation": "terraform taint <resource> && terraform apply"
+    }
+  }
+}

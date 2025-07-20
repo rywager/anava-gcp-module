@@ -78,7 +78,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getAuthStatus: () => ipcRenderer.invoke('gcp:auth-status'),
     listProjects: () => ipcRenderer.invoke('gcp:list-projects'),
     setProject: (projectId) => ipcRenderer.invoke('gcp:set-project', projectId),
-    checkBilling: (projectId) => ipcRenderer.invoke('gcp:check-billing', projectId),
+    checkBilling: (projectId) => {
+      console.log('[PRELOAD] checkBilling called with projectId:', projectId);
+      return ipcRenderer.invoke('gcp:check-billing', projectId);
+    },
     onAuthStateChange: (callback) => ipcRenderer.on('gcp:auth-state-change', callback)
   },
   

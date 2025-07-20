@@ -526,7 +526,7 @@ class GCPAuthService {
   // Check if billing is enabled for a project
   async checkBillingEnabled(projectId) {
     try {
-      log.info(`Checking billing status for project: ${projectId}`);
+      log.info(`🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: ${projectId}`);
       
       // Ensure we have valid authentication
       const isValid = await this.validateStoredTokens();

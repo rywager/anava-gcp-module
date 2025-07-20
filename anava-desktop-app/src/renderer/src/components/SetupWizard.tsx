@@ -83,6 +83,8 @@ interface DeploymentTask {
 }
 
 const SetupWizard: React.FC = () => {
+  console.log('🎯 SetupWizard component loaded - Version 3.0');
+  
   const [state, setState] = useState<SetupWizardState>({
     currentStep: 0,
     isLoadingAuth: true,
@@ -95,7 +97,7 @@ const SetupWizard: React.FC = () => {
     deploymentSuccess: null,
     projects: [],
     user: null,
-    showLogs: false,
+    showLogs: true,  // ALWAYS SHOW LOGS
     deploymentLogs: []
   });
   const [refreshing, setRefreshing] = useState(false);
@@ -234,30 +236,13 @@ const SetupWizard: React.FC = () => {
       ...prev, 
       selectedProject: projectId,
       error: null,
-      checkingBilling: true,
-      billingEnabled: undefined
+      checkingBilling: false,  // Don't auto-check, let user click button
+      billingEnabled: undefined,
+      currentStep: 1  // Move to "Configure Project Settings" step
     }));
     
     await window.electronAPI.store.set('gcpProjectId', projectId);
     await window.electronAPI.gcpAPI.setProject(projectId);
-    
-    // Check billing status
-    try {
-      const billingStatus = await window.electronAPI.gcpAPI.checkBilling(projectId);
-      setState(prev => ({ 
-        ...prev, 
-        billingEnabled: billingStatus.enabled,
-        checkingBilling: false
-      }));
-    } catch (error) {
-      console.error('Error checking billing:', error);
-      // If we can't check billing, assume it's not enabled to be safe
-      setState(prev => ({ 
-        ...prev, 
-        billingEnabled: false,
-        checkingBilling: false
-      }));
-    }
   };
 
   const handleNextStep = () => {
@@ -368,6 +353,26 @@ const SetupWizard: React.FC = () => {
         }));
       }
 
+      // Update main wizard steps based on deployment progress
+      if (data.stage === 'deployment_started' || data.stage === 'terraform_started') {
+        // Move to infrastructure deployment step (index 3)
+        setState(prev => ({ ...prev, currentStep: 3 }));
+      } else if (data.step !== undefined) {
+        // Only allow step updates if we're not in the middle of deployment
+        console.warn('Step update requested:', data.step, 'Current step:', state.currentStep, 'Is deploying:', state.isDeploying);
+        if (!state.isDeploying || data.step > state.currentStep) {
+          // Only move forward or if not deploying
+          setState(prev => ({ ...prev, currentStep: data.step }));
+        }
+      } else if (data.stage === 'validation_failed') {
+        // Stay on infrastructure deployment step
+        setState(prev => ({ 
+          ...prev, 
+          currentStep: 3,  // Stay on infrastructure deployment step
+          error: data.message 
+        }));
+      }
+
       // Update task status based on progress
       if (data.type === 'progress' && data.resource) {
         // Update based on actual resource creation
@@ -401,23 +406,39 @@ const SetupWizard: React.FC = () => {
           deploymentProgress: Math.round((completedTasks / totalTasks) * 100) 
         }));
       } else if (data.stage) {
-        // Fallback to stage-based updates
-        if (data.stage.includes('validation')) {
-          updateTaskStatus('Project validation', 'completed');
-          updateTaskStatus('Service accounts', 'running');
-          setState(prev => ({ ...prev, deploymentProgress: 20 }));
-        } else if (data.stage.includes('service')) {
-          updateTaskStatus('Service accounts', 'completed');
-          updateTaskStatus('Firebase initialization', 'running');
-          setState(prev => ({ ...prev, deploymentProgress: 40 }));
-        } else if (data.stage.includes('Firebase')) {
-          updateTaskStatus('Firebase initialization', 'completed');
-          updateTaskStatus('API Gateway setup', 'running');
-          setState(prev => ({ ...prev, deploymentProgress: 60 }));
-        } else if (data.stage.includes('API')) {
-          updateTaskStatus('API Gateway setup', 'completed');
-          updateTaskStatus('Security policies', 'running');
-          setState(prev => ({ ...prev, deploymentProgress: 80 }));
+        // Update tasks based on actual Terraform stages
+        switch (data.stage) {
+          case 'auth':
+          case 'billing':
+            updateTaskStatus('Project validation', 'running');
+            setState(prev => ({ ...prev, deploymentProgress: 10 }));
+            break;
+          case 'init':
+            updateTaskStatus('Project validation', 'completed');
+            updateTaskStatus('Service accounts', 'running');
+            setState(prev => ({ ...prev, deploymentProgress: 20 }));
+            break;
+          case 'plan':
+            updateTaskStatus('Service accounts', 'completed');
+            updateTaskStatus('Firebase initialization', 'running');
+            setState(prev => ({ ...prev, deploymentProgress: 40 }));
+            break;
+          case 'apply':
+            updateTaskStatus('Firebase initialization', 'completed');
+            updateTaskStatus('API Gateway setup', 'running');
+            setState(prev => ({ ...prev, deploymentProgress: 60 }));
+            break;
+          case 'outputs':
+            updateTaskStatus('API Gateway setup', 'completed');
+            updateTaskStatus('Security policies', 'running');
+            setState(prev => ({ ...prev, deploymentProgress: 80 }));
+            break;
+          case 'existing':
+          case 'complete':
+            updateTaskStatus('Security policies', 'completed');
+            updateTaskStatus('Final validation', 'completed');
+            setState(prev => ({ ...prev, deploymentProgress: 100 }));
+            break;
         }
       }
     });
@@ -751,6 +772,13 @@ const SetupWizard: React.FC = () => {
                         label="Checking billing..."
                         sx={{ mr: 1 }}
                       />
+                    ) : state.billingEnabled === undefined ? (
+                      <Chip
+                        size="small"
+                        icon={<CircularProgress size={14} />}
+                        label="Checking billing..."
+                        sx={{ mr: 1 }}
+                      />
                     ) : (
                       <Chip
                         size="small"
@@ -917,34 +945,37 @@ const SetupWizard: React.FC = () => {
                       : undefined
                   }
                 />
+              </Box>
+            )}
 
-                <Box sx={{ mt: 2 }}>
-                  <Button
-                    size="small"
-                    onClick={() => setState(prev => ({ ...prev, showLogs: !prev.showLogs }))}
-                    endIcon={state.showLogs ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            {/* Always show logs if there are any - even on error */}
+            {state.deploymentLogs.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <Button
+                  size="small"
+                  onClick={() => setState(prev => ({ ...prev, showLogs: !prev.showLogs }))}
+                  endIcon={state.showLogs ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                >
+                  {state.showLogs ? 'Hide' : 'View'} Logs
+                </Button>
+                <Collapse in={state.showLogs}>
+                  <Paper
+                    sx={{
+                      mt: 1,
+                      p: 2,
+                      bgcolor: '#1e1e1e',
+                      color: '#fff',
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      maxHeight: 200,
+                      overflow: 'auto'
+                    }}
                   >
-                    {state.showLogs ? 'Hide' : 'View'} Logs
-                  </Button>
-                  <Collapse in={state.showLogs}>
-                    <Paper
-                      sx={{
-                        mt: 1,
-                        p: 2,
-                        bgcolor: '#1e1e1e',
-                        color: '#fff',
-                        fontFamily: 'monospace',
-                        fontSize: 12,
-                        maxHeight: 200,
-                        overflow: 'auto'
-                      }}
-                    >
-                      {state.deploymentLogs.map((log, index) => (
-                        <div key={index}>{log}</div>
-                      ))}
-                    </Paper>
-                  </Collapse>
-                </Box>
+                    {state.deploymentLogs.map((log, index) => (
+                      <div key={index}>{log}</div>
+                    ))}
+                  </Paper>
+                </Collapse>
               </Box>
             )}
 

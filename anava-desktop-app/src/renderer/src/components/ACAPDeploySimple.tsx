@@ -89,8 +89,7 @@ const ACAPDeploySimple: React.FC = () => {
 
   useEffect(() => {
     fetchReleases();
-    // Auto-start camera discovery
-    discoverCameras();
+    // Don't auto-start camera discovery - require manual scan
   }, []);
 
   const fetchReleases = async () => {
