@@ -453,18 +453,49 @@ class GCPAuthService {
     }
 
     try {
+      log.info('Listing GCP projects...');
       const cloudResourceManager = google.cloudresourcemanager('v1');
       const auth = this.oauth2Client;
       
-      const response = await cloudResourceManager.projects.list({
+      // Set a timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Project listing timed out after 10 seconds')), 10000);
+      });
+      
+      const listPromise = cloudResourceManager.projects.list({
         auth,
         pageSize: 100,
         filter: 'lifecycleState:ACTIVE'
       });
       
-      return response.data.projects || [];
+      const response = await Promise.race([listPromise, timeoutPromise]);
+      
+      const projects = response.data.projects || [];
+      log.info(`Found ${projects.length} projects`);
+      
+      return projects;
     } catch (error) {
-      console.error('Failed to list projects:', error);
+      log.error('Failed to list projects:', error.message);
+      
+      // Check if it's an authentication error
+      if (error.code === 401 || error.message?.includes('invalid_grant')) {
+        // Try to refresh the token
+        try {
+          await this.refreshAccessToken();
+          // Retry once after refreshing
+          const cloudResourceManager = google.cloudresourcemanager('v1');
+          const response = await cloudResourceManager.projects.list({
+            auth: this.oauth2Client,
+            pageSize: 100,
+            filter: 'lifecycleState:ACTIVE'
+          });
+          return response.data.projects || [];
+        } catch (refreshError) {
+          log.error('Failed to refresh token and retry:', refreshError);
+          throw new Error('Authentication expired. Please sign in again.');
+        }
+      }
+      
       throw error;
     }
   }

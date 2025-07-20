@@ -265,12 +265,24 @@ const SetupWizard: React.FC = () => {
   };
 
   const handleRefreshProjects = async () => {
+    console.log('Refreshing projects...');
     setRefreshing(true);
     try {
       const projects = await window.electronAPI.gcpAPI.listProjects();
+      console.log('Received projects:', projects);
       setState(prev => ({ ...prev, projects }));
+      
+      // Show success message
+      setState(prev => ({ 
+        ...prev, 
+        error: null 
+      }));
     } catch (error) {
       console.error('Failed to refresh projects:', error);
+      setState(prev => ({ 
+        ...prev, 
+        error: `Failed to refresh projects: ${error.message || error}` 
+      }));
     } finally {
       setRefreshing(false);
     }
