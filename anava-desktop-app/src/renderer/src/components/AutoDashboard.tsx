@@ -19,6 +19,8 @@ import {
 } from '@mui/material';
 import DeploymentConfig from './DeploymentConfig';
 import SetupGuide from './SetupGuide';
+import BillingSetup from './BillingSetup';
+import FirebaseSetup from './FirebaseSetup';
 import GoogleIcon from '@mui/icons-material/Google';
 import CloudIcon from '@mui/icons-material/Cloud';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -36,6 +38,7 @@ interface AppState {
   projects: any[];
   user: any | null;
   showBillingError: boolean;
+  showFirebaseSetup: boolean;
 }
 
 const AutoDashboard: React.FC = () => {
@@ -49,7 +52,8 @@ const AutoDashboard: React.FC = () => {
     deploymentSuccess: null,
     projects: [],
     user: null,
-    showBillingError: false
+    showBillingError: false,
+    showFirebaseSetup: false
   });
   const [activeTab, setActiveTab] = useState(0);
 
@@ -175,11 +179,28 @@ const AutoDashboard: React.FC = () => {
     });
 
     window.electronAPI.on('terraform:error', (error) => {
-      // Check if it's a billing error
-      const errorMessage = typeof error === 'string' ? error : error.message || 'Unknown error';
-      const isBillingError = errorMessage.includes('Billing is not enabled') || 
-                             errorMessage.includes('Billing account') ||
-                             errorMessage.includes('billing must be enabled');
+      // Handle both string errors and error objects
+      let errorMessage;
+      let isBillingError = false;
+      let errorCode;
+      
+      if (typeof error === 'string') {
+        errorMessage = error;
+        isBillingError = error.includes('Billing is not enabled') || 
+                        error.includes('Billing account') ||
+                        error.includes('billing must be enabled') ||
+                        error.includes('billing is enabled');
+      } else if (error && typeof error === 'object') {
+        errorMessage = error.message || 'Unknown error';
+        errorCode = error.code;
+        isBillingError = error.code === 'BILLING_NOT_ENABLED' ||
+                        errorMessage.includes('Billing is not enabled') || 
+                        errorMessage.includes('Billing account') ||
+                        errorMessage.includes('billing must be enabled') ||
+                        errorMessage.includes('billing is enabled');
+      } else {
+        errorMessage = 'Unknown error occurred';
+      }
       
       setState(prev => ({ 
         ...prev, 
@@ -194,8 +215,9 @@ const AutoDashboard: React.FC = () => {
       setState(prev => ({ 
         ...prev, 
         deploymentSuccess: true,
-        deploymentLogs: [...prev.deploymentLogs, '✅ Deployment completed successfully!'],
-        isDeploying: false
+        deploymentLogs: [...prev.deploymentLogs, '✅ Infrastructure deployed successfully!'],
+        isDeploying: false,
+        showFirebaseSetup: true
       }));
     });
 
@@ -287,6 +309,62 @@ const AutoDashboard: React.FC = () => {
     );
   }
 
+  // Billing setup required state
+  if (state.showBillingError && !state.isDeploying && state.selectedProject) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4">
+            Anava Infrastructure Management
+            <Typography component="span" variant="caption" sx={{ ml: 2, color: 'text.secondary' }}>
+              v1.0.20-fix
+            </Typography>
+          </Typography>
+          <Button 
+            variant="outlined" 
+            color="secondary"
+            onClick={handleLogout}
+            startIcon={<GoogleIcon />}
+          >
+            Switch Account
+          </Button>
+        </Box>
+        
+        <BillingSetup 
+          projectId={state.selectedProject} 
+          onRetry={() => startDeployment(state.selectedProject)}
+        />
+      </Box>
+    );
+  }
+
+  // Firebase setup required state
+  if (state.showFirebaseSetup && state.deploymentSuccess && state.selectedProject) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4">
+            Anava Infrastructure Management
+            <Typography component="span" variant="caption" sx={{ ml: 2, color: 'text.secondary' }}>
+              v1.0.20-fix
+            </Typography>
+          </Typography>
+        </Box>
+        
+        <FirebaseSetup 
+          projectId={state.selectedProject} 
+          onComplete={() => {
+            setState(prev => ({ 
+              ...prev, 
+              showFirebaseSetup: false
+            }));
+            setActiveTab(1); // Switch to configuration tab
+          }}
+        />
+      </Box>
+    );
+  }
+
   // Show authentication screen if not authenticated
   if (state.isAuthenticated === false) {
     return (
@@ -342,6 +420,9 @@ const AutoDashboard: React.FC = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4">
           Anava Infrastructure Management
+          <Typography component="span" variant="caption" sx={{ ml: 2, color: 'text.secondary' }}>
+            v1.0.20-fix
+          </Typography>
         </Typography>
         <Button 
           variant="outlined" 

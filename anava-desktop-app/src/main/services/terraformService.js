@@ -179,12 +179,25 @@ storage_location = "US"`;
         if (code === 0) {
           resolve(output);
         } else {
-          // Extract meaningful error message
+          // Check if all errors are "already exists" errors
           const errorLines = errorOutput.split('\n').filter(line => 
             line.includes('Error:') || 
             line.includes('error:') || 
             line.includes('failed')
           );
+          
+          const hasRealErrors = errorLines.some(line => 
+            !line.includes('already exists') && 
+            !line.includes('Error 409')
+          );
+          
+          // If only "already exists" errors, consider it a success
+          if (!hasRealErrors && errorLines.some(line => line.includes('already exists'))) {
+            log.info('Resources already exist, continuing...');
+            resolve(output);
+            return;
+          }
+          
           const errorMessage = errorLines.length > 0 
             ? errorLines.join('\n') 
             : `Command failed with code ${code}`;

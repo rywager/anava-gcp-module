@@ -522,15 +522,23 @@ class GCPAuthService {
     } catch (error) {
       log.error('Error checking billing status:', error);
       
-      // If it's a permission error, assume billing is not enabled
-      if (error.code === 403) {
+      // Common errors when billing API is not enabled or no permission
+      if (error.code === 403 || error.code === 404 || 
+          (error.message && error.message.includes('Cloud Billing API has not been used'))) {
+        log.info('Cloud Billing API not enabled or no permission, assuming billing not configured');
         return {
           enabled: false,
-          error: 'Permission denied. You may need to enable the Cloud Billing API.'
+          error: 'Cannot verify billing status. The Cloud Billing API may not be enabled.',
+          requiresManualCheck: true
         };
       }
       
-      throw error;
+      // For any other error, assume billing is not enabled to be safe
+      return {
+        enabled: false,
+        error: error.message || 'Failed to check billing status',
+        requiresManualCheck: true
+      };
     }
   }
 }

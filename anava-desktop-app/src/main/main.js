@@ -479,26 +479,33 @@ ipcMain.handle('terraform:deploy', async (event, projectId) => {
       message: 'Checking project billing status...' 
     });
     
-    try {
-      const billingStatus = await gcpAuthService.checkBillingEnabled(projectId);
-      if (!billingStatus.enabled) {
-        const billingError = new Error(`Billing is not enabled for project ${projectId}. Please enable billing in the Google Cloud Console.`);
-        billingError.code = 'BILLING_NOT_ENABLED';
-        mainWindow.webContents.send('terraform:error', billingError.message);
-        throw billingError;
+    const billingStatus = await gcpAuthService.checkBillingEnabled(projectId);
+    
+    if (!billingStatus.enabled) {
+      let errorMessage;
+      if (billingStatus.requiresManualCheck) {
+        errorMessage = `Cannot automatically verify billing for project ${projectId}. Please ensure billing is enabled before continuing. ${billingStatus.error || ''}`;
+      } else {
+        errorMessage = `Billing is not enabled for project ${projectId}. Please enable billing in the Google Cloud Console to deploy infrastructure.`;
       }
       
-      mainWindow.webContents.send('terraform:progress', { 
-        stage: 'billing', 
-        message: 'Billing verified ✓' 
+      const billingError = new Error(errorMessage);
+      billingError.code = 'BILLING_NOT_ENABLED';
+      billingError.projectId = projectId;
+      
+      mainWindow.webContents.send('terraform:error', {
+        message: errorMessage,
+        code: 'BILLING_NOT_ENABLED',
+        projectId: projectId
       });
-    } catch (error) {
-      if (error.code === 'BILLING_NOT_ENABLED') {
-        throw error;
-      }
-      // If billing check fails for other reasons, log but continue
-      log.warn('Billing check failed, continuing deployment:', error);
+      
+      throw billingError;
     }
+    
+    mainWindow.webContents.send('terraform:progress', { 
+      stage: 'billing', 
+      message: 'Billing verified ✓' 
+    });
     
     // Check if this is the project with existing infrastructure
     if (projectId === 'thiswillwork-463601') {
