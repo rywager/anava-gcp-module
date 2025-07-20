@@ -498,7 +498,10 @@ class GCPAuthService {
       log.info(`Checking billing status for project: ${projectId}`);
       
       // Ensure we have valid authentication
-      await this.ensureValidToken();
+      const isValid = await this.validateStoredTokens();
+      if (!isValid) {
+        throw new Error('Authentication expired. Please sign in again.');
+      }
       
       const { google } = require('googleapis');
       const cloudbilling = google.cloudbilling('v1');

@@ -189,7 +189,9 @@ const AutoDashboard: React.FC = () => {
         isBillingError = error.includes('Billing is not enabled') || 
                         error.includes('Billing account') ||
                         error.includes('billing must be enabled') ||
-                        error.includes('billing is enabled');
+                        error.includes('billing is enabled') ||
+                        error.includes('Cannot automatically verify billing') ||
+                        error.includes('ensure billing is enabled');
       } else if (error && typeof error === 'object') {
         errorMessage = error.message || 'Unknown error';
         errorCode = error.code;
@@ -197,7 +199,9 @@ const AutoDashboard: React.FC = () => {
                         errorMessage.includes('Billing is not enabled') || 
                         errorMessage.includes('Billing account') ||
                         errorMessage.includes('billing must be enabled') ||
-                        errorMessage.includes('billing is enabled');
+                        errorMessage.includes('billing is enabled') ||
+                        errorMessage.includes('Cannot automatically verify billing') ||
+                        errorMessage.includes('ensure billing is enabled');
       } else {
         errorMessage = 'Unknown error occurred';
       }
