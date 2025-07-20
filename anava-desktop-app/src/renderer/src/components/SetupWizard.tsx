@@ -774,16 +774,42 @@ const SetupWizard: React.FC = () => {
                         title="Billing must be enabled before deployment"
                         show={true}
                       />
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        sx={{ mt: 2 }}
-                        startIcon={<OpenInNewIcon />}
-                        onClick={() => window.open(`https://console.cloud.google.com/billing/linkedaccount?project=${state.selectedProject}`, '_blank')}
-                      >
-                        Enable Billing for This Project
-                      </Button>
+                      <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          fullWidth
+                          sx={{ mt: 2 }}
+                          startIcon={<OpenInNewIcon />}
+                          onClick={() => window.open(`https://console.cloud.google.com/billing/linkedaccount?project=${state.selectedProject}`, '_blank')}
+                        >
+                          Enable Billing for This Project
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          fullWidth
+                          startIcon={<RefreshIcon />}
+                          onClick={async () => {
+                            setState(prev => ({ ...prev, checkingBilling: true }));
+                            try {
+                              const billingStatus = await window.electronAPI.gcpAPI.checkBilling(state.selectedProject);
+                              setState(prev => ({ 
+                                ...prev, 
+                                billingEnabled: billingStatus.enabled,
+                                checkingBilling: false
+                              }));
+                            } catch (error) {
+                              setState(prev => ({ 
+                                ...prev, 
+                                billingEnabled: false,
+                                checkingBilling: false
+                              }));
+                            }
+                          }}
+                        >
+                          Check Billing Status Again
+                        </Button>
+                      </Box>
                     </Box>
                   )}
                   {state.billingEnabled && (

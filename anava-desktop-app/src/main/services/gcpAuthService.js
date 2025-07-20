@@ -535,37 +535,133 @@ class GCPAuthService {
       }
       
       const { google } = require('googleapis');
-      const cloudbilling = google.cloudbilling('v1');
       
-      // Get billing info for the project
-      const billingInfo = await cloudbilling.projects.getBillingInfo({
-        name: `projects/${projectId}`,
-        auth: this.oauth2Client
-      });
+      // First, ensure required APIs are enabled
+      const serviceusage = google.serviceusage('v1');
       
-      const isBillingEnabled = billingInfo.data.billingEnabled || false;
+      // Enable Cloud Resource Manager API if not already enabled
+      try {
+        await serviceusage.services.enable({
+          name: `projects/${projectId}/services/cloudresourcemanager.googleapis.com`,
+          auth: this.oauth2Client
+        });
+        log.info('Enabled Cloud Resource Manager API');
+      } catch (e) {
+        // API might already be enabled
+      }
       
-      log.info(`Billing status for project ${projectId}: ${isBillingEnabled ? 'enabled' : 'disabled'}`);
+      // The most reliable way: Try to create a small storage bucket (requires billing)
+      const storage = google.storage('v1');
+      const testBucketName = `anava-billing-test-${projectId}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9-]/g, '-');
       
+      try {
+        log.info(`Testing billing by attempting to create test bucket: ${testBucketName}`);
+        
+        // Try to create a bucket (this requires billing)
+        await storage.buckets.insert({
+          project: projectId,
+          auth: this.oauth2Client,
+          requestBody: {
+            name: testBucketName,
+            location: 'US',
+            storageClass: 'STANDARD'
+          }
+        });
+        
+        // If we got here, billing is enabled! Clean up the test bucket
+        log.info('Successfully created test bucket, billing is enabled!');
+        
+        // Delete the test bucket
+        try {
+          await storage.buckets.delete({
+            bucket: testBucketName,
+            auth: this.oauth2Client
+          });
+          log.info('Cleaned up test bucket');
+        } catch (deleteError) {
+          log.warn('Could not delete test bucket:', deleteError.message);
+        }
+        
+        return {
+          enabled: true,
+          method: 'bucket_test'
+        };
+        
+      } catch (storageError) {
+        log.error('Storage bucket test failed:', storageError.message);
+        
+        // Check if it's specifically a billing error
+        if (storageError.code === 403 && 
+            (storageError.message.includes('billing') || 
+             storageError.message.includes('Billing') ||
+             storageError.message.includes('billing account'))) {
+          log.info('Storage API confirmed billing is NOT enabled');
+          return {
+            enabled: false,
+            error: 'Billing is not enabled for this project'
+          };
+        }
+        
+        // If it's not a billing error, try another method
+        // Check if any billing-required APIs are already enabled
+        try {
+          const servicesResponse = await serviceusage.services.list({
+            parent: `projects/${projectId}`,
+            filter: 'state:ENABLED',
+            auth: this.oauth2Client,
+            pageSize: 200
+          });
+          
+          const billingRequiredServices = [
+            'compute.googleapis.com',
+            'container.googleapis.com', 
+            'cloudfunctions.googleapis.com',
+            'run.googleapis.com',
+            'cloudbuild.googleapis.com',
+            'artifactregistry.googleapis.com',
+            'sqladmin.googleapis.com'
+          ];
+          
+          const enabledServices = (servicesResponse.data.services || [])
+            .map(s => s.name?.split('/').pop())
+            .filter(Boolean);
+          
+          log.info('Enabled services:', enabledServices);
+          
+          const hasBillingServices = billingRequiredServices.some(service => 
+            enabledServices.includes(service)
+          );
+          
+          if (hasBillingServices) {
+            log.info('Found billing-required services already enabled, billing must be active');
+            return {
+              enabled: true,
+              method: 'enabled_services'
+            };
+          }
+          
+          // No billing services found, billing might not be enabled
+          return {
+            enabled: false,
+            requiresManualCheck: true,
+            error: 'Could not confirm billing status. No billing-required services are enabled.'
+          };
+          
+        } catch (listError) {
+          log.error('Could not list services:', listError.message);
+        }
+      }
+      
+      // If all else fails, we can't determine billing status
       return {
-        enabled: isBillingEnabled,
-        billingAccountName: billingInfo.data.billingAccountName || null
+        enabled: false,
+        requiresManualCheck: true,
+        error: 'Could not verify billing status. Please ensure billing is enabled.'
       };
+      
     } catch (error) {
       log.error('Error checking billing status:', error);
       
-      // Common errors when billing API is not enabled or no permission
-      if (error.code === 403 || error.code === 404 || 
-          (error.message && error.message.includes('Cloud Billing API has not been used'))) {
-        log.info('Cloud Billing API not enabled or no permission, assuming billing not configured');
-        return {
-          enabled: false,
-          error: 'Cannot verify billing status. The Cloud Billing API may not be enabled.',
-          requiresManualCheck: true
-        };
-      }
-      
-      // For any other error, assume billing is not enabled to be safe
       return {
         enabled: false,
         error: error.message || 'Failed to check billing status',
