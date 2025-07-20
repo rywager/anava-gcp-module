@@ -1,0 +1,41 @@
+{
+  "api_gateway_url": {
+    "value": "https://anava-gateway-2gvbe0bn.uc.gateway.dev"
+  },
+  "api_gateway_key": {
+    "value": "AIzaSyD-ZAvCgXJR40dSsxOcgpDX9Yey0m4xAU4"
+  },
+  "device_auth_url": {
+    "value": "https://anava-device-auth-fn-6hvyxxvgsa-uc.a.run.app"
+  },
+  "tvm_url": {
+    "value": "https://anava-tvm-fn-6hvyxxvgsa-uc.a.run.app"
+  },
+  "firebase_config": {
+    "value": {
+      "projectId": "ryanclean",
+      "apiKey": "AIzaSyBCHhtkBv0utzs3kukoad8iIbtDTm0ZADE",
+      "authDomain": "ryanclean.firebaseapp.com",
+      "storageBucket": "ryanclean-anava-firebase",
+      "databaseURL": "https://ryanclean.firebaseio.com",
+      "appId": "1:193450426403:web:bc618f5b6eb506a63df196"
+    }
+  },
+  "service_accounts": {
+    "value": {
+      "vertexAi": "anava-vertex-ai-sa@ryanclean.iam.gserviceaccount.com",
+      "deviceAuth": "anava-device-auth-sa@ryanclean.iam.gserviceaccount.com",
+      "tvm": "anava-tvm-sa@ryanclean.iam.gserviceaccount.com",
+      "apiGateway": "anava-apigw-invoker-sa@ryanclean.iam.gserviceaccount.com"
+    }
+  },
+  "storage_buckets": {
+    "value": {
+      "firebase": "ryanclean-anava-firebase",
+      "functionSource": "ryanclean-anava-function-source"
+    }
+  },
+  "wif_provider": {
+    "value": "projects/193450426403/locations/global/workloadIdentityPools/anava-wif-pool/providers/anava-firebase-provider"
+  }
+}

@@ -1,0 +1,40 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/Users/ryanwager/terraform-installer/logs/.8faaf815cf33a0065b0e8f5b9db0b0bdca1b2ec9-audit.json",
+    "files": [
+        {
+            "date": 1752292594089,
+            "name": "/Users/ryanwager/terraform-installer/logs/mcp-puppeteer-2025-07-11.log",
+            "hash": "5904cb798e6479ee6d269e57120359bcaf9b30c83e6be19c06317f192ca46c85"
+        },
+        {
+            "date": 1752390765925,
+            "name": "/Users/ryanwager/terraform-installer/logs/mcp-puppeteer-2025-07-13.log",
+            "hash": "a0b49a86822b5f042443ee7032096a0e93a41954811b5f23642502cc838bc528"
+        },
+        {
+            "date": 1752598216679,
+            "name": "/Users/ryanwager/terraform-installer/logs/mcp-puppeteer-2025-07-15.log",
+            "hash": "a12b0845734038d036f791c1bf9a10ab8886e962c477e835997f92b331f522ef"
+        },
+        {
+            "date": 1752676390939,
+            "name": "/Users/ryanwager/terraform-installer/logs/mcp-puppeteer-2025-07-16.log",
+            "hash": "c2dc406a86477fd956771a4f884283913dd69977e41b30be197b04628d74d2fb"
+        },
+        {
+            "date": 1752805836744,
+            "name": "/Users/ryanwager/terraform-installer/logs/mcp-puppeteer-2025-07-17.log",
+            "hash": "57f518475e76214a3f0151241a63602340979c62655bff5d81b77d267423dbe3"
+        },
+        {
+            "date": 1752846959642,
+            "name": "/Users/ryanwager/terraform-installer/logs/mcp-puppeteer-2025-07-18.log",
+            "hash": "447f6e6b62c64fd1c279c069e62013c8b939870cbc3305c40b536e5c29dd83fe"
+        }
+    ],
+    "hashType": "sha256"
+}

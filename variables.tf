@@ -38,3 +38,9 @@ variable "allowed_origins" {
   type        = list(string)
   default     = ["http://localhost:3000", "http://localhost:3001"]
 }
+
+variable "storage_location" {
+  description = "Location for Cloud Storage buckets"
+  type        = string
+  default     = "US"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "anava-e2e-simple",
+  "version": "1.0.0",
+  "description": "Simple E2E validation for Anava Vision System",
+  "main": "comprehensive-validation.js",
+  "scripts": {
+    "test": "node comprehensive-validation.js",
+    "validate": "node comprehensive-validation.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "ws": "^8.16.0"
+  }
+}

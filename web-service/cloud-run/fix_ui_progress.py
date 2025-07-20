@@ -1,0 +1,1449 @@
+#!/usr/bin/env python3
+"""
+Fix UI progress tracking to show real-time deployment status
+"""
+
+import os
+import sys
+
+def create_updated_dashboard():
+    """Create updated dashboard with real-time progress tracking"""
+    
+    dashboard_content = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anava Infrastructure Deployment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(30, 41, 59, 0.95);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .version-badge {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .version-badge .version-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .wizard-container {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        /* Progress Steps */
+        .progress-header {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.1) 100%);
+            padding: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .progress-stats {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.875rem;
+        }
+
+        .progress-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .progress-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .progress-stat-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .progress-bar-container {
+            background: var(--bg-dark);
+            height: 8px;
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            transition: width 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Deployment Steps */
+        .deployment-steps {
+            padding: 2rem;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-left: 2rem;
+            opacity: 0;
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-item::before {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            top: 2rem;
+            bottom: -1.5rem;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .step-item:last-child::before {
+            display: none;
+        }
+
+        .step-indicator {
+            position: absolute;
+            left: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .step-item.active .step-indicator {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
+
+        .step-item.completed .step-indicator {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .step-item.failed .step-indicator {
+            background: var(--error);
+            border-color: var(--error);
+            color: white;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-details {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.813rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .step-item.active .step-details,
+        .step-item.completed .step-details,
+        .step-item.failed .step-details {
+            display: block;
+        }
+
+        .step-detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.25rem 0;
+        }
+
+        .step-detail-label {
+            color: var(--text-secondary);
+        }
+
+        .step-detail-value {
+            color: var(--text-primary);
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.813rem;
+        }
+
+        /* Resource Counter */
+        .resource-counter {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 0 2rem 2rem;
+            display: none;
+        }
+
+        .resource-counter.visible {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .resource-counter-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            font-size: 1.125rem;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .resource-type {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .resource-type:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .resource-type-name {
+            color: var(--text-secondary);
+            font-size: 0.813rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .resource-type-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Results Section */
+        .results-container {
+            display: none;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border-top: 1px solid var(--border);
+        }
+
+        .results-container.visible {
+            display: block;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-animation {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            animation: successPop 0.6s ease-out;
+        }
+
+        @keyframes successPop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-bottom: 0.5rem;
+        }
+
+        .success-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%);
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .result-value {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            background: var(--bg-dark);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            word-break: break-all;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .copy-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .copy-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .copy-button.copied {
+            background: var(--success);
+        }
+
+        .quick-start {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .quick-start-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .quick-start-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quick-start-step {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .quick-start-number {
+            background: var(--primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .quick-start-content {
+            flex: 1;
+        }
+
+        .quick-start-content h4 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        .quick-start-content p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .quick-start-content code {
+            background: var(--bg-dark);
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.813rem;
+            color: var(--primary);
+        }
+
+        .download-config {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .download-button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .download-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Logs Section */
+        .logs-section {
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .logs-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .logs-container {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.813rem;
+        }
+
+        .log-entry {
+            padding: 0.25rem 0;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .log-timestamp {
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .log-message {
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .log-error {
+            color: var(--error);
+        }
+
+        .log-success {
+            color: var(--success);
+        }
+
+        .log-warning {
+            color: var(--warning);
+        }
+
+        /* Loading States */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .progress-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .resource-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                Anava Infrastructure Deployment
+                <span class="version-badge">
+                    <span class="version-dot"></span>
+                    <span id="version">v2.3.7</span>
+                </span>
+            </div>
+            <div class="user-info">
+                <span>{{ user.email }}</span>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="wizard-container">
+            <!-- Project Selection (shown initially) -->
+            <div id="project-selection" class="wizard-step">
+                <div class="wizard-header">
+                    <h2>Select a Google Cloud Project</h2>
+                    <p>Choose a project where you want to deploy Anava infrastructure</p>
+                </div>
+                <div class="wizard-content">
+                    <div id="projects-loading" class="loading-message">
+                        <div class="loading-spinner"></div>
+                        Loading your projects...
+                    </div>
+                    <div id="projects-list" class="projects-list" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Configuration Form (hidden initially) -->
+            <div id="configuration-form" class="wizard-step" style="display: none;">
+                <div class="wizard-header">
+                    <h2>Configure Deployment</h2>
+                    <p id="selected-project-info"></p>
+                </div>
+                <div class="wizard-content">
+                    <form id="deployForm">
+                        <div class="form-group">
+                            <label for="region">Deployment Region</label>
+                            <select id="region" name="region" required>
+                                <option value="us-central1">us-central1 (Iowa)</option>
+                                <option value="us-east1">us-east1 (South Carolina)</option>
+                                <option value="us-west1">us-west1 (Oregon)</option>
+                                <option value="europe-west1">europe-west1 (Belgium)</option>
+                                <option value="asia-northeast1">asia-northeast1 (Tokyo)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="prefix">Resource Prefix</label>
+                            <input type="text" id="prefix" name="prefix" value="anava" required 
+                                   pattern="[a-z0-9-]+" 
+                                   title="Lowercase letters, numbers, and hyphens only">
+                            <small>This prefix will be used for all created resources</small>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="backToProjects()">
+                                Back to Projects
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                Deploy Infrastructure
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Deployment Progress (hidden initially) -->
+            <div id="deployment-progress" class="wizard-step" style="display: none;">
+                <div class="progress-header">
+                    <div class="progress-info">
+                        <h2 class="progress-title">Deploying Anava Infrastructure</h2>
+                        <div class="progress-stats">
+                            <div class="progress-stat">
+                                <span class="progress-stat-label">Resources Created</span>
+                                <span class="progress-stat-value" id="resource-count">0</span>
+                            </div>
+                            <div class="progress-stat">
+                                <span class="progress-stat-label">Elapsed Time</span>
+                                <span class="progress-stat-value" id="elapsed-time">00:00</span>
+                            </div>
+                            <div class="progress-stat">
+                                <span class="progress-stat-label">Progress</span>
+                                <span class="progress-stat-value" id="progress-percent">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="deployment-steps" id="deployment-steps">
+                    <!-- Steps will be populated dynamically -->
+                </div>
+
+                <div class="resource-counter" id="resource-counter">
+                    <h3 class="resource-counter-title">Resources Being Created</h3>
+                    <div class="resource-grid" id="resource-grid">
+                        <!-- Resource counts will be populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="results-container" id="results-container">
+                    <!-- Results will be populated on completion -->
+                </div>
+
+                <div class="logs-section">
+                    <div class="logs-header">
+                        <h3 class="logs-title">Deployment Logs</h3>
+                        <button class="btn btn-secondary btn-sm" onclick="toggleLogs()">
+                            <span id="logs-toggle-text">Hide</span> Logs
+                        </button>
+                    </div>
+                    <div class="logs-container" id="logs-container">
+                        <div id="logs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedProject = null;
+        let deploymentId = null;
+        let statusCheckInterval = null;
+        let startTime = null;
+        let elapsedInterval = null;
+        let resourceCounts = {};
+        let lastLogIndex = 0;
+
+        // Deployment steps configuration
+        const deploymentSteps = [
+            {
+                id: 'enabling-apis',
+                title: 'Enabling APIs',
+                description: 'Activating required Google Cloud APIs',
+                icon: '🔌'
+            },
+            {
+                id: 'permissions',
+                title: 'Setting Permissions',
+                description: 'Configuring IAM roles and permissions',
+                icon: '🔐'
+            },
+            {
+                id: 'terraform-init',
+                title: 'Initializing Infrastructure',
+                description: 'Preparing Terraform and checking existing resources',
+                icon: '🏗️'
+            },
+            {
+                id: 'service-accounts',
+                title: 'Creating Service Accounts',
+                description: 'Setting up service accounts for each component',
+                icon: '👤'
+            },
+            {
+                id: 'secrets',
+                title: 'Creating Secrets',
+                description: 'Storing API keys and configuration securely',
+                icon: '🔑'
+            },
+            {
+                id: 'storage',
+                title: 'Setting Up Storage',
+                description: 'Creating Cloud Storage buckets for Firebase',
+                icon: '📦'
+            },
+            {
+                id: 'firestore',
+                title: 'Configuring Firestore',
+                description: 'Setting up Firestore database and security rules',
+                icon: '🗄️'
+            },
+            {
+                id: 'functions',
+                title: 'Deploying Cloud Functions',
+                description: 'Building and deploying serverless functions',
+                icon: '⚡'
+            },
+            {
+                id: 'api-gateway',
+                title: 'Creating API Gateway',
+                description: 'Setting up API Gateway and configuring endpoints',
+                icon: '🌐'
+            }
+        ];
+
+        // Initialize the dashboard
+        async function init() {
+            await loadProjects();
+            initializeSteps();
+        }
+
+        // Initialize deployment steps UI
+        function initializeSteps() {
+            const stepsContainer = document.getElementById('deployment-steps');
+            stepsContainer.innerHTML = '';
+            
+            deploymentSteps.forEach((step, index) => {
+                const stepElement = document.createElement('div');
+                stepElement.className = 'step-item';
+                stepElement.id = `step-${step.id}`;
+                stepElement.style.animationDelay = `${index * 0.1}s`;
+                
+                stepElement.innerHTML = `
+                    <div class="step-indicator">${step.icon}</div>
+                    <div class="step-content">
+                        <h3 class="step-title">
+                            ${step.title}
+                            <span class="loading-spinner" style="display: none;"></span>
+                        </h3>
+                        <p class="step-description">${step.description}</p>
+                        <div class="step-details" id="details-${step.id}"></div>
+                    </div>
+                `;
+                
+                stepsContainer.appendChild(stepElement);
+            });
+        }
+
+        // Update step status
+        function updateStepStatus(stepId, status, details = {}) {
+            const stepElement = document.getElementById(`step-${stepId}`);
+            if (!stepElement) return;
+            
+            // Remove all status classes
+            stepElement.classList.remove('active', 'completed', 'failed');
+            
+            // Add new status class
+            if (status !== 'pending') {
+                stepElement.classList.add(status);
+            }
+            
+            // Update spinner visibility
+            const spinner = stepElement.querySelector('.loading-spinner');
+            if (spinner) {
+                spinner.style.display = status === 'active' ? 'inline-block' : 'none';
+            }
+            
+            // Update icon for completed/failed states
+            const indicator = stepElement.querySelector('.step-indicator');
+            if (status === 'completed') {
+                indicator.textContent = '✓';
+            } else if (status === 'failed') {
+                indicator.textContent = '✗';
+            }
+            
+            // Update details
+            if (Object.keys(details).length > 0) {
+                const detailsEl = document.getElementById(`details-${stepId}`);
+                detailsEl.innerHTML = Object.entries(details)
+                    .map(([label, value]) => `
+                        <div class="step-detail-item">
+                            <span class="step-detail-label">${label}:</span>
+                            <span class="step-detail-value">${value}</span>
+                        </div>
+                    `).join('');
+            }
+        }
+
+        // Process status update from backend
+        function processStatusMessage(message) {
+            const statusMap = {
+                'DEPLOYMENT_STARTED': { step: 'enabling-apis', action: 'start' },
+                'ENABLING_APIS': { step: 'enabling-apis', action: 'active' },
+                'SETTING_PERMISSIONS': { step: 'permissions', action: 'active', complete: 'enabling-apis' },
+                'PREPARING_TERRAFORM': { step: 'terraform-init', action: 'active', complete: 'permissions' },
+                'TERRAFORM_INIT': { step: 'terraform-init', action: 'active' },
+                'CREATING_SERVICE_ACCOUNTS': { step: 'service-accounts', action: 'active', complete: 'terraform-init' },
+                'CREATING_SECRETS': { step: 'secrets', action: 'active', complete: 'service-accounts' },
+                'CREATING_STORAGE': { step: 'storage', action: 'active', complete: 'secrets' },
+                'CREATING_FIRESTORE': { step: 'firestore', action: 'active', complete: 'storage' },
+                'CREATING_CLOUD_FUNCTIONS': { step: 'functions', action: 'active', complete: 'firestore' },
+                'CREATING_API_GATEWAY': { step: 'api-gateway', action: 'active', complete: 'functions' },
+                'DEPLOYMENT_COMPLETE': { step: 'api-gateway', action: 'complete' }
+            };
+            
+            const mapping = statusMap[message];
+            if (mapping) {
+                // Complete previous step if specified
+                if (mapping.complete) {
+                    updateStepStatus(mapping.complete, 'completed');
+                }
+                
+                // Update current step
+                if (mapping.action === 'complete') {
+                    // Complete all remaining steps
+                    deploymentSteps.forEach(step => {
+                        const stepEl = document.getElementById(`step-${step.id}`);
+                        if (!stepEl.classList.contains('completed')) {
+                            updateStepStatus(step.id, 'completed');
+                        }
+                    });
+                } else {
+                    updateStepStatus(mapping.step, 'active');
+                }
+            }
+        }
+
+        // Process progress update
+        function processProgressMessage(message) {
+            // Extract resource creation progress
+            const resourceMatch = message.match(/Created resource (\d+)\/(\d+): (.+)/);
+            if (resourceMatch) {
+                const [_, current, total, resourceName] = resourceMatch;
+                
+                // Update resource counter
+                document.getElementById('resource-count').textContent = current;
+                
+                // Parse resource type
+                const resourceType = resourceName.split('.')[0];
+                if (!resourceCounts[resourceType]) {
+                    resourceCounts[resourceType] = 0;
+                }
+                resourceCounts[resourceType]++;
+                
+                // Update resource grid
+                updateResourceGrid();
+                
+                // Update progress percentage
+                const percent = Math.round((parseInt(current) / parseInt(total)) * 100);
+                document.getElementById('progress-percent').textContent = `${percent}%`;
+                document.getElementById('progress-bar').style.width = `${percent}%`;
+                
+                // Find active step and update its details
+                const activeStep = deploymentSteps.find(s => {
+                    const el = document.getElementById(`step-${s.id}`);
+                    return el && el.classList.contains('active');
+                });
+                
+                if (activeStep) {
+                    updateStepStatus(activeStep.id, 'active', {
+                        'Progress': `${current} of ${total} resources created`
+                    });
+                }
+            }
+        }
+
+        // Update resource grid display
+        function updateResourceGrid() {
+            const resourceGrid = document.getElementById('resource-grid');
+            const resourceCounter = document.getElementById('resource-counter');
+            
+            if (Object.keys(resourceCounts).length > 0) {
+                resourceCounter.classList.add('visible');
+                
+                resourceGrid.innerHTML = Object.entries(resourceCounts)
+                    .map(([type, count]) => `
+                        <div class="resource-type">
+                            <div class="resource-type-name">${type}</div>
+                            <div class="resource-type-count">${count}</div>
+                        </div>
+                    `).join('');
+            }
+        }
+
+        // Check deployment status
+        async function checkDeploymentStatus() {
+            if (!deploymentId) return;
+            
+            try {
+                // Fetch main deployment status
+                const response = await fetch(`/api/deployment/${deploymentId}`);
+                const data = await response.json();
+                
+                // Process logs
+                if (data.logs && data.logs.length > lastLogIndex) {
+                    const newLogs = data.logs.slice(lastLogIndex);
+                    newLogs.forEach(log => {
+                        addLogEntry(log);
+                        
+                        // Parse status and progress messages
+                        if (log.includes('STATUS:')) {
+                            const status = log.split('STATUS:')[1].trim();
+                            processStatusMessage(status);
+                        } else if (log.includes('PROGRESS:')) {
+                            const progress = log.split('PROGRESS:')[1].trim();
+                            processProgressMessage(progress);
+                        }
+                    });
+                    lastLogIndex = data.logs.length;
+                }
+                
+                // Handle completion
+                if (data.status === 'completed') {
+                    clearInterval(statusCheckInterval);
+                    clearInterval(elapsedInterval);
+                    
+                    if (data.outputs) {
+                        showSuccessResults(data.outputs);
+                    }
+                } else if (data.status === 'failed') {
+                    clearInterval(statusCheckInterval);
+                    clearInterval(elapsedInterval);
+                    
+                    showErrorResults(data.error || 'Deployment failed');
+                }
+                
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+
+        // Add log entry
+        function addLogEntry(log) {
+            const logsContainer = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            
+            const [timestamp, ...messageParts] = log.split(' - ');
+            const message = messageParts.join(' - ');
+            
+            let messageClass = 'log-message';
+            if (message.includes('ERROR') || message.includes('failed')) {
+                messageClass = 'log-error';
+            } else if (message.includes('SUCCESS') || message.includes('✓')) {
+                messageClass = 'log-success';
+            } else if (message.includes('WARNING')) {
+                messageClass = 'log-warning';
+            }
+            
+            logEntry.innerHTML = `
+                <span class="log-timestamp">${timestamp}</span>
+                <span class="${messageClass}">${message}</span>
+            `;
+            
+            logsContainer.appendChild(logEntry);
+            
+            // Auto-scroll to bottom
+            const container = document.getElementById('logs-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Show success results
+        function showSuccessResults(outputs) {
+            const resultsContainer = document.getElementById('results-container');
+            resultsContainer.classList.add('visible');
+            
+            resultsContainer.innerHTML = `
+                <div class="success-animation">
+                    <svg class="success-icon" viewBox="0 0 52 52">
+                        <circle cx="26" cy="26" r="25" fill="none" stroke="#10b981" stroke-width="2"/>
+                        <path fill="none" stroke="#10b981" stroke-width="3" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                    <h2 class="success-title">Deployment Successful!</h2>
+                    <p class="success-subtitle">Your Anava infrastructure is ready to use</p>
+                </div>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3 class="result-label">API Gateway URL</h3>
+                        <div class="result-value">
+                            <span>${outputs.apiGatewayUrl || 'Not available'}</span>
+                            <button class="copy-button" onclick="copyToClipboard('${outputs.apiGatewayUrl}', this)">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="result-description">Use this URL to access your API endpoints</p>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3 class="result-label">Firebase Config Secret</h3>
+                        <div class="result-value">
+                            <span>${outputs.firebaseConfigSecret || 'Not available'}</span>
+                            <button class="copy-button" onclick="copyToClipboard('${outputs.firebaseConfigSecret}', this)">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="result-description">Secret Manager path for Firebase configuration</p>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3 class="result-label">API Key Secret</h3>
+                        <div class="result-value">
+                            <span>${outputs.apiKeySecret || 'Not available'}</span>
+                            <button class="copy-button" onclick="copyToClipboard('${outputs.apiKeySecret}', this)">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="result-description">Secret Manager path for API key</p>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3 class="result-label">Workload Identity Provider</h3>
+                        <div class="result-value">
+                            <span>${outputs.workloadIdentityProvider || 'Not available'}</span>
+                            <button class="copy-button" onclick="copyToClipboard('${outputs.workloadIdentityProvider}', this)">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="result-description">Provider for GitHub Actions authentication</p>
+                    </div>
+                </div>
+                
+                <div class="quick-start">
+                    <h3 class="quick-start-title">🚀 Quick Start Guide</h3>
+                    <div class="quick-start-steps">
+                        <div class="quick-start-step">
+                            <div class="quick-start-number">1</div>
+                            <div class="quick-start-content">
+                                <h4>Test your API</h4>
+                                <p>Make a test request to verify your deployment:</p>
+                                <code>curl ${outputs.apiGatewayUrl}/health</code>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-start-step">
+                            <div class="quick-start-number">2</div>
+                            <div class="quick-start-content">
+                                <h4>Configure GitHub Actions</h4>
+                                <p>Add the Workload Identity Provider to your repository secrets</p>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-start-step">
+                            <div class="quick-start-number">3</div>
+                            <div class="quick-start-content">
+                                <h4>Access your secrets</h4>
+                                <p>Use <code>gcloud secrets versions access latest</code> to retrieve configuration</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="download-config">
+                    <button class="download-button" onclick="downloadConfiguration()">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 14L6 10M10 14L14 10M10 14V3M3 17H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Download Configuration
+                    </button>
+                </div>
+            `;
+        }
+
+        // Show error results
+        function showErrorResults(error) {
+            const resultsContainer = document.getElementById('results-container');
+            resultsContainer.classList.add('visible');
+            
+            resultsContainer.innerHTML = `
+                <div class="error-message">
+                    <h2 style="color: var(--error); margin-bottom: 1rem;">❌ Deployment Failed</h2>
+                    <pre style="background: var(--bg-dark); padding: 1rem; border-radius: 0.5rem; overflow-x: auto;">${error}</pre>
+                </div>
+            `;
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Download configuration
+        function downloadConfiguration() {
+            // Implementation would download a JSON file with all outputs
+            alert('Configuration download will be implemented');
+        }
+
+        // Toggle logs visibility
+        function toggleLogs() {
+            const logsContainer = document.getElementById('logs-container');
+            const toggleText = document.getElementById('logs-toggle-text');
+            
+            if (logsContainer.style.display === 'none') {
+                logsContainer.style.display = 'block';
+                toggleText.textContent = 'Hide';
+            } else {
+                logsContainer.style.display = 'none';
+                toggleText.textContent = 'Show';
+            }
+        }
+
+        // Update elapsed time
+        function updateElapsedTime() {
+            if (!startTime) return;
+            
+            const elapsed = Date.now() - startTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            
+            document.getElementById('elapsed-time').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Load projects
+        async function loadProjects() {
+            try {
+                const response = await fetch('/api/projects');
+                const data = await response.json();
+                
+                document.getElementById('projects-loading').style.display = 'none';
+                const projectsList = document.getElementById('projects-list');
+                projectsList.style.display = 'block';
+                
+                if (data.projects && data.projects.length > 0) {
+                    projectsList.innerHTML = data.projects.map(project => `
+                        <div class="project-card" onclick="selectProject('${project.projectId}', '${project.name}')">
+                            <h3>${project.name}</h3>
+                            <p>${project.projectId}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    projectsList.innerHTML = '<p>No projects found. Make sure you have access to Google Cloud projects.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                document.getElementById('projects-loading').innerHTML = 
+                    '<p class="error">Failed to load projects. Please try again.</p>';
+            }
+        }
+
+        // Select project
+        function selectProject(projectId, projectName) {
+            selectedProject = { id: projectId, name: projectName };
+            
+            document.getElementById('project-selection').style.display = 'none';
+            document.getElementById('configuration-form').style.display = 'block';
+            document.getElementById('selected-project-info').textContent = 
+                `Deploying to: ${projectName} (${projectId})`;
+        }
+
+        // Back to projects
+        function backToProjects() {
+            selectedProject = null;
+            document.getElementById('configuration-form').style.display = 'none';
+            document.getElementById('project-selection').style.display = 'block';
+        }
+
+        // Handle form submission
+        document.getElementById('deployForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const deploymentData = {
+                projectId: selectedProject.id,
+                region: formData.get('region'),
+                prefix: formData.get('prefix')
+            };
+            
+            try {
+                const response = await fetch('/api/deploy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(deploymentData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.deploymentId) {
+                    deploymentId = result.deploymentId;
+                    
+                    // Switch to progress view
+                    document.getElementById('configuration-form').style.display = 'none';
+                    document.getElementById('deployment-progress').style.display = 'block';
+                    
+                    // Initialize progress tracking
+                    startTime = Date.now();
+                    lastLogIndex = 0;
+                    resourceCounts = {};
+                    
+                    // Start monitoring
+                    statusCheckInterval = setInterval(checkDeploymentStatus, 2000);
+                    elapsedInterval = setInterval(updateElapsedTime, 1000);
+                    
+                    // Initial status check
+                    checkDeploymentStatus();
+                } else {
+                    alert('Failed to start deployment: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Deployment error:', error);
+                alert('Failed to start deployment: ' + error.message);
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
+'''
+    
+    # Write the updated dashboard
+    dashboard_path = '/Users/ryanwager/terraform-installer/web-service/cloud-run/templates/dashboard.html'
+    
+    # Backup existing dashboard
+    backup_path = dashboard_path + '.backup'
+    if os.path.exists(dashboard_path):
+        with open(dashboard_path, 'r') as f:
+            backup_content = f.read()
+        with open(backup_path, 'w') as f:
+            f.write(backup_content)
+        print(f"✅ Backed up existing dashboard to {backup_path}")
+    
+    # Write new dashboard
+    with open(dashboard_path, 'w') as f:
+        f.write(dashboard_content)
+    
+    print(f"✅ Created improved dashboard with real-time progress tracking")
+    print("\nKey improvements:")
+    print("- Real-time progress updates with animated steps")
+    print("- Resource counter showing what's being created")
+    print("- Beautiful success page with copy buttons") 
+    print("- Quick start guide for new users")
+    print("- Elapsed time and progress percentage")
+    print("- Version badge showing current deployment version")
+    print("- Responsive design for mobile devices")
+
+if __name__ == "__main__":
+    create_updated_dashboard()
+    print("\n🎉 Dashboard UI has been updated!")
+    print("The new dashboard will show real-time progress when deployed.")

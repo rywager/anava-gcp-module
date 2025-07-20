@@ -1,0 +1,32 @@
+{
+  "project_id": {
+    "value": "anava-vision-demo"
+  },
+  "region": {
+    "value": "us-central1"
+  },
+  "camera_enrollment_url": {
+    "value": "https://anava-camera-enrollment-demo.run.app/api/enroll"
+  },
+  "camera_config_url": {
+    "value": "https://anava-camera-config-demo.run.app/api/config"
+  },
+  "mcp_server_url": {
+    "value": "wss://anava-mcp-server-demo.run.app"
+  },
+  "chat_interface_url": {
+    "value": "https://anava-chat-demo.web.app"
+  },
+  "certificate_authority": {
+    "value": "-----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJAKZ...\n-----END CERTIFICATE-----"
+  },
+  "server_name": {
+    "value": "anava-vision-demo.internal"
+  },
+  "acap_version": {
+    "value": "1.0.0"
+  },
+  "acap_download_url": {
+    "value": "https://storage.googleapis.com/anava-acap-demo/BatonDescribe.eap"
+  }
+}

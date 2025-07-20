@@ -1,37 +1,53 @@
 FROM python:3.11-slim
 
-# Install system dependencies including git and terraform
+# Install system dependencies including git and gcloud CLI
 RUN apt-get update && apt-get install -y \
-    git \
     curl \
-    unzip \
+    gnupg \
+    lsb-release \
+    git \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Google Cloud SDK
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - && \
+    apt-get update && apt-get install -y google-cloud-sdk && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install Terraform
-RUN ARCH=$(dpkg --print-architecture) && \
-    if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then \
-        TF_ARCH="arm64"; \
-    else \
-        TF_ARCH="amd64"; \
-    fi && \
-    curl -o terraform.zip https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_${TF_ARCH}.zip && \
-    unzip terraform.zip && \
-    mv terraform /usr/local/bin/ && \
-    rm terraform.zip && \
-    chmod +x /usr/local/bin/terraform
+RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add - && \
+    echo "deb https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list && \
+    apt-get update && apt-get install -y terraform && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install Python dependencies
+# Copy requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Pre-download the Terraform module during build
+RUN mkdir -p /terraform-cache
+COPY terraform-anava-module /terraform-cache/anava-gcp-module
 
-# Expose port
-EXPOSE 8080
+# Copy application files
+COPY main.py .
+COPY worker.py .
+COPY terraform_retry_handler.py .
+COPY start_worker.sh .
+COPY terraform_import_existing.sh .
+COPY templates/ templates/
 
-# Run with gunicorn
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
+# Make scripts executable
+RUN chmod +x start_worker.sh terraform_import_existing.sh
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV TF_IN_AUTOMATION=true
+ENV TF_PLUGIN_CACHE_DIR=/tmp/terraform-plugins
+
+# Run the application with worker polling
+ENTRYPOINT ["/app/start_worker.sh"]
+CMD ["gunicorn", "--bind", ":8080", "--workers", "1", "--threads", "8", "--timeout", "0", "main:app"]

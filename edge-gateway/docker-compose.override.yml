@@ -1,0 +1,61 @@
+# Docker Compose Override for Development
+# This file provides development-specific overrides
+# It is automatically loaded by docker-compose
+
+version: '3.8'
+
+services:
+  edge-gateway:
+    # Override for development
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder  # Use builder stage for development with more tools
+    
+    # Development environment variables
+    environment:
+      - LOG_LEVEL=debug
+      - GATEWAY_DESCRIPTION=Development Edge Gateway
+    
+    # Mount source code for development (if needed)
+    # volumes:
+    #   - .:/app:ro
+    
+    # Enable development features
+    # ports:
+    #   - "8080:8080"  # Optional debug port
+    
+    # Development resource limits (more generous)
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    
+    # Development health check (more frequent)
+    healthcheck:
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Development tools
+  # Uncomment if needed for debugging
+  
+  # portainer:
+  #   image: portainer/portainer-ce:latest
+  #   container_name: portainer
+  #   restart: unless-stopped
+  #   ports:
+  #     - "9000:9000"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - portainer-data:/data
+  #   profiles:
+  #     - debug
+
+# volumes:
+#   portainer-data:

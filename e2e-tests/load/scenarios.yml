@@ -1,0 +1,121 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 10
+      name: "Ramp up load"
+    - duration: 300
+      arrivalRate: 20
+      name: "Sustained load"
+    - duration: 120
+      arrivalRate: 50
+      name: "Peak load"
+    - duration: 60
+      arrivalRate: 5
+      name: "Cool down"
+  
+  variables:
+    cameraId: "ACCC8EF85A3C"
+    cameraIp: "localhost"
+    cameraPort: 8080
+  
+  plugins:
+    metrics-by-endpoint: {}
+    
+  defaults:
+    headers:
+      Content-Type: 'application/json'
+
+scenarios:
+  - name: "Camera Registration Flow"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/cameras/register"
+          json:
+            id: "{{ $randomString() }}"
+            ip: "192.168.1.{{ $randomInt(10, 254) }}"
+            model: "AXIS P3245-V"
+            capabilities: ["ptz", "video", "audio"]
+            location: "Test Location {{ $randomInt(1, 100) }}"
+          capture:
+            - json: "$.camera.id"
+              as: "registeredCameraId"
+      - get:
+          url: "/api/cameras/{{ registeredCameraId }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Session Creation and Management"
+    weight: 40
+    flow:
+      - post:
+          url: "/api/sessions"
+          json:
+            cameraId: "{{ cameraId }}"
+            sessionType: "live"
+            options:
+              video: true
+              audio: false
+              resolution: "1920x1080"
+              framerate: 30
+          capture:
+            - json: "$.session.id"
+              as: "sessionId"
+      - get:
+          url: "/api/sessions/{{ sessionId }}"
+          expect:
+            - statusCode: 200
+      - post:
+          url: "/api/sessions/{{ sessionId }}/offer"
+          json:
+            offer:
+              type: "offer"
+              sdp: "v=0\no=- {{ $randomInt(1000000, 9999999) }} 2 IN IP4 127.0.0.1\ns=Test Session\nt=0 0\na=group:BUNDLE 0\na=msid-semantic: WMS stream\nm=video 9 UDP/TLS/RTP/SAVPF 96\nc=IN IP4 0.0.0.0\na=rtcp:9 IN IP4 0.0.0.0\na=ice-ufrag:test\na=ice-pwd:testpassword123456789012\na=fingerprint:sha-256 AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99\na=setup:actpass\na=mid:0\na=sendrecv\na=rtcp-mux\na=rtpmap:96 VP8/90000"
+      - post:
+          url: "/api/sessions/{{ sessionId }}/candidate"
+          json:
+            candidate:
+              candidate: "candidate:1 1 UDP 2113667326 192.168.1.{{ $randomInt(10, 254) }} {{ $randomInt(50000, 60000) }} typ host"
+              sdpMLineIndex: 0
+              sdpMid: "0"
+
+  - name: "PTZ Control Operations"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/cameras/{{ cameraId }}/ptz"
+          json:
+            command: "absolute"
+            params:
+              pan: "{{ $randomInt(-90, 90) }}"
+              tilt: "{{ $randomInt(-45, 45) }}"
+              zoom: "{{ $randomNumber(1, 3) }}"
+      - post:
+          url: "/api/cameras/{{ cameraId }}/ptz"
+          json:
+            command: "relative"
+            params:
+              pan: "{{ $randomInt(-10, 10) }}"
+              tilt: "{{ $randomInt(-10, 10) }}"
+              zoom: "{{ $randomNumber(-0.5, 0.5) }}"
+
+  - name: "Health and Status Checks"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/status"
+          expect:
+            - statusCode: 200
+            - hasProperty: "status"
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/cameras"
+          expect:
+            - statusCode: 200

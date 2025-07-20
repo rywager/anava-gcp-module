@@ -1,0 +1,32 @@
+{
+  "short_name": "Anava Vision",
+  "name": "Anava Vision Camera Control",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1a1a2e",
+  "background_color": "#16213e",
+  "description": "Professional camera control system with PTZ support",
+  "orientation": "any",
+  "categories": ["security", "utilities"],
+  "screenshots": [
+    {
+      "src": "screenshot-1.png",
+      "type": "image/png",
+      "sizes": "1280x720"
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Configuration Transfer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .config-section { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+    .config-item { margin: 10px 0; }
+    .config-item label { font-weight: bold; display: inline-block; width: 200px; }
+    .config-item .value { font-family: monospace; color: #333; }
+    button { background: #1976d2; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #1565c0; }
+    .dialog { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 1000; }
+    .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+    input[type="text"] { width: 300px; padding: 8px; margin: 10px 0; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Anava Infrastructure Configuration</h1>
+    
+    <div class="config-section">
+      <h2>Deployed Configuration</h2>
+      <div class="config-item">
+        <label>API Gateway URL:</label>
+        <span class="value">https://anava-gateway-2gvbe0bn.uc.gateway.dev</span>
+      </div>
+      <div class="config-item">
+        <label>API Key:</label>
+        <span class="value">AIzaSyD-***-m4xAU4</span>
+      </div>
+      <div class="config-item">
+        <label>Device Auth URL:</label>
+        <span class="value">https://anava-device-auth-fn-6hvyxxvgsa-uc.a.run.app</span>
+      </div>
+      <div class="config-item">
+        <label>Firebase Project:</label>
+        <span class="value">ryanclean</span>
+      </div>
+    </div>
+    
+    <button onclick="showSendDialog()">Send to Camera</button>
+    
+    <div class="overlay" onclick="closeSendDialog()"></div>
+    <div class="dialog" id="sendDialog">
+      <h2>Send Configuration to Camera</h2>
+      <p>Enter the IP address of the camera to send the configuration:</p>
+      <input type="text" id="cameraIp" placeholder="192.168.1.100" value="">
+      <br><br>
+      <label>
+        <input type="checkbox" id="useEncryption" checked> Use encryption (recommended)
+      </label>
+      <br><br>
+      <button onclick="sendToCamera()">Send Configuration</button>
+      <button onclick="closeSendDialog()">Cancel</button>
+      <div id="result"></div>
+    </div>
+  </div>
+  
+  <script>
+    const config = {
+      "apiGatewayUrl": "https://anava-gateway-2gvbe0bn.uc.gateway.dev",
+      "apiKey": "AIzaSyD-ZAvCgXJR40dSsxOcgpDX9Yey0m4xAU4",
+      "deviceAuthUrl": "https://anava-device-auth-fn-6hvyxxvgsa-uc.a.run.app",
+      "tvmUrl": "https://anava-tvm-fn-6hvyxxvgsa-uc.a.run.app",
+      "firebaseConfig": {
+        "projectId": "ryanclean",
+        "apiKey": "AIzaSyBCHhtkBv0utzs3kukoad8iIbtDTm0ZADE",
+        "authDomain": "ryanclean.firebaseapp.com",
+        "storageBucket": "ryanclean-anava-firebase",
+        "databaseURL": "https://ryanclean.firebaseio.com",
+        "appId": "1:193450426403:web:bc618f5b6eb506a63df196"
+      },
+      "serviceAccounts": {
+        "vertexAi": "anava-vertex-ai-sa@ryanclean.iam.gserviceaccount.com",
+        "deviceAuth": "anava-device-auth-sa@ryanclean.iam.gserviceaccount.com",
+        "tvm": "anava-tvm-sa@ryanclean.iam.gserviceaccount.com",
+        "apiGateway": "anava-apigw-invoker-sa@ryanclean.iam.gserviceaccount.com"
+      },
+      "storageBuckets": {
+        "firebase": "ryanclean-anava-firebase",
+        "functionSource": "ryanclean-anava-function-source"
+      },
+      "wifProvider": "projects/193450426403/locations/global/workloadIdentityPools/anava-wif-pool/providers/anava-firebase-provider"
+    };
+    
+    function showSendDialog() {
+      document.getElementById('sendDialog').style.display = 'block';
+      document.querySelector('.overlay').style.display = 'block';
+    }
+    
+    function closeSendDialog() {
+      document.getElementById('sendDialog').style.display = 'none';
+      document.querySelector('.overlay').style.display = 'none';
+    }
+    
+    async function sendToCamera() {
+      const cameraIp = document.getElementById('cameraIp').value;
+      const useEncryption = document.getElementById('useEncryption').checked;
+      const resultDiv = document.getElementById('result');
+      
+      if (!cameraIp) {
+        resultDiv.innerHTML = '<p class="error">Please enter camera IP address</p>';
+        return;
+      }
+      
+      resultDiv.innerHTML = '<p>Sending configuration...</p>';
+      
+      const payload = {
+        command: 'setTerraformConfig',
+        config: config
+      };
+      
+      if (useEncryption) {
+        // In real implementation, would get camera's public key first
+        console.log('Encryption requested - would retrieve camera public key');
+      }
+      
+      const url = `http://${cameraIp}/local/BatonAnalytic/baton_analytic.cgi`;
+      
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          resultDiv.innerHTML = '<p class="success">✅ Configuration sent successfully!</p>';
+          setTimeout(closeSendDialog, 2000);
+        } else {
+          throw new Error(`Camera responded with ${response.status}`);
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<p class="error">❌ Failed: ${error.message}</p>`;
+        console.error('Full error:', error);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+{
+  "intents": [
+    {
+      "intent": "monitor",
+      "examples": [
+        "Monitor my loading dock",
+        "Watch the parking lot",
+        "Keep an eye on the front entrance",
+        "I need surveillance on the perimeter",
+        "Observe the warehouse area",
+        "Track activity in the lobby",
+        "Monitor the fence line",
+        "Watch over my property",
+        "Keep watch on the back alley",
+        "Supervise the construction site"
+      ]
+    },
+    {
+      "intent": "detect",
+      "examples": [
+        "Detect people entering the building",
+        "Find vehicles in the parking area",
+        "Identify packages being delivered",
+        "Spot unauthorized intruders",
+        "Recognize delivery trucks",
+        "Locate people loitering",
+        "Discover motion in restricted areas",
+        "Detect animals on the property",
+        "Find cars parking illegally",
+        "Identify suspicious activity"
+      ]
+    },
+    {
+      "intent": "alert",
+      "examples": [
+        "Alert me when someone arrives",
+        "Notify me immediately",
+        "Send me a message when detected",
+        "Let me know right away",
+        "Tell me when something happens",
+        "Ping me if there's activity",
+        "Send notifications to my phone",
+        "Email me when triggered",
+        "Give me instant alerts",
+        "Warn me about intrusions"
+      ]
+    },
+    {
+      "intent": "schedule",
+      "examples": [
+        "Only during night hours",
+        "24/7 monitoring",
+        "During business hours",
+        "After 6 PM",
+        "Weekends only",
+        "From 8 AM to 6 PM",
+        "Between 10 PM and 6 AM",
+        "During daylight hours",
+        "After business hours",
+        "Round the clock"
+      ]
+    },
+    {
+      "intent": "configure",
+      "examples": [
+        "Set up the camera",
+        "Configure motion detection",
+        "Enable night vision",
+        "Turn on the floodlights",
+        "Activate recording",
+        "Switch on alerts",
+        "Adjust sensitivity",
+        "Modify detection zones",
+        "Change the schedule",
+        "Update notification settings"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "entity": "location",
+      "examples": [
+        "loading dock",
+        "parking lot",
+        "front entrance",
+        "back door",
+        "perimeter",
+        "fence line",
+        "warehouse",
+        "office building",
+        "lobby",
+        "reception area",
+        "stairwell",
+        "hallway",
+        "elevator",
+        "garage",
+        "storage room",
+        "conference room",
+        "break room",
+        "restroom",
+        "emergency exit",
+        "fire escape"
+      ]
+    },
+    {
+      "entity": "detection_type",
+      "examples": [
+        "person",
+        "people",
+        "human",
+        "individual",
+        "visitor",
+        "employee",
+        "staff",
+        "customer",
+        "intruder",
+        "stranger",
+        "vehicle",
+        "car",
+        "truck",
+        "van",
+        "bus",
+        "motorcycle",
+        "bicycle",
+        "package",
+        "delivery",
+        "box",
+        "parcel",
+        "mail",
+        "shipment",
+        "animal",
+        "dog",
+        "cat",
+        "wildlife",
+        "motion",
+        "movement",
+        "activity"
+      ]
+    },
+    {
+      "entity": "time",
+      "examples": [
+        "night",
+        "nighttime",
+        "overnight",
+        "evening",
+        "morning",
+        "afternoon",
+        "dawn",
+        "dusk",
+        "business hours",
+        "work hours",
+        "office hours",
+        "weekend",
+        "weekday",
+        "24/7",
+        "round the clock",
+        "continuously",
+        "8 AM",
+        "6 PM",
+        "midnight",
+        "noon"
+      ]
+    },
+    {
+      "entity": "action",
+      "examples": [
+        "lights",
+        "floodlights",
+        "spotlights",
+        "illumination",
+        "siren",
+        "alarm",
+        "horn",
+        "buzzer",
+        "record",
+        "recording",
+        "video",
+        "capture",
+        "snapshot",
+        "alert",
+        "notification",
+        "message",
+        "email",
+        "text",
+        "call"
+      ]
+    }
+  ]
+}

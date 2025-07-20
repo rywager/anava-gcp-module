@@ -1,0 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: anava-vision
+
+resources:
+  - namespace.yaml
+  - deployment.yaml
+  - service.yaml
+  - configmap.yaml
+  - secret.yaml
+  - ingress.yaml
+  - networkpolicy.yaml
+  - serviceaccount.yaml
+  - rbac.yaml
+  - pdb.yaml
+  - websocket-deployment.yaml
+  - websocket-service.yaml
+  - camera-discovery.yaml
+  - self-healing-controller.yaml
+
+commonLabels:
+  app: anava-vision
+  version: 2.3.31
+
+configMapGenerator:
+  - name: anava-vision-config
+    files:
+      - config.yaml
+
+secretGenerator:
+  - name: anava-vision-secrets
+    literals:
+      - database-password=changeme
+      - redis-password=changeme
+      - jwt-secret=changeme
+
+images:
+  - name: anava-vision
+    newName: gcr.io/anava-vision/anava-vision
+    newTag: 2.3.31
+
+replicas:
+  - name: anava-vision
+    count: 3
+  - name: anava-vision-websocket
+    count: 3

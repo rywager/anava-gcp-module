@@ -1,0 +1,27 @@
+{
+  "firebase_api_key_secret_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "projects/392865621461/secrets/anava-api-key"
+  },
+  "firebase_config_secret_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "projects/392865621461/secrets/anava-firebase-config"
+  },
+  "firebase_web_app_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "1:392865621461:web:15db206ae4e9c72f7dc95c"
+  },
+  "firestore_database_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "anava"
+  },
+  "workload_identity_provider": {
+    "sensitive": false,
+    "type": "string",
+    "value": "projects/392865621461/locations/global/workloadIdentityPools/anava-wif-pool/providers/anava-firebase-provider"
+  }
+}

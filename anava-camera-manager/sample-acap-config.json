@@ -1,0 +1,34 @@
+{
+  "firebase": {
+    "webApiKey": "AIzaSyDemoKey",
+    "authDomain": "anava-ai.firebaseapp.com",
+    "databaseURL": "https://anava-ai.firebaseio.com",
+    "projectId": "anava-ai",
+    "storageBucket": "anava-ai.firebasestorage.app",
+    "messagingSenderId": "392865621461",
+    "appId": "1:392865621461:web:15db206ae4e9c72f7dc95c"
+  },
+  "endpoints": {
+    "deviceAuth": "https://us-central1-anava-ai.cloudfunctions.net/anava-device-auth-fn",
+    "tokenVendingMachine": "https://us-central1-anava-ai.cloudfunctions.net/anava-tvm-fn",
+    "chatInterface": "https://anava-chat-392865621461.us-central1.run.app",
+    "mcpServer": "wss://anava-mcp-392865621461.us-central1.run.app"
+  },
+  "workloadIdentity": {
+    "provider": "projects/392865621461/locations/global/workloadIdentityPools/anava-wif-pool/providers/anava-firebase-provider",
+    "serviceAccount": "anava-device-sa@anava-ai.iam.gserviceaccount.com"
+  },
+  "certificate": {
+    "ca": "-----BEGIN CERTIFICATE-----\nMIIDemoCA...\n-----END CERTIFICATE-----",
+    "serverName": "anava.internal"
+  },
+  "acap": {
+    "version": "1.0.0",
+    "downloadUrl": "https://storage.googleapis.com/anava-acap-releases/anava-acap-v1.0.0.eap"
+  },
+  "deployment": {
+    "id": "test-deployment-001",
+    "environment": "production",
+    "region": "us-central1"
+  }
+}

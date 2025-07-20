@@ -1,0 +1,211 @@
+=== Deployment Monitor Started ===
+Monitoring logs for deployment activity...
+Press Ctrl+C to stop
+
+[2025-07-20 11:45:24] Starting deployment monitor...
+[2025-07-20 11:45:24] Watching: ~/Library/Logs/anava-vision-desktop/main.log
+[2025-07-20 11:45:24] Results will be saved to: deployment-results/monitor-20250720-114524.log
+
+[2025-07-20 11:45:24] BILLING: [2025-07-20 11:40:18.609] [info]  Testing billing by attempting to create test bucket: anava-billing-test-ryanwillfinishthis-1753029618609
+[2025-07-20 11:45:24] BILLING: [2025-07-20 11:40:19.813] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 11:46:54] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 11:47:12] BILLING: [2025-07-20 11:47:12.727] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: ryanwillfinishthis
+[2025-07-20 11:47:12] BILLING: [2025-07-20 11:47:12.727] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: ryanwillfinishthis
+[2025-07-20 11:47:13] BILLING: [2025-07-20 11:47:13.151] [info]  Testing billing by attempting to create test bucket: anava-billing-test-ryanwillfinishthis-1753030033151
+[2025-07-20 11:47:14] BILLING: [2025-07-20 11:47:14.257] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 11:47:14] BILLING: [2025-07-20 11:47:14.791] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:14:36] BILLING: [2025-07-20 12:14:36.461] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: ryanwillfinishthis
+[2025-07-20 12:14:36] BILLING: [2025-07-20 12:14:36.462] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: ryanwillfinishthis
+[2025-07-20 12:14:37] BILLING: [2025-07-20 12:14:37.353] [info]  Testing billing by attempting to create test bucket: anava-billing-test-ryanwillfinishthis-1753031677353
+[2025-07-20 12:14:38] BILLING: [2025-07-20 12:14:38.691] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:14:39] BILLING: [2025-07-20 12:14:39.491] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:14:39] 🚀 DEPLOYMENT STARTED #1
+[2025-07-20 12:14:39] BILLING: [2025-07-20 12:14:39.658] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: ryanwillfinishthis
+[2025-07-20 12:14:40] BILLING: [2025-07-20 12:14:40.193] [info]  Testing billing by attempting to create test bucket: anava-billing-test-ryanwillfinishthis-1753031680193
+[2025-07-20 12:14:41] BILLING: [2025-07-20 12:14:41.109] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:17:21] 🌐 API Gateway: [2025-07-20 12:17:21.255] [info]  Loaded Terraform configuration: { apiGatewayUrl: '', hasApiKey: false, deviceAuthUrl: '', tvmUrl: '' }
+[2025-07-20 12:20:25] 🌐 API Gateway: [2025-07-20 12:20:25.775] [info]  Loaded Terraform configuration: { apiGatewayUrl: '', hasApiKey: false, deviceAuthUrl: '', tvmUrl: '' }
+[2025-07-20 12:20:29] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 12:20:53] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 12:20:59] BILLING: [2025-07-20 12:20:59.827] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:20:59] BILLING: [2025-07-20 12:20:59.827] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:21:00] BILLING: [2025-07-20 12:21:00.667] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753032060667
+[2025-07-20 12:21:01] BILLING: [2025-07-20 12:21:01.811] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:21:02] BILLING: [2025-07-20 12:21:02.381] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:21:02] 🚀 DEPLOYMENT STARTED #2
+[2025-07-20 12:21:02] BILLING: [2025-07-20 12:21:02.500] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:21:02] BILLING: [2025-07-20 12:21:02.891] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753032062891
+[2025-07-20 12:21:03] BILLING: [2025-07-20 12:21:03.945] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:26:00] ❌ DEPLOYMENT ERROR! (Failures: 1)
+[2025-07-20 12:26:00]    Error: [2025-07-20 12:26:00.656] [error] Terraform deploy error: Error: [31m│[0m [0m[1m[31mError: [0m[0m[1mError waiting to create function: Error waiting for Creating function: Error code 3, message: Build failed with status: FAILURE. Could not build the function due to a missing permission on the build service account. If you didn't revoke that permission explicitly, this could be caused by a change in the organization policies. Please refer to the following documentation for more details and resolution: https://cloud.google.com/functions/docs/troubleshooting#build-service-account
+[2025-07-20 12:29:36] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 12:29:40] BILLING: [2025-07-20 12:29:40.479] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:29:40] BILLING: [2025-07-20 12:29:40.479] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:29:40] BILLING: [2025-07-20 12:29:40.835] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753032580835
+[2025-07-20 12:29:41] BILLING: [2025-07-20 12:29:41.813] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:29:42] BILLING: [2025-07-20 12:29:42.498] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:29:48] BILLING: [2025-07-20 12:29:48.482] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:29:48] BILLING: [2025-07-20 12:29:48.483] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:29:49] BILLING: [2025-07-20 12:29:49.206] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753032589206
+[2025-07-20 12:29:50] BILLING: [2025-07-20 12:29:50.426] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:29:51] BILLING: [2025-07-20 12:29:51.067] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:29:51] 🚀 DEPLOYMENT STARTED #3
+[2025-07-20 12:29:51] BILLING: [2025-07-20 12:29:51.182] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:29:51] BILLING: [2025-07-20 12:29:51.533] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753032591533
+[2025-07-20 12:29:52] BILLING: [2025-07-20 12:29:52.769] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:30:28] 🌐 API Gateway: [2025-07-20 12:30:28.252] [info]  Loaded Terraform configuration: { apiGatewayUrl: '', hasApiKey: false, deviceAuthUrl: '', tvmUrl: '' }
+[2025-07-20 12:35:04] 🌐 API Gateway: [2025-07-20 12:35:04.399] [info]  Loaded Terraform configuration: { apiGatewayUrl: '', hasApiKey: false, deviceAuthUrl: '', tvmUrl: '' }
+[2025-07-20 12:35:08] BILLING: [2025-07-20 12:35:08.052] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:35:08] BILLING: [2025-07-20 12:35:08.052] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:35:08] BILLING: [2025-07-20 12:35:08.406] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753032908406
+[2025-07-20 12:35:09] BILLING: [2025-07-20 12:35:09.561] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:35:10] BILLING: [2025-07-20 12:35:10.381] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:36:03] BILLING: [2025-07-20 12:36:03.542] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:36:03] BILLING: [2025-07-20 12:36:03.542] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:36:04] BILLING: [2025-07-20 12:36:04.311] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753032964311
+[2025-07-20 12:36:05] BILLING: [2025-07-20 12:36:05.612] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:36:06] BILLING: [2025-07-20 12:36:06.166] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:36:06] 🚀 DEPLOYMENT STARTED #4
+[2025-07-20 12:36:06] BILLING: [2025-07-20 12:36:06.277] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:36:06] BILLING: [2025-07-20 12:36:06.633] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753032966633
+[2025-07-20 12:36:07] BILLING: [2025-07-20 12:36:07.853] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:36:42] 🌐 API Gateway: - api_gateway_url
+[2025-07-20 12:36:42] 🌐 API Gateway: - Missing required field: api_gateway_url
+[2025-07-20 12:36:42] ❌ DEPLOYMENT ERROR! (Failures: 2)
+[2025-07-20 12:36:42]    Error: [2025-07-20 12:36:40.358] [error] Terraform deploy error: Error: Deployment validation failed: Missing required field: api_gateway_url, Missing required field: api_key, Missing required field: firebase_config, Missing required field: device_auth_sa_email, Missing required field: tvm_sa_email, Missing required field: vertex_ai_sa_email, Missing required field: wif_provider
+[2025-07-20 12:36:42] 🌐 API Gateway: [2025-07-20 12:36:40.358] [error] Terraform deploy error: Error: Deployment validation failed: Missing required field: api_gateway_url, Missing required field: api_key, Missing required field: firebase_config, Missing required field: device_auth_sa_email, Missing required field: tvm_sa_email, Missing required field: vertex_ai_sa_email, Missing required field: wif_provider
+[2025-07-20 12:39:50] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 12:39:54] BILLING: [2025-07-20 12:39:54.288] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:39:54] BILLING: [2025-07-20 12:39:54.289] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:39:55] BILLING: [2025-07-20 12:39:55.113] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753033195113
+[2025-07-20 12:39:56] BILLING: [2025-07-20 12:39:56.513] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:39:57] BILLING: [2025-07-20 12:39:57.423] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:40:33] BILLING: [2025-07-20 12:40:33.891] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:40:33] BILLING: [2025-07-20 12:40:33.891] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:40:34] BILLING: [2025-07-20 12:40:34.233] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753033234233
+[2025-07-20 12:40:35] BILLING: [2025-07-20 12:40:35.591] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:40:36] BILLING: [2025-07-20 12:40:36.277] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:40:36] 🚀 DEPLOYMENT STARTED #5
+[2025-07-20 12:40:36] BILLING: [2025-07-20 12:40:36.389] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:40:36] BILLING: [2025-07-20 12:40:36.641] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753033236641
+[2025-07-20 12:40:38] BILLING: [2025-07-20 12:40:38.049] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:41:12] 🌐 API Gateway: - api_gateway_url
+[2025-07-20 12:41:12] 🌐 API Gateway: - Missing required field: api_gateway_url
+[2025-07-20 12:41:12] 🌐 API Gateway: [2025-07-20 12:41:10.736] [info]  Recovering API Gateway URL...
+[2025-07-20 12:41:12] 🌐 API Gateway: [2025-07-20 12:41:11.235] [error] Failed to recover API Gateway URL: Error: Command failed: gcloud api-gateway gateways list --project=potent-arcade-466517-t6 --format=json
+[2025-07-20 12:41:13] ❌ DEPLOYMENT ERROR! (Failures: 3)
+[2025-07-20 12:41:13]    Error: [2025-07-20 12:41:12.187] [error] Terraform deploy error: Error: Deployment validation failed after recovery: Missing required field: api_gateway_url, Missing required field: api_key, Missing required field: wif_provider
+[2025-07-20 12:41:13] 🌐 API Gateway: [2025-07-20 12:41:12.187] [error] Terraform deploy error: Error: Deployment validation failed after recovery: Missing required field: api_gateway_url, Missing required field: api_key, Missing required field: wif_provider
+[2025-07-20 12:42:09] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 12:42:52] BILLING: [2025-07-20 12:42:52.503] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:42:52] BILLING: [2025-07-20 12:42:52.503] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:42:52] BILLING: [2025-07-20 12:42:52.893] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753033372893
+[2025-07-20 12:42:54] BILLING: [2025-07-20 12:42:54.208] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:42:54] BILLING: [2025-07-20 12:42:54.886] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:43:12] BILLING: [2025-07-20 12:43:12.542] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:43:12] BILLING: [2025-07-20 12:43:12.542] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:43:12] BILLING: [2025-07-20 12:43:12.957] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753033392957
+[2025-07-20 12:43:14] BILLING: [2025-07-20 12:43:14.119] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:43:14] BILLING: [2025-07-20 12:43:14.643] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:43:14] 🚀 DEPLOYMENT STARTED #6
+[2025-07-20 12:43:14] BILLING: [2025-07-20 12:43:14.775] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:43:15] BILLING: [2025-07-20 12:43:15.110] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753033395109
+[2025-07-20 12:43:16] BILLING: [2025-07-20 12:43:16.183] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:43:51] 🌐 API Gateway: - api_gateway_url
+[2025-07-20 12:43:51] 🌐 API Gateway: - Missing required field: api_gateway_url
+[2025-07-20 12:43:52] 🌐 API Gateway: [2025-07-20 12:43:50.162] [info]  Recovering API Gateway URL...
+[2025-07-20 12:43:52] 🌐 API Gateway: [2025-07-20 12:43:50.645] [error] Failed to recover API Gateway URL: Error: Command failed: gcloud api-gateway gateways list --project=potent-arcade-466517-t6 --format=json
+[2025-07-20 12:43:53] ❌ DEPLOYMENT ERROR! (Failures: 4)
+[2025-07-20 12:43:53]    Error: [2025-07-20 12:43:51.578] [error] Terraform deploy error: Error: Deployment validation failed after recovery: Missing required field: api_gateway_url, Missing required field: api_key, Missing required field: wif_provider
+[2025-07-20 12:43:53] 🌐 API Gateway: [2025-07-20 12:43:51.578] [error] Terraform deploy error: Error: Deployment validation failed after recovery: Missing required field: api_gateway_url, Missing required field: api_key, Missing required field: wif_provider
+[2025-07-20 12:53:52] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 12:53:57] BILLING: [2025-07-20 12:53:57.241] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:53:57] BILLING: [2025-07-20 12:53:57.241] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:53:57] BILLING: [2025-07-20 12:53:57.617] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753034037617
+[2025-07-20 12:53:58] BILLING: [2025-07-20 12:53:58.747] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:53:59] BILLING: [2025-07-20 12:53:59.432] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:54:05] BILLING: [2025-07-20 12:54:05.237] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 12:54:05] BILLING: [2025-07-20 12:54:05.237] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:54:05] BILLING: [2025-07-20 12:54:05.565] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753034045565
+[2025-07-20 12:54:06] BILLING: [2025-07-20 12:54:06.743] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:54:07] BILLING: [2025-07-20 12:54:07.335] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 12:54:07] 🚀 DEPLOYMENT STARTED #7
+[2025-07-20 12:54:07] BILLING: [2025-07-20 12:54:07.452] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 12:54:07] BILLING: [2025-07-20 12:54:07.829] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753034047829
+[2025-07-20 12:54:09] BILLING: [2025-07-20 12:54:09.222] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 12:54:43] 🌐 API Gateway: - api_gateway_url
+[2025-07-20 12:54:44] 🌐 API Gateway: - Missing required field: api_gateway_url
+[2025-07-20 12:54:44] 🌐 API Gateway: [2025-07-20 12:54:42.252] [info]  Recovering API Gateway URL...
+[2025-07-20 12:54:44] 🌐 API Gateway: [2025-07-20 12:54:42.721] [error] Failed to recover API Gateway URL: Command failed: gcloud api-gateway gateways list --project=potent-arcade-466517-t6 --format=json
+[2025-07-20 12:54:44] ❌ DEPLOYMENT ERROR! (Failures: 5)
+[2025-07-20 12:54:44]    Error: [2025-07-20 12:54:42.721] [warn]  Using placeholder API Gateway URL - deployment may have failed
+[2025-07-20 12:54:44] 🌐 API Gateway: [2025-07-20 12:54:42.721] [warn]  Using placeholder API Gateway URL - deployment may have failed
+[2025-07-20 12:54:45] ❌ DEPLOYMENT ERROR! (Failures: 6)
+[2025-07-20 12:54:45]    Error: [2025-07-20 12:54:43.672] [error] Terraform deploy error: TypeError: Assignment to constant variable.
+[2025-07-20 12:59:20] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 13:00:05] BILLING: [2025-07-20 13:00:05.508] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 13:00:05] BILLING: [2025-07-20 13:00:05.508] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 13:00:05] BILLING: [2025-07-20 13:00:05.816] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753034405816
+[2025-07-20 13:00:07] BILLING: [2025-07-20 13:00:07.145] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 13:00:07] BILLING: [2025-07-20 13:00:07.961] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 13:00:08] 🚀 DEPLOYMENT STARTED #8
+[2025-07-20 13:00:08] BILLING: [2025-07-20 13:00:08.072] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 13:00:08] BILLING: [2025-07-20 13:00:08.392] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753034408392
+[2025-07-20 13:00:09] BILLING: [2025-07-20 13:00:09.703] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 13:04:16] 🌐 API Gateway: - api_gateway_url
+[2025-07-20 13:04:16] 🌐 API Gateway: - Missing required field: api_gateway_url
+[2025-07-20 13:04:16] 🌐 API Gateway: [2025-07-20 13:04:15.226] [info]  Recovering API Gateway URL...
+[2025-07-20 13:04:17] ❌ DEPLOYMENT ERROR! (Failures: 7)
+[2025-07-20 13:04:17]    Error: [2025-07-20 13:04:17.324] [error] Terraform deploy error: Error: Deployment validation failed after recovery: Missing required field: api_gateway_url, Missing required field: api_key
+[2025-07-20 13:04:17] 🌐 API Gateway: [2025-07-20 13:04:17.324] [error] Terraform deploy error: Error: Deployment validation failed after recovery: Missing required field: api_gateway_url, Missing required field: api_key
+[2025-07-20 13:27:02] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 13:28:56] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 13:29:02] BILLING: [2025-07-20 13:29:02.891] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 13:29:02] BILLING: [2025-07-20 13:29:02.891] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 13:29:03] BILLING: [2025-07-20 13:29:03.302] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753036143302
+[2025-07-20 13:29:04] BILLING: [2025-07-20 13:29:04.619] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 13:29:05] BILLING: [2025-07-20 13:29:05.281] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 13:29:48] BILLING: [2025-07-20 13:29:48.930] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 13:29:48] BILLING: [2025-07-20 13:29:48.930] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 13:29:49] BILLING: [2025-07-20 13:29:49.304] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753036189303
+[2025-07-20 13:29:50] BILLING: [2025-07-20 13:29:50.815] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 13:29:51] BILLING: [2025-07-20 13:29:51.389] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 13:29:51] 🚀 DEPLOYMENT STARTED #9
+[2025-07-20 13:29:51] BILLING: [2025-07-20 13:29:51.495] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 13:29:51] BILLING: [2025-07-20 13:29:51.829] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753036191829
+[2025-07-20 13:29:52] BILLING: [2025-07-20 13:29:52.965] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 13:33:59] 🌐 API Gateway: - api_gateway_url
+[2025-07-20 13:33:59] 🌐 API Gateway: - Missing required field: api_gateway_url
+[2025-07-20 13:33:59] 🌐 API Gateway: [2025-07-20 13:33:58.098] [info]  Recovering API Gateway URL...
+[2025-07-20 13:34:00] ❌ DEPLOYMENT ERROR! (Failures: 8)
+[2025-07-20 13:34:00]    Error: [2025-07-20 13:34:00.168] [error] Terraform deploy error: Error: Deployment validation failed after recovery: Missing required field: api_gateway_url, Missing required field: api_key
+[2025-07-20 13:34:00] 🌐 API Gateway: [2025-07-20 13:34:00.168] [error] Terraform deploy error: Error: Deployment validation failed after recovery: Missing required field: api_gateway_url, Missing required field: api_key
+[2025-07-20 13:38:03] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 13:38:07] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 13:38:09] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 13:40:22] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 13:40:40] BILLING: [2025-07-20 13:40:40.869] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 13:40:40] BILLING: [2025-07-20 13:40:40.869] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 13:40:41] BILLING: [2025-07-20 13:40:41.275] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753036841275
+[2025-07-20 13:40:42] BILLING: [2025-07-20 13:40:42.639] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 13:40:43] BILLING: [2025-07-20 13:40:43.239] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 13:40:43] 🚀 DEPLOYMENT STARTED #10
+[2025-07-20 13:40:43] BILLING: [2025-07-20 13:40:43.394] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 13:40:43] BILLING: [2025-07-20 13:40:43.802] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753036843801
+[2025-07-20 13:40:44] BILLING: [2025-07-20 13:40:44.976] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 13:45:02] 🌐 API Gateway: - api_gateway_url
+[2025-07-20 13:45:02] 🌐 API Gateway: - Missing required field: api_gateway_url
+[2025-07-20 13:45:02] 🌐 API Gateway: [2025-07-20 13:45:00.623] [info]  Recovering API Gateway URL...
+[2025-07-20 13:45:02] ❌ DEPLOYMENT ERROR! (Failures: 9)
+[2025-07-20 13:45:02]    Error: [2025-07-20 13:45:02.659] [error] Terraform deploy error: Error: Deployment validation failed after recovery: Missing required field: api_gateway_url, Missing required field: api_key
+[2025-07-20 13:45:02] 🌐 API Gateway: [2025-07-20 13:45:02.659] [error] Terraform deploy error: Error: Deployment validation failed after recovery: Missing required field: api_gateway_url, Missing required field: api_key
+[2025-07-20 13:55:07] 🌐 API Gateway: apiGatewayUrl: 'https://anava-gateway-2gvbe0bn.uc.gateway.dev',
+[2025-07-20 13:55:14] BILLING: [2025-07-20 13:55:14.809] [info]  🔍 IPC: CHECK-BILLING CALLED FOR PROJECT: potent-arcade-466517-t6
+[2025-07-20 13:55:14] BILLING: [2025-07-20 13:55:14.810] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 13:55:15] BILLING: [2025-07-20 13:55:15.192] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753037715191
+[2025-07-20 13:55:16] BILLING: [2025-07-20 13:55:16.471] [info]  Successfully created test bucket, billing is enabled!
+[2025-07-20 13:55:17] BILLING: [2025-07-20 13:55:17.095] [info]  ✅ IPC: BILLING CHECK RESULT: { enabled: true, method: 'bucket_test' }
+[2025-07-20 13:55:17] 🚀 DEPLOYMENT STARTED #11
+[2025-07-20 13:55:17] BILLING: [2025-07-20 13:55:17.200] [info]  🚀 VERSION 2.0 - NEW BILLING CHECK - Checking billing status for project: potent-arcade-466517-t6
+[2025-07-20 13:55:17] BILLING: [2025-07-20 13:55:17.529] [info]  Testing billing by attempting to create test bucket: anava-billing-test-potent-arcade-466517-t6-1753037717529
+[2025-07-20 13:55:18] BILLING: [2025-07-20 13:55:18.570] [info]  Successfully created test bucket, billing is enabled!

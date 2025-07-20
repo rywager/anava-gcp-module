@@ -1,0 +1,137 @@
+{
+  "timestamp": "2025-07-14T05:03:08.463Z",
+  "version": "2.3.33",
+  "environment": "production",
+  "components": {
+    "Web Deployment Service": {
+      "status": "PARTIAL",
+      "duration": 443,
+      "result": {
+        "name": "Web Deployment Service",
+        "endpoint": "https://anava-deploy-392865621461.us-central1.run.app",
+        "status": "healthy",
+        "version": "2.3.32",
+        "buildTime": "2025-07-14 03:18 UTC",
+        "commit": "de9e78c",
+        "oauth": true,
+        "redis": false,
+        "webInterface": true,
+        "warnings": [
+          "Redis unavailable - session management limited",
+          "Job queue status unknown"
+        ]
+      },
+      "timestamp": "2025-07-14T05:03:08.907Z"
+    },
+    "Camera Orchestrator": {
+      "status": "PARTIAL",
+      "duration": 143,
+      "result": {
+        "name": "Camera Orchestrator",
+        "available": false,
+        "warnings": [
+          "Orchestrator API endpoints not accessible - camera management may be limited"
+        ]
+      },
+      "timestamp": "2025-07-14T05:03:09.051Z"
+    },
+    "PWA Mobile App": {
+      "status": "PARTIAL",
+      "duration": 626,
+      "result": {
+        "name": "PWA Mobile App",
+        "deployed": false,
+        "workingUrl": null,
+        "testedUrls": [
+          {
+            "url": "https://anava-vision-pwa.firebaseapp.com",
+            "status": "not_accessible",
+            "error": "Request failed with status code 404"
+          },
+          {
+            "url": "https://anava-vision-pwa.web.app",
+            "status": "not_accessible",
+            "error": "Request failed with status code 404"
+          }
+        ],
+        "warnings": [
+          "PWA not deployed - mobile app functionality unavailable"
+        ]
+      },
+      "timestamp": "2025-07-14T05:03:09.677Z"
+    },
+    "System Connectivity": {
+      "status": "PARTIAL",
+      "duration": 295,
+      "result": {
+        "name": "System Connectivity",
+        "endpoints": [
+          {
+            "name": "Main Service",
+            "url": "https://anava-deploy-392865621461.us-central1.run.app",
+            "status": 200,
+            "latency": 119,
+            "reachable": true
+          },
+          {
+            "name": "Health Check",
+            "url": "https://anava-deploy-392865621461.us-central1.run.app/health",
+            "status": 200,
+            "latency": 61,
+            "reachable": true
+          },
+          {
+            "name": "OAuth Callback",
+            "url": "https://anava-deploy-392865621461.us-central1.run.app/callback",
+            "reachable": false,
+            "error": "Request failed with status code 400"
+          }
+        ],
+        "reachableCount": 2,
+        "totalCount": 3,
+        "averageLatency": 90,
+        "warnings": [
+          "Some endpoints unreachable"
+        ]
+      },
+      "timestamp": "2025-07-14T05:03:09.972Z"
+    },
+    "Infrastructure Health": {
+      "status": "PARTIAL",
+      "duration": 38,
+      "result": {
+        "name": "Infrastructure Health",
+        "components": {
+          "cloudRun": true,
+          "googleCloud": true,
+          "https": true,
+          "redis": false,
+          "oauth": true,
+          "monitoring": true
+        },
+        "operationalCount": 5,
+        "totalCount": 6,
+        "warnings": [
+          "Redis not available - may impact scalability"
+        ]
+      },
+      "timestamp": "2025-07-14T05:03:10.010Z"
+    }
+  },
+  "summary": {
+    "totalComponents": 5,
+    "operational": 0,
+    "partiallyOperational": 5,
+    "notOperational": 0,
+    "overallHealth": 70
+  },
+  "recommendations": [
+    "Configure Redis for session management and job queuing",
+    "Configure Redis for session management and job queuing",
+    "Address component issues to improve system reliability"
+  ],
+  "nextSteps": [
+    "Set up Redis instance for production scalability",
+    "Set up Redis instance for production scalability"
+  ]
+}

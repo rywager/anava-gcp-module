@@ -35,3 +35,7 @@ node_modules/
 # Ignore OS files
 .DS_Store
 Thumbs.db
+# Ignore Claude settings with potential secrets
+.claude/
+*.claude/settings.local.json
+*.claude.json

@@ -1,0 +1,147 @@
+{
+  "timestamp": "2025-07-14T05:03:06.392Z",
+  "environment": "production",
+  "tests": {
+    "Service Health Check": {
+      "status": "PASSED",
+      "duration": 589,
+      "result": {
+        "status": "healthy",
+        "version": "2.3.32",
+        "buildTime": "2025-07-14 03:18 UTC",
+        "commit": "de9e78c",
+        "redis": false,
+        "oauth": true,
+        "warnings": [
+          "Redis is not available - may impact session management",
+          "Queue length is unknown - background job processing may be affected"
+        ]
+      },
+      "timestamp": "2025-07-14T05:03:06.982Z"
+    },
+    "Web Interface": {
+      "status": "PASSED",
+      "duration": 155,
+      "result": {
+        "loaded": true,
+        "statusCode": 200,
+        "contentType": "text/html; charset=utf-8",
+        "size": "503",
+        "server": "Google Frontend",
+        "warnings": []
+      },
+      "timestamp": "2025-07-14T05:03:07.137Z"
+    },
+    "Security Headers": {
+      "status": "PASSED",
+      "duration": 180,
+      "result": {
+        "present": 0,
+        "missing": 5,
+        "headers": {},
+        "warnings": [
+          "Missing security headers: x-frame-options, x-content-type-options, x-xss-protection, strict-transport-security, content-security-policy"
+        ]
+      },
+      "timestamp": "2025-07-14T05:03:07.317Z"
+    },
+    "Performance Metrics": {
+      "status": "PASSED",
+      "duration": 344,
+      "result": {
+        "tests": [
+          {
+            "name": "Health Check",
+            "duration": 175,
+            "threshold": 2000,
+            "passed": true,
+            "status": 200
+          },
+          {
+            "name": "Main Page",
+            "duration": 168,
+            "threshold": 2000,
+            "passed": true,
+            "status": 200
+          }
+        ],
+        "passed": 2,
+        "total": 2,
+        "averageResponseTime": 172,
+        "warnings": []
+      },
+      "timestamp": "2025-07-14T05:03:07.661Z"
+    },
+    "Deployment Information": {
+      "status": "PASSED",
+      "duration": 176,
+      "result": {
+        "version": "2.3.32",
+        "buildTime": "2025-07-14 03:18 UTC",
+        "commit": "de9e78c",
+        "service": "anava-deploy",
+        "environment": "production",
+        "endpoint": "https://anava-deploy-392865621461.us-central1.run.app",
+        "lastChecked": "2025-07-14T05:03:07.837Z"
+      },
+      "timestamp": "2025-07-14T05:03:07.837Z"
+    },
+    "Connectivity Test": {
+      "status": "PASSED",
+      "duration": 341,
+      "result": {
+        "total": 2,
+        "reachable": 2,
+        "unreachable": 0,
+        "results": [
+          {
+            "name": "Main Service",
+            "url": "https://anava-deploy-392865621461.us-central1.run.app",
+            "status": 200,
+            "duration": 177,
+            "reachable": true
+          },
+          {
+            "name": "Health Check",
+            "url": "https://anava-deploy-392865621461.us-central1.run.app/health",
+            "status": 200,
+            "duration": 163,
+            "reachable": true
+          }
+        ],
+        "warnings": []
+      },
+      "timestamp": "2025-07-14T05:03:08.178Z"
+    },
+    "Service Capabilities": {
+      "status": "PASSED",
+      "duration": 214,
+      "result": {
+        "capabilities": {
+          "healthEndpoint": true,
+          "webInterface": true,
+          "oauth": true,
+          "redis": false,
+          "googleCloudDeployment": true
+        },
+        "available": 4,
+        "total": 5,
+        "warnings": [
+          "Redis not available - sessions may not persist"
+        ]
+      },
+      "timestamp": "2025-07-14T05:03:08.393Z"
+    }
+  },
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "warnings": 0,
+    "successRate": 100,
+    "healthScore": 100
+  },
+  "performance": {},
+  "deployment": {},
+  "errors": []
+}

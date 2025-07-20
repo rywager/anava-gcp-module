@@ -1,0 +1,241 @@
+<!-- Updated showSuccessResults function for link-based outputs -->
+<script>
+function showSuccessResults(outputs) {
+    // Store outputs for download
+    deploymentOutputs = outputs;
+    
+    const resultsContainer = document.getElementById('results-container');
+    resultsContainer.classList.add('visible');
+    
+    // Build resource links section
+    let resourceLinksSection = '';
+    if (outputs.apiKeySecretLink || outputs.firebaseConfigLink) {
+        resourceLinksSection = `
+            <div class="result-section">
+                <h3 class="section-title">🔐 Configuration Resources</h3>
+                <div class="results-grid">
+                    ${outputs.apiKeySecretLink ? `
+                    <div class="result-card">
+                        <h3 class="result-label">API Key</h3>
+                        <div class="result-value">
+                            <a href="${outputs.apiKeySecretLink}" target="_blank" class="resource-link">
+                                View in Secret Manager →
+                            </a>
+                        </div>
+                        <p class="result-description">Click to view and copy your API key</p>
+                    </div>
+                    ` : ''}
+                    
+                    ${outputs.firebaseConfigLink ? `
+                    <div class="result-card">
+                        <h3 class="result-label">Firebase Configuration</h3>
+                        <div class="result-value">
+                            <a href="${outputs.firebaseConfigLink}" target="_blank" class="resource-link">
+                                View in Secret Manager →
+                            </a>
+                        </div>
+                        <p class="result-description">Complete Firebase config JSON</p>
+                    </div>
+                    ` : ''}
+                    
+                    ${outputs.firebaseWebAppLink ? `
+                    <div class="result-card">
+                        <h3 class="result-label">Firebase Console</h3>
+                        <div class="result-value">
+                            <a href="${outputs.firebaseWebAppLink}" target="_blank" class="resource-link">
+                                Open Firebase Console →
+                            </a>
+                        </div>
+                        <p class="result-description">Set up authentication and users</p>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Build additional resource links if available
+    let additionalLinksSection = '';
+    if (outputs.resourceLinks) {
+        additionalLinksSection = `
+            <div class="result-section">
+                <h3 class="section-title">📚 Additional Resources</h3>
+                <div class="results-grid">
+                    ${outputs.resourceLinks.secretManager ? `
+                    <div class="result-card">
+                        <h3 class="result-label">All Secrets</h3>
+                        <div class="result-value">
+                            <a href="${outputs.resourceLinks.secretManager}" target="_blank" class="resource-link">
+                                Secret Manager Console →
+                            </a>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    ${outputs.resourceLinks.apiGateway ? `
+                    <div class="result-card">
+                        <h3 class="result-label">API Gateway</h3>
+                        <div class="result-value">
+                            <a href="${outputs.resourceLinks.apiGateway}" target="_blank" class="resource-link">
+                                API Gateway Console →
+                            </a>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    ${outputs.resourceLinks.cloudFunctions ? `
+                    <div class="result-card">
+                        <h3 class="result-label">Cloud Functions</h3>
+                        <div class="result-value">
+                            <a href="${outputs.resourceLinks.cloudFunctions}" target="_blank" class="resource-link">
+                                Functions Console →
+                            </a>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // API Gateway URL if available
+    let apiGatewaySection = '';
+    if (outputs.apiGatewayUrl && outputs.apiGatewayUrl !== 'Not found') {
+        apiGatewaySection = `
+            <div class="result-section">
+                <h3 class="section-title">🚀 API Gateway</h3>
+                <div class="results-grid">
+                    <div class="result-card full-width">
+                        <h3 class="result-label">API Gateway URL</h3>
+                        <div class="result-value">
+                            <span>${outputs.apiGatewayUrl}</span>
+                            <button class="copy-button" onclick="copyToClipboard('${outputs.apiGatewayUrl}', this)">Copy</button>
+                        </div>
+                        <p class="result-description">Use this URL to access your API endpoints</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    resultsContainer.innerHTML = `
+        <div class="success-animation">
+            <svg class="success-icon" viewBox="0 0 52 52">
+                <circle cx="26" cy="26" r="25" fill="none" stroke="#10b981" stroke-width="2"/>
+                <path fill="none" stroke="#10b981" stroke-width="3" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+            <h2 class="success-title">Deployment Successful!</h2>
+            <p class="success-subtitle">Your Anava infrastructure is ready to use</p>
+        </div>
+        
+        ${apiGatewaySection}
+        ${resourceLinksSection}
+        ${additionalLinksSection}
+        
+        <div class="result-section">
+            <h3 class="section-title">📖 Next Steps</h3>
+            <div class="next-steps">
+                <ol>
+                    <li>Click the <strong>API Key</strong> link to get your device authentication key</li>
+                    <li>Click the <strong>Firebase Configuration</strong> link to get your Firebase config JSON</li>
+                    <li>Open the <strong>Firebase Console</strong> to set up user authentication</li>
+                    <li>Follow the integration guide to update your ACAP application</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button class="action-button secondary" onclick="downloadConfig()">
+                <i class="fas fa-download"></i>
+                Download Configuration
+            </button>
+            <button class="action-button primary" onclick="window.open('/integration-guide', '_blank')">
+                <i class="fas fa-book"></i>
+                View Integration Guide
+            </button>
+        </div>
+    `;
+    
+    // Update all steps to completed
+    deploymentSteps.forEach(step => {
+        updateStepStatus(step.id, 'completed');
+    });
+}
+</script>
+
+<style>
+.resource-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.resource-link:hover {
+    color: var(--primary-dark);
+    transform: translateX(2px);
+}
+
+.result-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.next-steps {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+.next-steps ol {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.next-steps li {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.action-button.primary {
+    background: var(--primary);
+    color: white;
+}
+
+.action-button.primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.action-button.secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+.action-button.secondary:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+</style>

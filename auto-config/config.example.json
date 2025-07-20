@@ -1,0 +1,68 @@
+{
+  "username": "root",
+  "password": "your-camera-password",
+  "network": "192.168.1.0/24",
+  "pwa_config": {
+    "port": 8080,
+    "app_name": "Anava Vision",
+    "app_version": "2.3.31",
+    "theme": {
+      "primary_color": "#007AFF",
+      "secondary_color": "#5856D6",
+      "background": "#FFFFFF",
+      "text": "#000000"
+    },
+    "features": {
+      "live_view": true,
+      "recording": true,
+      "motion_detection": true,
+      "analytics": true,
+      "ptz": true,
+      "audio": true
+    },
+    "cache_strategy": "network-first",
+    "update_interval": 300
+  },
+  "health_monitoring": {
+    "thresholds": {
+      "cpu_percent": 80,
+      "memory_percent": 85,
+      "disk_percent": 90,
+      "response_time": 5000,
+      "error_rate": 0.05
+    },
+    "check_intervals": {
+      "system_resources": 30,
+      "camera_connectivity": 60,
+      "websocket_health": 30,
+      "certificate_validity": 3600
+    },
+    "alerts": {
+      "webhook": null,
+      "email": null,
+      "slack": null
+    },
+    "recovery": {
+      "auto_restart": true,
+      "max_restart_attempts": 3,
+      "restart_delay": 30
+    }
+  },
+  "certificate_management": {
+    "warning_days": 30,
+    "auto_trust_self_signed": true,
+    "scan_interval": 86400
+  },
+  "discovery": {
+    "methods": ["upnp", "bonjour", "adp", "network_scan"],
+    "timeout": 5,
+    "concurrent_scans": 50,
+    "common_ports": [80, 443, 554]
+  },
+  "websocket": {
+    "test_duration": 5,
+    "max_message_size": 10485760,
+    "prefer_secure": true,
+    "quality_test": true
+  }
+}

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: anava-vision
+  labels:
+    name: anava-vision
+    istio-injection: enabled
+    monitoring: enabled

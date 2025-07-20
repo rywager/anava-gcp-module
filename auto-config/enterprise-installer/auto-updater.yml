@@ -1,0 +1,208 @@
+# Anava Vision Auto-Updater Configuration
+# This configuration manages automatic updates for the entire stack
+
+version: '1.0'
+
+update_schedule:
+  # Cron expression for update checks (daily at 2 AM)
+  check_interval: "0 2 * * *"
+  
+  # Update window (maintenance window)
+  update_window:
+    start_time: "02:00"
+    end_time: "04:00"
+    timezone: "UTC"
+    days_of_week: ["tuesday", "thursday"]  # Only update on these days
+
+update_strategy:
+  # Update strategy: rolling, recreate, or blue-green
+  type: "rolling"
+  
+  # Maximum services to update simultaneously
+  max_parallel: 2
+  
+  # Health check before marking update as successful
+  health_check:
+    enabled: true
+    timeout: 300  # seconds
+    retries: 3
+    
+  # Rollback configuration
+  rollback:
+    enabled: true
+    on_failure: true
+    keep_versions: 3
+
+services:
+  # Service-specific update configurations
+  traefik:
+    auto_update: true
+    image_pattern: "traefik:v3.*"
+    health_endpoint: "/ping"
+    priority: 1
+    
+  postgres:
+    auto_update: false  # Manual updates only for database
+    backup_before_update: true
+    backup_retention: 7  # days
+    
+  redis:
+    auto_update: true
+    image_pattern: "redis:7-alpine"
+    priority: 2
+    
+  supervisor:
+    auto_update: true
+    build_context: true  # Rebuild from Dockerfile
+    priority: 3
+    
+  camera-streams:
+    auto_update: true
+    image_pattern: "anava/stream-processor:*"
+    priority: 4
+    graceful_shutdown: 30  # seconds
+    
+  web-app:
+    auto_update: true
+    image_pattern: "anava/web-app:*"
+    priority: 5
+    zero_downtime: true
+    
+  api:
+    auto_update: true
+    image_pattern: "anava/api-server:*"
+    priority: 5
+    zero_downtime: true
+    database_migration: true
+    
+  webrtc:
+    auto_update: true
+    image_pattern: "anava/webrtc-server:*"
+    priority: 6
+    
+  prometheus:
+    auto_update: true
+    image_pattern: "prom/prometheus:latest"
+    priority: 7
+    config_reload: true
+    
+  grafana:
+    auto_update: true
+    image_pattern: "grafana/grafana:latest"
+    priority: 8
+    backup_dashboards: true
+    
+  loki:
+    auto_update: true
+    image_pattern: "grafana/loki:latest"
+    priority: 9
+    
+  watchtower:
+    auto_update: true
+    image_pattern: "containrrr/watchtower:latest"
+    priority: 10
+
+notifications:
+  # Email notifications
+  email:
+    enabled: true
+    smtp_server: "${SMTP_SERVER}"
+    smtp_port: "${SMTP_PORT}"
+    smtp_user: "${SMTP_USER}"
+    smtp_password: "${SMTP_PASSWORD}"
+    from: "${EMAIL_FROM}"
+    to: "${EMAIL_TO}"
+    
+    # Notification triggers
+    notify_on:
+      - update_available
+      - update_started
+      - update_completed
+      - update_failed
+      - rollback_performed
+      
+  # Webhook notifications
+  webhook:
+    enabled: false
+    url: ""
+    secret: ""
+    
+  # Slack notifications
+  slack:
+    enabled: false
+    webhook_url: ""
+    channel: "#ops"
+
+security:
+  # Verify image signatures
+  verify_signatures: true
+  
+  # Allowed registries
+  allowed_registries:
+    - "docker.io"
+    - "ghcr.io"
+    - "registry.anava.vision"
+    
+  # Security scanning
+  scan_images: true
+  block_on_vulnerabilities: true
+  severity_threshold: "high"
+
+backup:
+  # Backup configuration before updates
+  enabled: true
+  
+  # Backup locations
+  locations:
+    - "/opt/anava-vision/backups"
+    - "s3://anava-backups/updates"
+    
+  # What to backup
+  include:
+    - configuration: true
+    - volumes: true
+    - databases: true
+    
+  # Retention policy
+  retention:
+    daily: 7
+    weekly: 4
+    monthly: 12
+
+monitoring:
+  # Prometheus metrics
+  metrics:
+    enabled: true
+    port: 9090
+    path: "/metrics"
+    
+  # Health checks
+  health_checks:
+    - name: "docker_daemon"
+      command: "docker info"
+      interval: 60
+      
+    - name: "disk_space"
+      command: "df -h | grep -E '^/dev/'"
+      threshold: 80  # percentage
+      
+    - name: "memory_usage"
+      command: "free -m"
+      threshold: 80  # percentage
+      
+    - name: "service_health"
+      command: "docker compose ps --format json"
+      interval: 30
+
+logging:
+  # Update logs
+  log_level: "info"
+  log_file: "/var/log/anava-vision/updater.log"
+  max_size: "100M"
+  max_files: 10
+  
+  # Audit logging
+  audit:
+    enabled: true
+    include_diff: true
+    sign_logs: true

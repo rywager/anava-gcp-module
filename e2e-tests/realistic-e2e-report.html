@@ -1,0 +1,305 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anava Vision E2E Validation Report</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
+        .header h1 { margin: 0 0 10px 0; font-size: 28px; }
+        .header p { margin: 5px 0; opacity: 0.9; }
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
+        .metric { background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .metric h3 { margin: 0 0 10px 0; color: #666; font-size: 14px; text-transform: uppercase; }
+        .metric .value { font-size: 32px; font-weight: bold; margin: 10px 0; }
+        .health-score { color: #28a745; }
+        .test-results { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-result { padding: 20px; border-bottom: 1px solid #eee; }
+        .test-result:last-child { border-bottom: none; }
+        .test-header { display: flex; align-items: center; justify-content: between; margin-bottom: 10px; }
+        .test-title { font-size: 18px; font-weight: 600; margin: 0 10px 0 0; }
+        .test-duration { color: #666; font-size: 14px; }
+        .test-details { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 10px; }
+        .warnings { color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .json-view { background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 6px; font-family: 'Monaco', 'Consolas', monospace; font-size: 12px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Anava Vision System</h1>
+            <h2>Production E2E Validation Report</h2>
+            <p><strong>Timestamp:</strong> 2025-07-14T05:03:06.392Z</p>
+            <p><strong>Environment:</strong> production</p>
+            <p><strong>Service:</strong> https://anava-deploy-392865621461.us-central1.run.app</p>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric">
+                <h3>Health Score</h3>
+                <div class="value health-score">100%</div>
+            </div>
+            <div class="metric">
+                <h3>Tests Passed</h3>
+                <div class="value" style="color: #28a745;">7</div>
+            </div>
+            <div class="metric">
+                <h3>Warnings</h3>
+                <div class="value" style="color: #ffc107;">0</div>
+            </div>
+            <div class="metric">
+                <h3>Failed</h3>
+                <div class="value" style="color: #dc3545;">0</div>
+            </div>
+        </div>
+        
+        <div class="test-results">
+            <h2 style="padding: 20px 20px 0 20px; margin: 0;">📋 Test Results</h2>
+            
+                <div class="test-result">
+                    <div class="test-header">
+                        <span class="test-title">✅ Service Health Check</span>
+                        <span class="test-duration">589ms</span>
+                    </div>
+                    <div style="color: #28a745; font-weight: 600; margin-bottom: 10px;">
+                        PASSED
+                    </div>
+                    
+                        <div class="warnings">
+                            <strong>⚠️ Warnings:</strong><br>
+                            • Redis is not available - may impact session management<br>• Queue length is unknown - background job processing may be affected
+                        </div>
+                    
+                    
+                    
+                        <div class="test-details">
+                            <strong>Details:</strong>
+                            <div class="json-view">{
+  "status": "healthy",
+  "version": "2.3.32",
+  "buildTime": "2025-07-14 03:18 UTC",
+  "commit": "de9e78c",
+  "redis": false,
+  "oauth": true,
+  "warnings": [
+    "Redis is not available - may impact session management",
+    "Queue length is unknown - background job processing may be affected"
+  ]
+}</div>
+                        </div>
+                    
+                </div>
+            
+                <div class="test-result">
+                    <div class="test-header">
+                        <span class="test-title">✅ Web Interface</span>
+                        <span class="test-duration">155ms</span>
+                    </div>
+                    <div style="color: #28a745; font-weight: 600; margin-bottom: 10px;">
+                        PASSED
+                    </div>
+                    
+                    
+                    
+                        <div class="test-details">
+                            <strong>Details:</strong>
+                            <div class="json-view">{
+  "loaded": true,
+  "statusCode": 200,
+  "contentType": "text/html; charset=utf-8",
+  "size": "503",
+  "server": "Google Frontend",
+  "warnings": []
+}</div>
+                        </div>
+                    
+                </div>
+            
+                <div class="test-result">
+                    <div class="test-header">
+                        <span class="test-title">✅ Security Headers</span>
+                        <span class="test-duration">180ms</span>
+                    </div>
+                    <div style="color: #28a745; font-weight: 600; margin-bottom: 10px;">
+                        PASSED
+                    </div>
+                    
+                        <div class="warnings">
+                            <strong>⚠️ Warnings:</strong><br>
+                            • Missing security headers: x-frame-options, x-content-type-options, x-xss-protection, strict-transport-security, content-security-policy
+                        </div>
+                    
+                    
+                    
+                        <div class="test-details">
+                            <strong>Details:</strong>
+                            <div class="json-view">{
+  "present": 0,
+  "missing": 5,
+  "headers": {},
+  "warnings": [
+    "Missing security headers: x-frame-options, x-content-type-options, x-xss-protection, strict-transport-security, content-security-policy"
+  ]
+}</div>
+                        </div>
+                    
+                </div>
+            
+                <div class="test-result">
+                    <div class="test-header">
+                        <span class="test-title">✅ Performance Metrics</span>
+                        <span class="test-duration">344ms</span>
+                    </div>
+                    <div style="color: #28a745; font-weight: 600; margin-bottom: 10px;">
+                        PASSED
+                    </div>
+                    
+                    
+                    
+                        <div class="test-details">
+                            <strong>Details:</strong>
+                            <div class="json-view">{
+  "tests": [
+    {
+      "name": "Health Check",
+      "duration": 175,
+      "threshold": 2000,
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Main Page",
+      "duration": 168,
+      "threshold": 2000,
+      "passed": true,
+      "status": 200
+    }
+  ],
+  "passed": 2,
+  "total": 2,
+  "averageResponseTime": 172,
+  "warnings": []
+}</div>
+                        </div>
+                    
+                </div>
+            
+                <div class="test-result">
+                    <div class="test-header">
+                        <span class="test-title">✅ Deployment Information</span>
+                        <span class="test-duration">176ms</span>
+                    </div>
+                    <div style="color: #28a745; font-weight: 600; margin-bottom: 10px;">
+                        PASSED
+                    </div>
+                    
+                    
+                    
+                        <div class="test-details">
+                            <strong>Details:</strong>
+                            <div class="json-view">{
+  "version": "2.3.32",
+  "buildTime": "2025-07-14 03:18 UTC",
+  "commit": "de9e78c",
+  "service": "anava-deploy",
+  "environment": "production",
+  "endpoint": "https://anava-deploy-392865621461.us-central1.run.app",
+  "lastChecked": "2025-07-14T05:03:07.837Z"
+}</div>
+                        </div>
+                    
+                </div>
+            
+                <div class="test-result">
+                    <div class="test-header">
+                        <span class="test-title">✅ Connectivity Test</span>
+                        <span class="test-duration">341ms</span>
+                    </div>
+                    <div style="color: #28a745; font-weight: 600; margin-bottom: 10px;">
+                        PASSED
+                    </div>
+                    
+                    
+                    
+                        <div class="test-details">
+                            <strong>Details:</strong>
+                            <div class="json-view">{
+  "total": 2,
+  "reachable": 2,
+  "unreachable": 0,
+  "results": [
+    {
+      "name": "Main Service",
+      "url": "https://anava-deploy-392865621461.us-central1.run.app",
+      "status": 200,
+      "duration": 177,
+      "reachable": true
+    },
+    {
+      "name": "Health Check",
+      "url": "https://anava-deploy-392865621461.us-central1.run.app/health",
+      "status": 200,
+      "duration": 163,
+      "reachable": true
+    }
+  ],
+  "warnings": []
+}</div>
+                        </div>
+                    
+                </div>
+            
+                <div class="test-result">
+                    <div class="test-header">
+                        <span class="test-title">✅ Service Capabilities</span>
+                        <span class="test-duration">214ms</span>
+                    </div>
+                    <div style="color: #28a745; font-weight: 600; margin-bottom: 10px;">
+                        PASSED
+                    </div>
+                    
+                        <div class="warnings">
+                            <strong>⚠️ Warnings:</strong><br>
+                            • Redis not available - sessions may not persist
+                        </div>
+                    
+                    
+                    
+                        <div class="test-details">
+                            <strong>Details:</strong>
+                            <div class="json-view">{
+  "capabilities": {
+    "healthEndpoint": true,
+    "webInterface": true,
+    "oauth": true,
+    "redis": false,
+    "googleCloudDeployment": true
+  },
+  "available": 4,
+  "total": 5,
+  "warnings": [
+    "Redis not available - sessions may not persist"
+  ]
+}</div>
+                        </div>
+                    
+                </div>
+            
+        </div>
+        
+        <div style="margin-top: 20px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2>🔧 System Configuration</h2>
+            <div class="json-view">{
+  "webService": "https://anava-deploy-392865621461.us-central1.run.app",
+  "timeout": 30000,
+  "performanceThresholds": {
+    "healthCheck": 1000,
+    "pageLoad": 3000,
+    "apiResponse": 2000
+  }
+}</div>
+        </div>
+    </div>
+</body>
+</html>
