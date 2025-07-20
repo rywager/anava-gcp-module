@@ -303,7 +303,9 @@ const SetupWizard: React.FC = () => {
     
     try {
       const billingStatus = await window.electronAPI.gcpAPI.checkBilling(state.selectedProject);
-      if (!billingStatus.enabled) {
+      
+      // Only block if we're CERTAIN billing is not enabled
+      if (!billingStatus.enabled && !billingStatus.requiresManualCheck) {
         setState(prev => ({ 
           ...prev, 
           checkingBilling: false,
@@ -312,6 +314,9 @@ const SetupWizard: React.FC = () => {
           isDeploying: false
         }));
         return;
+      } else if (billingStatus.requiresManualCheck) {
+        // Can't verify billing (Cloud Billing API not enabled), but continue
+        console.log('Cannot verify billing status, continuing with deployment...');
       }
     } catch (error) {
       console.error('Error checking billing:', error);
