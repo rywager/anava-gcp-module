@@ -6,6 +6,7 @@ const http = require('http');
 const fs = require('fs').promises;
 const crypto = require('crypto');
 const os = require('os');
+const log = require('electron-log');
 
 class GCPAuthService {
   constructor(store) {
@@ -32,7 +33,6 @@ class GCPAuthService {
   }
 
   async loadOAuthConfig() {
-    const log = require('electron-log');
     try {
       // First try app directory
       let configPath = path.join(app.getAppPath(), 'oauth-config.json');
@@ -171,7 +171,6 @@ class GCPAuthService {
   }
 
   async authenticate() {
-    const log = require('electron-log');
     log.info('GCPAuthService.authenticate() called');
     
     if (!this.oauth2Client) {
@@ -245,7 +244,6 @@ class GCPAuthService {
   }
 
   async startAuthFlow() {
-    const log = require('electron-log');
     log.info('Starting OAuth authentication flow...');
     
     return new Promise((resolve, reject) => {
